@@ -25,6 +25,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
     data object Settings : Screen("settings", "Settings")
     data object Player : Screen("player", "Player")
     data object Onboarding : Screen("onboarding", "Welcome")
+    data object About : Screen("about", "About Arvexa Player")
 }
 
 val BottomNavItems = listOf(

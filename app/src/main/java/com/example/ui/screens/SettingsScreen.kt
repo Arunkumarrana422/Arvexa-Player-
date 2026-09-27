@@ -83,7 +83,8 @@ fun SettingsScreen(
     onSaveHistoryToggle: (Boolean) -> Unit,
     onRescanLibrary: () -> Unit,
     onClearWatchHistory: () -> Unit,
-    onClearSearchHistory: () -> Unit
+    onClearSearchHistory: () -> Unit,
+    onNavigateToAbout: () -> Unit = {}
 ) {
     var themeMenuExpanded by remember { mutableStateOf(false) }
     var seekMenuExpanded by remember { mutableStateOf(false) }
@@ -324,37 +325,13 @@ fun SettingsScreen(
                 SettingsSection(title = "ABOUT ARVEXA PLAYER") {
                     SettingsClickableRow(
                         icon = Icons.Default.Info,
-                        title = "Arvexa Player",
-                        subtitle = "Version 1.0.1 (Hardware Accelerated Media Engine)",
-                        onClick = { showAboutDialog = true }
+                        title = "About Arvexa Player",
+                        subtitle = "Version 1.0.1 • Created by Arun Kumar Rana",
+                        onClick = onNavigateToAbout
                     )
                 }
             }
         }
-    }
-
-    if (showAboutDialog) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showAboutDialog = false },
-            title = {
-                Text("Arvexa Player v1.0.1", fontWeight = FontWeight.Bold)
-            },
-            text = {
-                Column {
-                    Text("• Hardware Accelerated Video Decoding (HW+ / SW)")
-                    Text("• Arvexa Fluid Gestures (Volume, Brightness, Seek, 2x Speed)")
-                    Text("• Multi-track Audio and Subtitle sync (.srt / .vtt)")
-                    Text("• Custom Playlists and Folder Exploration")
-                    Text("• HTTP, HTTPS, and HLS Streaming Support")
-                    Text("• Picture-in-Picture & Background Playback")
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAboutDialog = false }) {
-                    Text("Close")
-                }
-            }
-        )
     }
 }
 

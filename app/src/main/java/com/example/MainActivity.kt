@@ -87,6 +87,7 @@ import com.example.ui.components.NovaAppBar
 import com.example.ui.components.VideoInfoBottomSheet
 import com.example.ui.navigation.BottomNavItems
 import com.example.ui.navigation.Screen
+import com.example.ui.screens.AboutScreen
 import com.example.ui.screens.FavoritesScreen
 import com.example.ui.screens.FoldersScreen
 import com.example.ui.screens.HistoryScreen
@@ -760,7 +761,14 @@ fun NovaPlayerApp(
                         onSaveHistoryToggle = { viewModel.setSaveHistory(it) },
                         onRescanLibrary = { viewModel.scanLibrary() },
                         onClearWatchHistory = { viewModel.clearAllHistory() },
-                        onClearSearchHistory = { viewModel.clearSearchHistory() }
+                        onClearSearchHistory = { viewModel.clearSearchHistory() },
+                        onNavigateToAbout = { navController.navigate(Screen.About.route) }
+                    )
+                }
+
+                composable(Screen.About.route) {
+                    AboutScreen(
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
