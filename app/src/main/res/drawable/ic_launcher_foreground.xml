@@ -6,58 +6,14 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Outer Soft Ambient Ring -->
+    <!-- Soft drop shadow under play button -->
     <path
-        android:pathData="M54,54m-31,0a31,31 0,1 1,62 0a31,31 0,1 1,-62 0">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:startX="23"
-                android:startY="23"
-                android:endX="85"
-                android:endY="85"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#404F46E5" />
-                <item android:offset="1.0" android:color="#2022D3EE" />
-            </gradient>
-        </aapt:attr>
-    </path>
+        android:pathData="M44,40 C44,37 47.3,35.1 49.9,36.7 L73.8,50.7 C76.3,52.2 76.3,55.8 73.8,57.3 L49.9,71.3 C47.3,72.9 44,71.0 44,68.0 Z"
+        android:fillColor="#33000000" />
 
-    <!-- Main Solid Gradient Circle Logo (Exact match with App Bar and About Screen) -->
+    <!-- Pure White Bold Play Icon (Optically centered) -->
     <path
-        android:pathData="M54,54m-27,0a27,27 0,1 1,54 0a27,27 0,1 1,-54 0">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:startX="27"
-                android:startY="27"
-                android:endX="81"
-                android:endY="81"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#4F46E5" />
-                <item android:offset="0.5" android:color="#2563EB" />
-                <item android:offset="1.0" android:color="#22D3EE" />
-            </gradient>
-        </aapt:attr>
-    </path>
-
-    <!-- Subtle Circular Top Highlight / Glass Sheen -->
-    <path
-        android:pathData="M54,54m-27,0a27,27 0,1 1,54 0a27,27 0,1 1,-54 0">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:startX="54"
-                android:startY="27"
-                android:endX="54"
-                android:endY="60"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#40FFFFFF" />
-                <item android:offset="1.0" android:color="#00FFFFFF" />
-            </gradient>
-        </aapt:attr>
-    </path>
-
-    <!-- Pure White Modern Play Triangle (Centered with optical offset) -->
-    <path
-        android:pathData="M47.5,41.5 L65.5,52.2 C67.5,53.4 67.5,56.6 65.5,57.8 L47.5,68.5 C45.5,69.7 43.0,68.2 43.0,65.8 L43.0,44.2 C43.0,41.8 45.5,40.3 47.5,41.5 Z"
+        android:pathData="M44,38.5 C44,35.5 47.3,33.6 49.9,35.2 L73.8,49.2 C76.3,50.7 76.3,54.3 73.8,55.8 L49.9,69.8 C47.3,71.4 44,69.5 44,66.5 Z"
         android:fillColor="#FFFFFF" />
 
 </vector>
