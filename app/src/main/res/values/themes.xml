@@ -6,6 +6,6 @@
         <item name="android:navigationBarColor">#F8FAFC</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">#F8FAFC</item>
-        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@drawable/ic_splash_icon</item>
     </style>
 </resources>
