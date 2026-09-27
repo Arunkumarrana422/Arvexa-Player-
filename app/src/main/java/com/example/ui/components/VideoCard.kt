@@ -175,20 +175,6 @@ fun VideoCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // NEW Text top-left corner
-                if (video.isNew && !isCurrentlyPlaying) {
-                    Text(
-                        text = "NEW",
-                        color = Color(0xFFFF2A4B),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.6.sp,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 6.dp, top = 4.dp)
-                    )
-                }
-
                 // Playing state overlay or Play Icon overlay
                 if (isCurrentlyPlaying) {
                     Box(
@@ -324,6 +310,15 @@ fun VideoCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
+                    if (video.isNew) {
+                        Text(
+                            text = "• NEW",
+                            color = Color(0xFFFF2A4B),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
                 }
 
                 if (isCurrentlyPlaying) {
@@ -464,20 +459,6 @@ fun VideoGridCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // NEW Text top-left corner
-                if (video.isNew && !isCurrentlyPlaying) {
-                    Text(
-                        text = "NEW",
-                        color = Color(0xFFFF2A4B),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.6.sp,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 8.dp, top = 6.dp)
-                    )
-                }
-
                 if (isCurrentlyPlaying) {
                     Box(
                         modifier = Modifier
@@ -571,17 +552,31 @@ fun VideoGridCard(
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = video.folderName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isPartiallyWatched) HalfWatchedColor else NovaAccent,
-                        fontSize = 10.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
+                    Row(
+                        modifier = Modifier.weight(1f, fill = false),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = video.folderName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isPartiallyWatched) HalfWatchedColor else NovaAccent,
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (video.isNew) {
+                            Text(
+                                text = "• NEW",
+                                color = Color(0xFFFF2A4B),
+                                fontSize = 9.5.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
                     Text(
                         text = video.sizeFormatted,
                         style = MaterialTheme.typography.bodySmall,

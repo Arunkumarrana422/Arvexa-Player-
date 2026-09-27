@@ -347,19 +347,6 @@ private fun ContinueWatchingCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                if (video.isNew && !isCurrentlyPlaying) {
-                    Text(
-                        text = "NEW",
-                        color = Color(0xFFFF2A4B),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.6.sp,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 8.dp, top = 6.dp)
-                    )
-                }
-
                 if (isCurrentlyPlaying) {
                     Box(
                         modifier = Modifier
