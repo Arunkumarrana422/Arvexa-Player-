@@ -348,26 +348,16 @@ private fun ContinueWatchingCard(
                 )
 
                 if (video.isNew && !isCurrentlyPlaying) {
-                    Box(
+                    Text(
+                        text = "NEW",
+                        color = Color(0xFFFF2A4B),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.6.sp,
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .padding(6.dp)
-                            .background(
-                                androidx.compose.ui.graphics.Brush.linearGradient(
-                                    listOf(Color(0xFFFF1744), Color(0xFFD50000))
-                                ),
-                                RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "NEW",
-                            color = Color.White,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
+                            .padding(start = 8.dp, top = 6.dp)
+                    )
                 }
 
                 if (isCurrentlyPlaying) {

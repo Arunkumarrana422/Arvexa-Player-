@@ -175,28 +175,18 @@ fun VideoCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // NEW Badge top-left corner
+                // NEW Text top-left corner
                 if (video.isNew && !isCurrentlyPlaying) {
-                    Box(
+                    Text(
+                        text = "NEW",
+                        color = Color(0xFFFF2A4B),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.6.sp,
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .padding(4.dp)
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(Color(0xFFFF1744), Color(0xFFD50000))
-                                ),
-                                RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 5.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "NEW",
-                            color = Color.White,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
+                            .padding(start = 6.dp, top = 4.dp)
+                    )
                 }
 
                 // Playing state overlay or Play Icon overlay
@@ -474,28 +464,18 @@ fun VideoGridCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // NEW Badge top-left corner
+                // NEW Text top-left corner
                 if (video.isNew && !isCurrentlyPlaying) {
-                    Box(
+                    Text(
+                        text = "NEW",
+                        color = Color(0xFFFF2A4B),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.6.sp,
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .padding(6.dp)
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(Color(0xFFFF1744), Color(0xFFD50000))
-                                ),
-                                RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "NEW",
-                            color = Color.White,
-                            fontSize = 9.5.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
+                            .padding(start = 8.dp, top = 6.dp)
+                    )
                 }
 
                 if (isCurrentlyPlaying) {
