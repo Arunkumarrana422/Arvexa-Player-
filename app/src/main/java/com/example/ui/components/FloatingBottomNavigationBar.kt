@@ -82,9 +82,9 @@ fun FloatingBottomNavigationBar(
     }
 
     val surfaceColor = if (isDark) {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+        Color(0xFF131B2E)
     } else {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
+        MaterialTheme.colorScheme.surface
     }
 
     Box(
@@ -99,7 +99,7 @@ fun FloatingBottomNavigationBar(
             shape = RoundedCornerShape(32.dp),
             color = surfaceColor,
             tonalElevation = 0.dp,
-            shadowElevation = if (isDark) 4.dp else 3.dp,
+            shadowElevation = 2.dp,
             border = navBorder,
             modifier = Modifier.fillMaxWidth()
         ) {

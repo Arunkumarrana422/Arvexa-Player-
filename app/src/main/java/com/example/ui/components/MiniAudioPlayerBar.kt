@@ -3,26 +3,27 @@ package com.example.ui.components
 import android.content.ContentUris
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -31,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -94,12 +97,10 @@ fun MiniAudioPlayerContent(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cardShape = RoundedCornerShape(16.dp)
-
     AnimatedVisibility(
         visible = song != null,
-        enter = slideInVertically(initialOffsetY = { it }),
-        exit = slideOutVertically(targetOffsetY = { it }),
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn() + scaleIn(initialScale = 0.92f),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut() + scaleOut(targetScale = 0.92f),
         modifier = modifier
     ) {
         if (song != null) {
@@ -109,31 +110,31 @@ fun MiniAudioPlayerContent(
                 onClick = onExpandFullPlayer,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clip(cardShape)
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
                     .testTag("mini_audio_player_bar"),
-                shape = cardShape,
+                shape = RoundedCornerShape(16.dp),
                 border = nightGlassBorder(intensity = 1.2f),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 8.dp, end = 6.dp, top = 8.dp, bottom = 6.dp),
+                            .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val albumArtUri = remember(song.albumId) {
                             ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
                         }
-                        // Album Art Icon Box
+
+                        // Album Art Thumbnail (Matching video 68x46 landscape box)
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .size(width = 68.dp, height = 46.dp)
+                                .clip(RoundedCornerShape(8.dp))
                                 .background(
                                     Brush.linearGradient(
                                         listOf(NovaPrimary, NovaSecondary)
@@ -145,7 +146,7 @@ fun MiniAudioPlayerContent(
                                 model = albumArtUri,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                contentScale = ContentScale.Crop
                             )
                             if (isPlaying) {
                                 Box(
@@ -159,22 +160,23 @@ fun MiniAudioPlayerContent(
                                         barColor = Color.White
                                     )
                                 }
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.MusicNote,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.width(10.dp))
 
-                        // Song Info
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.Center
-                        ) {
+                        // Title & Artist / Time Status (Matching video style)
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = song.title,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 13.5.sp
-                                ),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -182,102 +184,90 @@ fun MiniAudioPlayerContent(
                             Spacer(modifier = Modifier.height(2.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = song.artist,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                    text = "${Video.formatDuration(currentPositionMs)} / ${Video.formatDuration(durationMs.takeIf { it > 0 } ?: song.durationMs)}",
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = NovaAccent,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f, fill = false)
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = " • ${Video.formatDuration(currentPositionMs)} / ${Video.formatDuration(durationMs.takeIf { it > 0 } ?: song.durationMs)}",
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.5.sp),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = "• ${song.artist}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
 
-                        // Previous track button
+                        // Previous Track
                         IconButton(
                             onClick = onPrevious,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipPrevious,
-                                contentDescription = "Previous Track",
-                                tint = MaterialTheme.colorScheme.onSurface,
+                                contentDescription = "Previous",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
 
-                        // Play/Pause button
+                        // Play/Pause Action
                         IconButton(
                             onClick = onTogglePlayPause,
                             modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(NovaAccent.copy(alpha = 0.15f), CircleShape)
+                                .size(36.dp)
+                                .testTag("mini_audio_play_pause")
                         ) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = if (isPlaying) "Pause" else "Play",
-                                tint = NovaAccent,
-                                modifier = Modifier.size(22.dp)
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(26.dp)
                             )
                         }
 
-                        // Next track button
+                        // Next Track
                         IconButton(
                             onClick = onNext,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
-                                contentDescription = "Next Track",
-                                tint = MaterialTheme.colorScheme.onSurface,
+                                contentDescription = "Next",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
 
-                        // Close button
+                        // Close Action
                         IconButton(
                             onClick = onClose,
                             modifier = Modifier
                                 .size(32.dp)
-                                .clip(CircleShape)
+                                .testTag("mini_audio_close")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Dismiss Player",
+                                contentDescription = "Close",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
 
-                    // Progress bar line at bottom
-                    Box(
+                    // Bottom progress indicator
+                    LinearProgressIndicator(
+                        progress = { progressFraction },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(3.dp)
-                            .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(progressFraction)
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(NovaPrimary, NovaAccent)
-                                    )
-                                )
-                        )
-                    }
+                            .height(2.5.dp),
+                        color = NovaAccent,
+                        trackColor = Color(0x33FFFFFF)
+                    )
                 }
             }
         }
