@@ -2,7 +2,6 @@ package com.example.ui.components
 
 import android.content.ContentUris
 import android.net.Uri
-import coil.compose.AsyncImage
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,9 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -34,7 +31,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,13 +47,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
 import com.example.ui.theme.NovaAccent
-import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
+import com.example.ui.theme.nightGlassBorder
 
 @Composable
 fun MiniAudioPlayerBar(
@@ -65,38 +62,40 @@ fun MiniAudioPlayerBar(
     onExpand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val song by audioPlayerManager.currentSong.collectAsState()
+    val currentSong by audioPlayerManager.currentSong.collectAsState()
     val isPlaying by audioPlayerManager.isPlaying.collectAsState()
     val currentPositionMs by audioPlayerManager.currentPositionMs.collectAsState()
     val durationMs by audioPlayerManager.durationMs.collectAsState()
 
-    MiniAudioPlayerBar(
-        song = song,
+    MiniAudioPlayerContent(
+        song = currentSong,
         isPlaying = isPlaying,
         currentPositionMs = currentPositionMs,
         durationMs = durationMs,
         onExpandFullPlayer = onExpand,
         onTogglePlayPause = { audioPlayerManager.togglePlayPause() },
+        onNext = { audioPlayerManager.nextSong() },
         onPrevious = { audioPlayerManager.previousSong() },
-        onNext = { audioPlayerManager.playNext() },
         onClose = { audioPlayerManager.stopAndDismiss() },
         modifier = modifier
     )
 }
 
 @Composable
-fun MiniAudioPlayerBar(
+fun MiniAudioPlayerContent(
     song: Song?,
     isPlaying: Boolean,
     currentPositionMs: Long,
     durationMs: Long,
     onExpandFullPlayer: () -> Unit,
     onTogglePlayPause: () -> Unit,
-    onPrevious: () -> Unit,
     onNext: () -> Unit,
+    onPrevious: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val cardShape = RoundedCornerShape(16.dp)
+
     AnimatedVisibility(
         visible = song != null,
         enter = slideInVertically(initialOffsetY = { it }),
@@ -107,12 +106,13 @@ fun MiniAudioPlayerBar(
             val progressFraction = if (durationMs > 0) (currentPositionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
 
             Card(
+                onClick = onExpandFullPlayer,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clickable(onClick = onExpandFullPlayer)
+                    .clip(cardShape)
                     .testTag("mini_audio_player_bar"),
-                shape = RoundedCornerShape(14.dp),
+                shape = cardShape,
                 border = nightGlassBorder(intensity = 1.2f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -133,7 +133,7 @@ fun MiniAudioPlayerBar(
                         Box(
                             modifier = Modifier
                                 .size(44.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     Brush.linearGradient(
                                         listOf(NovaPrimary, NovaSecondary)
@@ -200,7 +200,9 @@ fun MiniAudioPlayerBar(
                         // Previous track button
                         IconButton(
                             onClick = onPrevious,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipPrevious,
@@ -215,6 +217,7 @@ fun MiniAudioPlayerBar(
                             onClick = onTogglePlayPause,
                             modifier = Modifier
                                 .size(38.dp)
+                                .clip(CircleShape)
                                 .background(NovaAccent.copy(alpha = 0.15f), CircleShape)
                         ) {
                             Icon(
@@ -228,7 +231,9 @@ fun MiniAudioPlayerBar(
                         // Next track button
                         IconButton(
                             onClick = onNext,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
@@ -241,7 +246,9 @@ fun MiniAudioPlayerBar(
                         // Close button
                         IconButton(
                             onClick = onClose,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -252,15 +259,25 @@ fun MiniAudioPlayerBar(
                         }
                     }
 
-                    // Bottom mini seek progress line
-                    LinearProgressIndicator(
-                        progress = { progressFraction },
+                    // Progress bar line at bottom
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(2.5.dp),
-                        color = NovaAccent,
-                        trackColor = Color(0x33FFFFFF)
-                    )
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(progressFraction)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(NovaPrimary, NovaAccent)
+                                    )
+                                )
+                        )
+                    }
                 }
             }
         }

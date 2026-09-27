@@ -222,7 +222,7 @@ fun FullMusicPlayerBottomSheet(
                     )
                 }
 
-                IconButton(onClick = { showQueueSheet = true }) {
+                IconButton(onClick = { showQueueSheet = true }, modifier = Modifier.clip(CircleShape)) {
                     Icon(
                         imageVector = Icons.Default.QueueMusic,
                         contentDescription = "Queue",
@@ -414,7 +414,10 @@ fun FullMusicPlayerBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Shuffle
-                IconButton(onClick = { audioPlayerManager.toggleShuffle() }) {
+                IconButton(
+                    onClick = { audioPlayerManager.toggleShuffle() },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Shuffle,
                         contentDescription = "Shuffle",
@@ -423,7 +426,10 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Prev Track
-                IconButton(onClick = { audioPlayerManager.previousSong() }) {
+                IconButton(
+                    onClick = { audioPlayerManager.previousSong() },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Previous",
@@ -433,7 +439,10 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Rewind 10s
-                IconButton(onClick = { audioPlayerManager.seekBy(-10000L) }) {
+                IconButton(
+                    onClick = { audioPlayerManager.seekBy(-10000L) },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Replay10,
                         contentDescription = "Rewind 10s",
@@ -441,7 +450,7 @@ fun FullMusicPlayerBottomSheet(
                     )
                 }
 
-                // Big Play / Pause Button
+                // Big Play / Pause Button with circle ripple
                 Box(
                     modifier = Modifier
                         .size(68.dp)
@@ -462,7 +471,10 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Forward 10s
-                IconButton(onClick = { audioPlayerManager.seekBy(10000L) }) {
+                IconButton(
+                    onClick = { audioPlayerManager.seekBy(10000L) },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Forward10,
                         contentDescription = "Forward 10s",
@@ -471,7 +483,10 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Next Track
-                IconButton(onClick = { audioPlayerManager.nextSong() }) {
+                IconButton(
+                    onClick = { audioPlayerManager.nextSong() },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Next",
@@ -481,7 +496,10 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Repeat Mode
-                IconButton(onClick = { audioPlayerManager.cycleRepeatMode() }) {
+                IconButton(
+                    onClick = { audioPlayerManager.cycleRepeatMode() },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
                     Icon(
                         imageVector = when (repeatMode) {
                             AudioRepeatMode.ONE -> Icons.Default.RepeatOne
@@ -493,63 +511,99 @@ fun FullMusicPlayerBottomSheet(
                 }
             }
 
-            // Bottom Tools Toolbar (Speed, Equalizer, Sleep Timer)
+            // Bottom Tools Toolbar (Speed, Equalizer, Sleep Timer) with Rounded Capsule Ripple
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 12.dp),
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Speed
-                TextButton(onClick = { showSpeedSheet = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Speed,
-                        contentDescription = null,
-                        tint = NovaAccent,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${playbackSpeed}x",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                // Speed Capsule
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = nightGlassBorder(),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { showSpeedSheet = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Speed,
+                            contentDescription = null,
+                            tint = NovaAccent,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "${playbackSpeed}x",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
 
-                // Equalizer Presets
-                TextButton(onClick = { showEqualizerSheet = true }) {
-                    Icon(
-                        imageVector = Icons.Default.GraphicEq,
-                        contentDescription = null,
-                        tint = NovaAccent,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Equalizer",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                // Equalizer Capsule
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = nightGlassBorder(),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { showEqualizerSheet = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GraphicEq,
+                            contentDescription = null,
+                            tint = NovaAccent,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Equalizer",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
 
-                // Sleep Timer
-                TextButton(onClick = { showSleepTimerSheet = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Timer,
-                        contentDescription = null,
-                        tint = if (sleepTimerMinutes != null) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = if (sleepTimerMinutes != null) "${sleepTimerMinutes}m" else "Timer",
-                        color = if (sleepTimerMinutes != null) NovaAccent else MaterialTheme.colorScheme.onSurface,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                // Sleep Timer Capsule
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = nightGlassBorder(),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { showSleepTimerSheet = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Timer,
+                            contentDescription = null,
+                            tint = if (sleepTimerMinutes != null) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (sleepTimerMinutes != null) "${sleepTimerMinutes}m" else "Timer",
+                            color = if (sleepTimerMinutes != null) NovaAccent else MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }
