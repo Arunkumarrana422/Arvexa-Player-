@@ -99,7 +99,6 @@ import com.example.ui.screens.PlayerScreen
 import com.example.ui.screens.PlaylistsScreen
 import com.example.ui.screens.SearchScreen
 import com.example.ui.screens.SettingsScreen
-import com.example.ui.screens.SplashScreen
 import com.example.ui.screens.VideosScreen
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPlayerTheme
@@ -402,7 +401,7 @@ fun NovaPlayerApp(
 
     val sharedPrefs = remember { context.getSharedPreferences("nova_prefs", Context.MODE_PRIVATE) }
     val onboardingDone = remember { sharedPrefs.getBoolean("onboarding_completed", false) || userSettings.onboardingCompleted }
-    val startDestination = Screen.Splash.route
+    val startDestination = if (onboardingDone) Screen.MainTabs.route else Screen.Onboarding.route
 
     // Main 4 tabs Pager (Default start at Folders = index 2)
     val pagerState = rememberPagerState(initialPage = 2) { 4 }
@@ -526,24 +525,13 @@ fun NovaPlayerApp(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(if (isPlayerScreen || currentRoute == Screen.Splash.route) androidx.compose.foundation.layout.PaddingValues(0.dp) else innerPadding)
+                .padding(if (isPlayerScreen) androidx.compose.foundation.layout.PaddingValues(0.dp) else innerPadding)
         ) {
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
                 modifier = Modifier.fillMaxSize()
             ) {
-                composable(Screen.Splash.route) {
-                    SplashScreen(
-                        onSplashFinished = {
-                            val nextRoute = if (onboardingDone) Screen.MainTabs.route else Screen.Onboarding.route
-                            navController.navigate(nextRoute) {
-                                popUpTo(Screen.Splash.route) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-
                 composable(Screen.Onboarding.route) {
                     OnboardingScreen(
                         onGetStarted = {
