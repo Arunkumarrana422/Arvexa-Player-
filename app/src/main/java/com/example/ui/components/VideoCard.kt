@@ -175,6 +175,30 @@ fun VideoCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
+                // NEW Badge top-left corner
+                if (video.isNew && !isCurrentlyPlaying) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFFFF1744), Color(0xFFD50000))
+                                ),
+                                RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "NEW",
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                }
+
                 // Playing state overlay or Play Icon overlay
                 if (isCurrentlyPlaying) {
                     Box(
@@ -449,6 +473,30 @@ fun VideoGridCard(
                     video = video,
                     modifier = Modifier.fillMaxSize()
                 )
+
+                // NEW Badge top-left corner
+                if (video.isNew && !isCurrentlyPlaying) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(6.dp)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFFFF1744), Color(0xFFD50000))
+                                ),
+                                RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "NEW",
+                            color = Color.White,
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                }
 
                 if (isCurrentlyPlaying) {
                     Box(

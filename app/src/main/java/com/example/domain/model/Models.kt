@@ -37,6 +37,9 @@ data class Video(
     val isPartiallyWatched: Boolean
         get() = lastPositionMs > 5000L && !isCompleted && progressFraction in 0.02f..0.95f
 
+    val isNew: Boolean
+        get() = lastPlayedTimestamp == 0L && lastPositionMs <= 0L
+
     companion object {
         fun formatDuration(ms: Long): String {
             if (ms <= 0) return "00:00"
@@ -74,6 +77,12 @@ data class VideoFolder(
 ) {
     val totalDurationFormatted: String
         get() = Video.formatDuration(totalDurationMs)
+
+    val hasNewVideos: Boolean
+        get() = videos.any { it.isNew }
+
+    val newVideosCount: Int
+        get() = videos.count { it.isNew }
 }
 
 data class Playlist(

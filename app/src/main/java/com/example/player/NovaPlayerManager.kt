@@ -218,6 +218,7 @@ class NovaPlayerManager(private val context: Context) {
         exoPlayer.playWhenReady = true
         _isPlaying.value = true
         _isMiniPlayerActive.value = false
+        onProgressUpdate?.invoke(video, if (resumePos > 0) resumePos else 1L, video.durationMs)
         updateVideoNotification()
     }
 

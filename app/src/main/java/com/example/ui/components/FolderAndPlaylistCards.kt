@@ -114,6 +114,26 @@ fun FolderCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if (folder.hasNewVideos) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(Color(0xFFFF1744), Color(0xFFD50000))
+                                    ),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = if (folder.newVideosCount > 1) "${folder.newVideosCount} NEW" else "NEW",
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                    }
                 }
 
                 if (isCurrentlyPlaying && playingPosMs > 0) {
