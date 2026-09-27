@@ -82,7 +82,7 @@ fun MiniPlayerView(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 6.dp)
                     .testTag("mini_player_bar"),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(11.dp),
                 border = nightGlassBorder(intensity = 1.2f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface

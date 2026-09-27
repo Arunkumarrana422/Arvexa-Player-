@@ -119,9 +119,9 @@ fun FloatingBottomNavigationBar(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(64.dp)
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                        .height(60.dp)
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     items.forEachIndexed { index, item ->
@@ -184,7 +184,7 @@ private fun FloatingNavItem(
                 indication = ripple(bounded = true, color = NovaAccent),
                 onClick = onClick
             )
-            .padding(horizontal = if (isSelected) 16.dp else 12.dp, vertical = 10.dp)
+            .padding(horizontal = if (isSelected) 14.dp else 12.dp, vertical = 8.dp)
             .testTag("nav_tab_${item.route}"),
         contentAlignment = Alignment.Center
     ) {
