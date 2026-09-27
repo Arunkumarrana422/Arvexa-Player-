@@ -1,11 +1,9 @@
 package com.example.ui.components
 
-import android.content.ContentUris
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
 import android.util.LruCache
 import android.util.Size
 import androidx.compose.foundation.Image
@@ -32,7 +30,7 @@ import com.example.domain.model.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val thumbnailMemoryCache = LruCache<String, Bitmap>(64)
+private val thumbnailMemoryCache = LruCache<String, Bitmap>(300)
 
 @Composable
 fun VideoThumbnailView(
@@ -41,19 +39,19 @@ fun VideoThumbnailView(
     contentScale: ContentScale = ContentScale.Crop
 ) {
     val context = LocalContext.current
-    var localBitmap by remember(video.id, video.uri) {
+    var localBitmap by remember(video.id) {
         mutableStateOf(thumbnailMemoryCache.get(video.id))
     }
 
-    LaunchedEffect(video.id, video.uri) {
+    LaunchedEffect(video.id) {
         if (localBitmap == null && !video.isOnline) {
             withContext(Dispatchers.IO) {
                 try {
                     val parsedUri = Uri.parse(video.uri)
                     val bmp: Bitmap? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         try {
-                            context.contentResolver.loadThumbnail(parsedUri, Size(512, 384), null)
-                        } catch (e: Exception) {
+                            context.contentResolver.loadThumbnail(parsedUri, Size(320, 200), null)
+                        } catch (_: Exception) {
                             null
                         }
                     } else null
@@ -65,11 +63,16 @@ fun VideoThumbnailView(
                         } else {
                             retriever.setDataSource(context, parsedUri)
                         }
-                        val frame = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                            ?: retriever.frameAtTime
+                        val frame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                            retriever.getScaledFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 320, 200)
+                                ?: retriever.frameAtTime
+                        } else {
+                            retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                                ?: retriever.frameAtTime
+                        }
                         retriever.release()
                         frame
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
 
@@ -100,6 +103,7 @@ fun VideoThumbnailView(
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(video.uri)
+                    .memoryCacheKey("thumb_${video.id}")
                     .decoderFactory { result, options, _ -> VideoFrameDecoder(result.source, options) }
                     .videoFrameMillis(1500)
                     .crossfade(true)

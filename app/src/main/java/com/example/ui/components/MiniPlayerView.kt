@@ -35,6 +35,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,10 +50,37 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.compose.runtime.collectAsState
 import com.example.domain.model.Video
+import com.example.player.NovaPlayerManager
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
+
+@OptIn(UnstableApi::class)
+@Composable
+fun MiniPlayerView(
+    playerManager: NovaPlayerManager,
+    onExpand: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val video by playerManager.currentVideo.collectAsState()
+    val isPlaying by playerManager.isPlaying.collectAsState()
+    val currentPosMs by playerManager.currentPositionMs.collectAsState()
+    val durationMs by playerManager.durationMs.collectAsState()
+
+    MiniPlayerView(
+        video = video,
+        isPlaying = isPlaying,
+        currentPosMs = currentPosMs,
+        durationMs = durationMs,
+        exoPlayer = playerManager.exoPlayer,
+        onExpand = onExpand,
+        onPlayPause = { playerManager.togglePlayPause() },
+        onClose = { playerManager.stopAndDismiss() },
+        modifier = modifier
+    )
+}
 
 @OptIn(UnstableApi::class)
 @Composable
