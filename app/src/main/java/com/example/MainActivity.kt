@@ -23,6 +23,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -455,71 +456,6 @@ fun NovaPlayerApp(
                 )
             }
         },
-        bottomBar = {
-            if (showBottomBar) {
-                Column {
-                    // Floating MiniPlayer bar when playing video
-                    if (currentVideoPlaying != null) {
-                        MiniPlayerView(
-                            video = currentVideoPlaying,
-                            isPlaying = isPlaying,
-                            currentPosMs = currentPosMs,
-                            durationMs = durationMs,
-                            exoPlayer = viewModel.playerManager.exoPlayer,
-                            onExpand = {
-                                navController.navigate(Screen.Player.route)
-                            },
-                            onPlayPause = {
-                                viewModel.playerManager.togglePlayPause()
-                            },
-                            onClose = {
-                                viewModel.playerManager.stopAndDismiss()
-                            }
-                        )
-                    } else if (currentSongPlaying != null) {
-                        // Floating MiniAudioPlayer bar when playing music
-                        MiniAudioPlayerBar(
-                            audioPlayerManager = viewModel.audioPlayerManager,
-                            onExpand = {
-                                viewModel.audioPlayerManager.openFullPlayer()
-                            }
-                        )
-                    }
-
-                    val currentNavIndex = if (currentRoute == Screen.Music.route) {
-                        BottomNavItems.indexOfFirst { it.route == Screen.Music.route }
-                    } else if (currentRoute == Screen.MainTabs.route) {
-                        pagerState.currentPage
-                    } else {
-                        -1
-                    }
-
-                    FloatingBottomNavigationBar(
-                        items = BottomNavItems,
-                        selectedIndex = currentNavIndex,
-                        onItemSelected = { index, item ->
-                            if (item.route == Screen.Music.route) {
-                                navController.navigate(Screen.Music.route) {
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                if (item.route == Screen.Folders.route) {
-                                    viewModel.selectFolder(null)
-                                } else if (item.route == Screen.Playlists.route) {
-                                    viewModel.selectPlaylist(null)
-                                }
-                                if (currentRoute != Screen.MainTabs.route) {
-                                    navController.popBackStack(Screen.MainTabs.route, false)
-                                }
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            }
-                        }
-                    )
-                }
-            }
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
@@ -780,6 +716,75 @@ fun NovaPlayerApp(
                         onColorChange = { text, bg -> viewModel.setSubtitleColors(text, bg) },
                         onBack = { navController.popBackStack() },
                         onEnterPiP = onEnterPiP
+                    )
+                }
+            }
+
+            // Transparent Floating Bottom Bar & MiniPlayer Overlay
+            if (showBottomBar) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                ) {
+                    // Floating MiniPlayer bar when playing video
+                    if (currentVideoPlaying != null) {
+                        MiniPlayerView(
+                            video = currentVideoPlaying,
+                            isPlaying = isPlaying,
+                            currentPosMs = currentPosMs,
+                            durationMs = durationMs,
+                            exoPlayer = viewModel.playerManager.exoPlayer,
+                            onExpand = {
+                                navController.navigate(Screen.Player.route)
+                            },
+                            onPlayPause = {
+                                viewModel.playerManager.togglePlayPause()
+                            },
+                            onClose = {
+                                viewModel.playerManager.stopAndDismiss()
+                            }
+                        )
+                    } else if (currentSongPlaying != null) {
+                        // Floating MiniAudioPlayer bar when playing music
+                        MiniAudioPlayerBar(
+                            audioPlayerManager = viewModel.audioPlayerManager,
+                            onExpand = {
+                                viewModel.audioPlayerManager.openFullPlayer()
+                            }
+                        )
+                    }
+
+                    val currentNavIndex = if (currentRoute == Screen.Music.route) {
+                        BottomNavItems.indexOfFirst { it.route == Screen.Music.route }
+                    } else if (currentRoute == Screen.MainTabs.route) {
+                        pagerState.currentPage
+                    } else {
+                        -1
+                    }
+
+                    FloatingBottomNavigationBar(
+                        items = BottomNavItems,
+                        selectedIndex = currentNavIndex,
+                        onItemSelected = { index, item ->
+                            if (item.route == Screen.Music.route) {
+                                navController.navigate(Screen.Music.route) {
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                if (item.route == Screen.Folders.route) {
+                                    viewModel.selectFolder(null)
+                                } else if (item.route == Screen.Playlists.route) {
+                                    viewModel.selectPlaylist(null)
+                                }
+                                if (currentRoute != Screen.MainTabs.route) {
+                                    navController.popBackStack(Screen.MainTabs.route, false)
+                                }
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
+                        }
                     )
                 }
             }

@@ -132,7 +132,7 @@ fun FoldersScreen(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(currentSelectedFolder.videos, key = { it.id }) { video ->
@@ -162,7 +162,7 @@ fun FoldersScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag("folders_screen"),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 24.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(folders, key = { it.name }) { folder ->

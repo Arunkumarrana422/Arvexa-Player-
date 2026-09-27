@@ -90,7 +90,7 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .testTag("home_screen_content"),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(bottom = 110.dp)
     ) {
         // QUICK ACTION BUTTONS
         item {
