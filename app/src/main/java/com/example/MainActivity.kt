@@ -78,6 +78,7 @@ import com.example.ui.components.AddToPlaylistDialog
 import com.example.ui.components.AddSongToPlaylistDialog
 import com.example.ui.components.CreatePlaylistDialog
 import com.example.ui.components.DeleteVideoDialog
+import com.example.ui.components.FloatingBottomNavigationBar
 import com.example.ui.components.FullMusicPlayerBottomSheet
 import com.example.ui.components.IosMusicWidgetView
 import com.example.ui.components.MiniAudioPlayerBar
@@ -484,54 +485,37 @@ fun NovaPlayerApp(
                         )
                     }
 
-                    val indicatorColor = NovaAccent.copy(alpha = 0.2f)
-
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        tonalElevation = 6.dp,
-                        modifier = Modifier.testTag("bottom_navigation_bar")
-                    ) {
-                        BottomNavItems.forEachIndexed { index, item ->
-                            val selected = if (item.route == Screen.Music.route) currentRoute == Screen.Music.route else (pagerState.currentPage == index && currentRoute == Screen.MainTabs.route)
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = {
-                                    if (item.route == Screen.Music.route) {
-                                        navController.navigate(Screen.Music.route) {
-                                            launchSingleTop = true
-                                        }
-                                    } else {
-                                        if (item.route == Screen.Folders.route) {
-                                            viewModel.selectFolder(null)
-                                        } else if (item.route == Screen.Playlists.route) {
-                                            viewModel.selectPlaylist(null)
-                                        }
-                                        if (currentRoute != Screen.MainTabs.route) {
-                                            navController.popBackStack(Screen.MainTabs.route, false)
-                                        }
-                                        coroutineScope.launch {
-                                            pagerState.animateScrollToPage(index)
-                                        }
-                                    }
-                                },
-                                icon = {
-                                    item.icon?.let { icon ->
-                                        Icon(imageVector = icon, contentDescription = item.title)
-                                    }
-                                },
-                                label = { Text(item.title) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = NovaAccent,
-                                    selectedTextColor = NovaAccent,
-                                    indicatorColor = indicatorColor,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                ),
-                                modifier = Modifier.testTag("nav_tab_${item.route}")
-                            )
-                        }
+                    val currentNavIndex = if (currentRoute == Screen.Music.route) {
+                        BottomNavItems.indexOfFirst { it.route == Screen.Music.route }
+                    } else if (currentRoute == Screen.MainTabs.route) {
+                        pagerState.currentPage
+                    } else {
+                        -1
                     }
+
+                    FloatingBottomNavigationBar(
+                        items = BottomNavItems,
+                        selectedIndex = currentNavIndex,
+                        onItemSelected = { index, item ->
+                            if (item.route == Screen.Music.route) {
+                                navController.navigate(Screen.Music.route) {
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                if (item.route == Screen.Folders.route) {
+                                    viewModel.selectFolder(null)
+                                } else if (item.route == Screen.Playlists.route) {
+                                    viewModel.selectPlaylist(null)
+                                }
+                                if (currentRoute != Screen.MainTabs.route) {
+                                    navController.popBackStack(Screen.MainTabs.route, false)
+                                }
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
+                        }
+                    )
                 }
             }
         },
