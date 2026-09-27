@@ -93,6 +93,7 @@ import com.example.ui.components.DeletePlaylistConfirmDialog
 import com.example.ui.components.AddSongsScreen
 import com.example.ui.components.NowPlayingEqualizer
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 import kotlinx.coroutines.launch
@@ -436,6 +437,7 @@ fun MusicScreen(
                             items(artists, key = { it.name }) { artist ->
                                 Card(
                                     onClick = { selectedArtist = artist },
+                                    border = nightGlassBorder(),
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -499,6 +501,7 @@ fun MusicScreen(
                                 }
                                 Card(
                                     onClick = { selectedAlbum = album },
+                                    border = nightGlassBorder(),
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -564,6 +567,7 @@ fun MusicScreen(
                                     onClick = { selectedFolder = folder },
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(12.dp),
+                                    border = nightGlassBorder(),
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
@@ -647,6 +651,7 @@ fun MusicScreen(
                                         },
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(12.dp),
+                                        border = nightGlassBorder(),
                                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
@@ -1110,6 +1115,7 @@ fun SongItemCard(
             .fillMaxWidth()
             .testTag("song_item_${song.id}"),
         shape = RoundedCornerShape(12.dp),
+        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surfaceVariant
         ),

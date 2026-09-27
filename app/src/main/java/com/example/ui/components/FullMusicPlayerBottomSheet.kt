@@ -94,6 +94,7 @@ import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 
@@ -276,6 +277,7 @@ fun FullMusicPlayerBottomSheet(
                                 alpha = 1f - (pageOffset.absoluteValue * 0.3f).coerceIn(0f, 0.5f)
                             },
                         shape = RoundedCornerShape(24.dp),
+                        border = nightGlassBorder(intensity = 1.3f),
                         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
@@ -585,6 +587,7 @@ fun FullMusicPlayerBottomSheet(
                                     audioPlayerManager.playSong(qSong, queue, index)
                                     showQueueSheet = false
                                 },
+                            border = nightGlassBorder(isCurrentlyPlaying = isItemPlaying),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (isItemPlaying) NovaAccent.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
                             ),

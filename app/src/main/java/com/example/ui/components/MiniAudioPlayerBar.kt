@@ -55,6 +55,7 @@ import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 
@@ -112,6 +113,7 @@ fun MiniAudioPlayerBar(
                     .clickable(onClick = onExpandFullPlayer)
                     .testTag("mini_audio_player_bar"),
                 shape = RoundedCornerShape(14.dp),
+                border = nightGlassBorder(intensity = 1.2f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),

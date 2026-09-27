@@ -59,6 +59,7 @@ import com.example.domain.model.Video
 import com.example.domain.model.VideoFolder
 import com.example.ui.components.VideoCard
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 
@@ -192,6 +193,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(14.dp),
+                border = nightGlassBorder(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Row(
@@ -223,6 +225,7 @@ private fun QuickActionButton(
         modifier = modifier
             .testTag("quick_action_$label"),
         shape = RoundedCornerShape(12.dp),
+        border = nightGlassBorder(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
@@ -330,7 +333,7 @@ private fun ContinueWatchingCard(
             .width(210.dp)
             .testTag("continue_card_${video.id}"),
         shape = RoundedCornerShape(12.dp),
-        border = if (isCurrentlyPlaying) androidx.compose.foundation.BorderStroke(1.5.dp, NovaAccent) else null,
+        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column {

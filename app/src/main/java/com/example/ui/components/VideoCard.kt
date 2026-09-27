@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.Video
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 
 val HalfWatchedColor = Color(0xFF38BDF8) // Soft Light Blue for halfway watched videos
@@ -150,7 +151,7 @@ fun VideoCard(
             .fillMaxWidth()
             .testTag("video_card_${video.id}"),
         shape = RoundedCornerShape(12.dp),
-        border = if (isCurrentlyPlaying) BorderStroke(1.5.dp, NovaAccent) else null,
+        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surfaceVariant
         ),
@@ -434,7 +435,7 @@ fun VideoGridCard(
             .fillMaxWidth()
             .testTag("video_grid_card_${video.id}"),
         shape = RoundedCornerShape(12.dp),
-        border = if (isCurrentlyPlaying) BorderStroke(1.5.dp, NovaAccent) else null,
+        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 6.dp else 4.dp)
     ) {

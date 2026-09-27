@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.repository.UserSettings
 import com.example.domain.model.ThemePreference
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -371,6 +372,7 @@ private fun SettingsSection(
         )
         Card(
             shape = RoundedCornerShape(12.dp),
+            border = nightGlassBorder(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier.fillMaxWidth()
         ) {

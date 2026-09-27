@@ -28,6 +28,7 @@ import coil.compose.AsyncImage
 import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
+import com.example.ui.theme.nightGlassBorder
 
 @Composable
 fun IosMusicWidgetView(
@@ -61,6 +62,7 @@ fun IosMusicWidgetView(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(22.dp),
+        border = nightGlassBorder(intensity = 1.3f),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF141922)
         ),

@@ -54,6 +54,7 @@ import com.example.domain.model.Playlist
 import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 
 @Composable
@@ -142,22 +143,27 @@ fun AddToPlaylistDialog(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(NovaPrimary.copy(alpha = 0.15f))
-                        .clickable(onClick = onCreateNewPlaylist)
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Card(
+                    onClick = onCreateNewPlaylist,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    border = nightGlassBorder(),
+                    colors = CardDefaults.cardColors(containerColor = NovaPrimary.copy(alpha = 0.15f))
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = NovaAccent)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Create New Playlist",
-                        fontWeight = FontWeight.SemiBold,
-                        color = NovaAccent
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = NovaAccent)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Create New Playlist",
+                            fontWeight = FontWeight.SemiBold,
+                            color = NovaAccent
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -170,35 +176,44 @@ fun AddToPlaylistDialog(
                         modifier = Modifier.padding(vertical = 12.dp)
                     )
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         items(playlists) { playlist ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onSelectPlaylist(playlist) }
-                                    .padding(vertical = 10.dp, horizontal = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Card(
+                                onClick = { onSelectPlaylist(playlist) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                border = nightGlassBorder(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.PlaylistPlay,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = playlist.name,
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                        color = MaterialTheme.colorScheme.onSurface
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 10.dp, horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlaylistPlay,
+                                        contentDescription = null,
+                                        tint = NovaAccent,
+                                        modifier = Modifier.size(24.dp)
                                     )
-                                    Text(
-                                        text = "${playlist.videoCount} videos",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 11.sp
-                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = playlist.name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "${playlist.videoCount} videos",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 11.sp
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -241,22 +256,27 @@ fun AddSongToPlaylistDialog(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(NovaPrimary.copy(alpha = 0.15f))
-                        .clickable(onClick = onCreateNewPlaylist)
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Card(
+                    onClick = onCreateNewPlaylist,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    border = nightGlassBorder(),
+                    colors = CardDefaults.cardColors(containerColor = NovaPrimary.copy(alpha = 0.15f))
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = NovaAccent)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Create New Playlist",
-                        fontWeight = FontWeight.SemiBold,
-                        color = NovaAccent
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = NovaAccent)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Create New Playlist",
+                            fontWeight = FontWeight.SemiBold,
+                            color = NovaAccent
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -269,35 +289,44 @@ fun AddSongToPlaylistDialog(
                         modifier = Modifier.padding(vertical = 12.dp)
                     )
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         items(playlists) { playlist ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onSelectPlaylist(playlist) }
-                                    .padding(vertical = 10.dp, horizontal = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Card(
+                                onClick = { onSelectPlaylist(playlist) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                border = nightGlassBorder(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.PlaylistPlay,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = playlist.name,
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                        color = MaterialTheme.colorScheme.onSurface
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 10.dp, horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlaylistPlay,
+                                        contentDescription = null,
+                                        tint = NovaAccent,
+                                        modifier = Modifier.size(24.dp)
                                     )
-                                    Text(
-                                        text = "${playlist.songs.size} tracks",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 11.sp
-                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = playlist.name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "${playlist.songs.size} tracks",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 11.sp
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -425,7 +454,7 @@ fun AddSongsScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        border = if (isSelected) BorderStroke(2.dp, NovaAccent) else null
+                        border = if (isSelected) BorderStroke(2.dp, NovaAccent) else nightGlassBorder()
                     ) {
                         Row(
                             modifier = Modifier
@@ -597,7 +626,7 @@ fun AddVideosScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        border = if (isSelected) BorderStroke(2.dp, NovaAccent) else null
+                        border = if (isSelected) BorderStroke(2.dp, NovaAccent) else nightGlassBorder()
                     ) {
                         Row(
                             modifier = Modifier

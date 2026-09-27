@@ -38,6 +38,7 @@ import com.example.domain.model.Video
 import com.example.domain.model.VideoFolder
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaSecondary
 
 @Composable
@@ -56,7 +57,7 @@ fun FolderCard(
             .fillMaxWidth()
             .testTag("folder_card_${folder.name}"),
         shape = RoundedCornerShape(12.dp),
-        border = if (isCurrentlyPlaying) androidx.compose.foundation.BorderStroke(1.5.dp, NovaAccent) else null,
+        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surfaceVariant
         ),
@@ -155,6 +156,7 @@ fun PlaylistCard(
             .fillMaxWidth()
             .testTag("playlist_card_${playlist.id}"),
         shape = RoundedCornerShape(12.dp),
+        border = nightGlassBorder(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

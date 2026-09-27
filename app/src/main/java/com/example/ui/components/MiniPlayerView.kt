@@ -51,6 +51,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.example.domain.model.Video
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 
 @OptIn(UnstableApi::class)
@@ -82,6 +83,7 @@ fun MiniPlayerView(
                     .padding(horizontal = 12.dp, vertical = 6.dp)
                     .testTag("mini_player_bar"),
                 shape = RoundedCornerShape(12.dp),
+                border = nightGlassBorder(intensity = 1.2f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
