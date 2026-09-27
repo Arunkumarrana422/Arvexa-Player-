@@ -30,8 +30,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Verified
@@ -77,7 +75,7 @@ fun AboutScreen(
 
     val infiniteTransition = rememberInfiniteTransition(label = "about_glow")
     val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.98f,
+        initialValue = 0.96f,
         targetValue = 1.04f,
         animationSpec = infiniteRepeatable(
             animation = tween(2200, easing = FastOutSlowInEasing),
@@ -99,7 +97,9 @@ fun AboutScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onBack,
-                        modifier = Modifier.clip(CircleShape).testTag("about_back_btn")
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .testTag("about_back_btn")
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -126,53 +126,63 @@ fun AboutScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Hero Header Card
+                // Hero Header Card - Clean & Seamless in both Light & Night Mode
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    border = nightGlassBorder(intensity = 1.3f),
+                    shape = RoundedCornerShape(20.dp),
+                    border = nightGlassBorder(intensity = 1.3f) ?: BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    ),
                     colors = CardDefaults.cardColors(
                         containerColor = if (isDark) {
-                            Color(0xFF151C30).copy(alpha = 0.85f)
+                            Color(0xFF131B2E).copy(alpha = 0.9f)
                         } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                            MaterialTheme.colorScheme.surface
                         }
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 4.dp else 2.dp)
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 24.dp, horizontal = 18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Glowing App Icon
-                        Box(
-                            modifier = Modifier
-                                .size(88.dp)
-                                .scale(pulseScale)
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(NovaPrimary, NovaSecondary, NovaAccent)
+                            .background(
+                                if (isDark) {
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            NovaPrimary.copy(alpha = 0.2f),
+                                            Color.Transparent,
+                                            NovaAccent.copy(alpha = 0.05f)
+                                        )
                                     )
-                                )
-                                .padding(2.dp),
-                            contentAlignment = Alignment.Center
+                                } else {
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            NovaPrimary.copy(alpha = 0.06f),
+                                            Color.Transparent,
+                                            NovaAccent.copy(alpha = 0.04f)
+                                        )
+                                    )
+                                }
+                            )
+                            .padding(vertical = 24.dp, horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // Animated App Logo
                             Box(
                                 modifier = Modifier
-                                    .fillMaxSize()
+                                    .size(80.dp)
+                                    .scale(pulseScale)
                                     .clip(RoundedCornerShape(22.dp))
                                     .background(
-                                        Brush.radialGradient(
-                                            listOf(
-                                                Color.White.copy(alpha = 0.25f),
-                                                NovaPrimary.copy(alpha = 0.95f),
-                                                Color(0xFF0F172A)
-                                            )
+                                        Brush.linearGradient(
+                                            listOf(NovaPrimary, NovaSecondary, NovaAccent)
                                         )
                                     ),
                                 contentAlignment = Alignment.Center
@@ -181,78 +191,92 @@ fun AboutScreen(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = "Arvexa Logo",
                                     tint = Color.White,
-                                    modifier = Modifier.size(52.dp)
+                                    modifier = Modifier.size(48.dp)
                                 )
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(14.dp))
 
-                        // App Title
-                        Text(
-                            text = "Arvexa Player",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 26.sp
-                            ),
-                            color = NovaAccent
-                        )
+                            // App Name
+                            Text(
+                                text = "Arvexa Player",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 24.sp
+                                ),
+                                color = if (isDark) NovaAccent else NovaPrimary
+                            )
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                        // Version Capsule Pill
-                        Surface(
-                            shape = CircleShape,
-                            color = NovaPrimary.copy(alpha = 0.18f),
-                            border = BorderStroke(1.dp, NovaAccent.copy(alpha = 0.5f))
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            // Version Capsule
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isDark) {
+                                    NovaPrimary.copy(alpha = 0.25f)
+                                } else {
+                                    NovaPrimary.copy(alpha = 0.08f)
+                                },
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = if (isDark) NovaAccent.copy(alpha = 0.5f) else NovaPrimary.copy(alpha = 0.3f)
+                                )
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = null,
-                                    tint = NovaAccent,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Version 1.0.1 • Advanced Engine",
-                                    color = NovaAccent,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = if (isDark) NovaAccent else NovaPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Version 1.0.1 • Advanced Engine",
+                                        color = if (isDark) NovaAccent else NovaPrimary,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                        // Creator Tag Badge
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (isDark) Color(0xFF1E293B).copy(alpha = 0.7f) else MaterialTheme.colorScheme.surface,
-                            border = nightGlassBorder()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            // Creator Tag Badge
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isDark) {
+                                    Color(0xFF1E293B).copy(alpha = 0.8f)
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                                },
+                                border = nightGlassBorder() ?: BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                )
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Verified,
-                                    contentDescription = null,
-                                    tint = NovaAccent,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Created by Arun Kumar Rana",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.5.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Verified,
+                                        contentDescription = null,
+                                        tint = if (isDark) NovaAccent else Color(0xFF0284C7),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Created by Arun Kumar Rana",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.5.sp
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }
@@ -263,11 +287,19 @@ fun AboutScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    border = nightGlassBorder(),
+                    shape = RoundedCornerShape(16.dp),
+                    border = nightGlassBorder() ?: BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    ),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                        containerColor = if (isDark) {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -277,10 +309,10 @@ fun AboutScreen(
                         Text(
                             text = "Arvexa Player is a modern and powerful media player created by Arun Kumar Rana, designed to provide a smooth, simple, and enjoyable video and music playback experience.",
                             style = MaterialTheme.typography.bodyLarge.copy(
-                                lineHeight = 22.sp,
+                                lineHeight = 23.sp,
                                 fontSize = 14.5.sp
                             ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -295,7 +327,7 @@ fun AboutScreen(
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = null,
-                        tint = NovaAccent,
+                        tint = if (isDark) NovaAccent else NovaPrimary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -305,7 +337,7 @@ fun AboutScreen(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         ),
-                        color = NovaAccent
+                        color = if (isDark) NovaAccent else NovaPrimary
                     )
                 }
             }
@@ -317,7 +349,8 @@ fun AboutScreen(
                     iconGradient = listOf(Color(0xFF06B6D4), Color(0xFF3B82F6)),
                     iconTint = Color.White,
                     title = "Video Player",
-                    description = "Play your favorite videos with smooth playback and easy-to-use controls."
+                    description = "Play your favorite videos with smooth playback and easy-to-use controls.",
+                    isDark = isDark
                 )
             }
 
@@ -328,7 +361,8 @@ fun AboutScreen(
                     iconGradient = listOf(Color(0xFF8B5CF6), Color(0xFF6366F1)),
                     iconTint = Color.White,
                     title = "Music Player",
-                    description = "Enjoy your music collection with a clean and convenient audio playback experience."
+                    description = "Enjoy your music collection with a clean and convenient audio playback experience.",
+                    isDark = isDark
                 )
             }
 
@@ -339,7 +373,8 @@ fun AboutScreen(
                     iconGradient = listOf(Color(0xFFEC4899), Color(0xFFA855F7)),
                     iconTint = Color.White,
                     title = "Modern & Simple UI",
-                    description = "A clean, elegant, and user-friendly interface makes navigation simple and enjoyable."
+                    description = "A clean, elegant, and user-friendly interface makes navigation simple and enjoyable.",
+                    isDark = isDark
                 )
             }
 
@@ -350,7 +385,8 @@ fun AboutScreen(
                     iconGradient = listOf(Color(0xFFF59E0B), Color(0xFFF97316)),
                     iconTint = Color.White,
                     title = "Easy Media Access",
-                    description = "Quickly browse and play supported media files stored on your device."
+                    description = "Quickly browse and play supported media files stored on your device.",
+                    isDark = isDark
                 )
             }
 
@@ -361,7 +397,8 @@ fun AboutScreen(
                     iconGradient = listOf(Color(0xFF10B981), Color(0xFF059669)),
                     iconTint = Color.White,
                     title = "Smooth Playback",
-                    description = "Enjoy responsive playback controls for a comfortable viewing and listening experience."
+                    description = "Enjoy responsive playback controls for a comfortable viewing and listening experience.",
+                    isDark = isDark
                 )
             }
 
@@ -372,7 +409,8 @@ fun AboutScreen(
                     iconGradient = listOf(Color(0xFF0284C7), Color(0xFF0EA5E9)),
                     iconTint = Color.White,
                     title = "Privacy Focused",
-                    description = "Arvexa Player is designed with a privacy-focused approach, keeping your personal media experience simple and secure."
+                    description = "Arvexa Player is designed with a privacy-focused approach, keeping your personal media experience simple and secure.",
+                    isDark = isDark
                 )
             }
 
@@ -381,13 +419,16 @@ fun AboutScreen(
                 Spacer(modifier = Modifier.height(4.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    border = nightGlassBorder(intensity = 1.2f),
+                    shape = RoundedCornerShape(18.dp),
+                    border = nightGlassBorder(intensity = 1.2f) ?: BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    ),
                     colors = CardDefaults.cardColors(
                         containerColor = if (isDark) {
                             Color(0xFF1E1B4B).copy(alpha = 0.6f)
                         } else {
-                            NovaPrimary.copy(alpha = 0.08f)
+                            NovaPrimary.copy(alpha = 0.06f)
                         }
                     )
                 ) {
@@ -401,9 +442,9 @@ fun AboutScreen(
                             text = "Arvexa Player — Your Media, Your Way.",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                fontSize = 15.5.sp
                             ),
-                            color = NovaAccent,
+                            color = if (isDark) NovaAccent else NovaPrimary,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -431,16 +472,24 @@ private fun AboutFeatureItem(
     iconTint: Color,
     title: String,
     description: String,
+    isDark: Boolean,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        border = nightGlassBorder(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        border = nightGlassBorder() ?: BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDark) {
+                MaterialTheme.colorScheme.surfaceVariant
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 2.dp else 1.dp)
     ) {
         Row(
             modifier = Modifier
