@@ -38,13 +38,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.navigation.Screen
 import com.example.ui.theme.NovaAccent
+import com.example.ui.theme.NovaPrimary
 
 @Composable
 fun FloatingBottomNavigationBar(
@@ -53,6 +57,36 @@ fun FloatingBottomNavigationBar(
     onItemSelected: (Int, Screen) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
+    // Premium Glass Effect Border specifically tailored for Night Mode
+    val navBorder = if (isDark) {
+        BorderStroke(
+            width = 1.2.dp,
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    Color.White.copy(alpha = 0.38f),
+                    NovaAccent.copy(alpha = 0.65f),
+                    NovaPrimary.copy(alpha = 0.35f),
+                    Color.White.copy(alpha = 0.15f)
+                ),
+                start = Offset(0f, 0f),
+                end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+            )
+        )
+    } else {
+        BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+        )
+    }
+
+    val surfaceColor = if (isDark) {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+    } else {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -63,31 +97,43 @@ fun FloatingBottomNavigationBar(
     ) {
         Surface(
             shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.97f),
+            color = surfaceColor,
             tonalElevation = 0.dp,
-            shadowElevation = 3.dp, // Reduced subtle shadow as requested
-            border = BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-            ),
+            shadowElevation = if (isDark) 4.dp else 3.dp,
+            border = navBorder,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                items.forEachIndexed { index, item ->
-                    val isSelected = index == selectedIndex
-
-                    FloatingNavItem(
-                        item = item,
-                        isSelected = isSelected,
-                        onClick = { onItemSelected(index, item) }
+            Box(
+                modifier = if (isDark) {
+                    Modifier.background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.07f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.15f)
+                            )
+                        )
                     )
+                } else Modifier
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items.forEachIndexed { index, item ->
+                        val isSelected = index == selectedIndex
+
+                        FloatingNavItem(
+                            item = item,
+                            isSelected = isSelected,
+                            isDark = isDark,
+                            onClick = { onItemSelected(index, item) }
+                        )
+                    }
                 }
             }
         }
@@ -98,13 +144,14 @@ fun FloatingBottomNavigationBar(
 private fun FloatingNavItem(
     item: Screen,
     isSelected: Boolean,
+    isDark: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
-    // Smooth color animation
-    val activePillColor = NovaAccent.copy(alpha = 0.16f)
+    // Smooth color animation with night mode glass styling
+    val activePillColor = if (isDark) NovaAccent.copy(alpha = 0.22f) else NovaAccent.copy(alpha = 0.16f)
     val inactivePillColor = Color.Transparent
 
     val animatedBgColor by animateColorAsState(
