@@ -16,12 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlaylistPlay
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.ui.graphics.Brush
 import coil.compose.AsyncImage
 import androidx.compose.material3.AlertDialog
@@ -34,6 +40,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,13 +57,18 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.domain.model.AudioPlaylist
 import com.example.domain.model.Playlist
 import com.example.domain.model.Song
 import com.example.domain.model.Video
+import com.example.ui.screens.CreatePlaylistPillButton
 import com.example.ui.theme.NovaAccent
-import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
+import com.example.ui.theme.NovaSecondary
+import com.example.ui.theme.isNightMode
+import com.example.ui.theme.nightGlassBorder
 
 @Composable
 fun CreatePlaylistDialog(
@@ -64,57 +77,232 @@ fun CreatePlaylistDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    val isDark = isNightMode()
 
-    AlertDialog(
+    val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
+    val glassBorder = if (isDark) nightGlassBorder(strokeWidth = 1.2.dp, intensity = 1.4f) else null
+
+    // Text field color configuration matching navigation & pill colors
+    val tfContainerColor = if (isDark) Color(0xFF192238) else Color(0xFFF8FAFC)
+    val tfFocusedBorder = if (isDark) NovaAccent else Color(0xFF007A99)
+    val tfUnfocusedBorder = if (isDark) Color(0xFF2A375A) else Color(0xFFCBD5E1)
+    val tfTextColor = if (isDark) Color(0xFFF8FAFC) else Color(0xFF0F172A)
+    val tfPlaceholderColor = if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
+    val tfIconColor = if (isDark) NovaAccent else Color(0xFF007A99)
+
+    val createBtnEnabled = name.isNotBlank()
+
+    Dialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "New Playlist",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Playlist Name") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("playlist_name_input")
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
-                    maxLines = 3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("playlist_desc_input")
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onCreate(name.trim(), description.trim())
-                    }
-                },
-                enabled = name.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = NovaPrimary)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .padding(vertical = 16.dp),
+            shape = RoundedCornerShape(26.dp),
+            color = dialogBg,
+            border = glassBorder,
+            shadowElevation = if (isDark) 0.dp else 6.dp
+        ) {
+            Box(
+                modifier = if (isDark) {
+                    Modifier.background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.08f),
+                                Color(0x1522D3EE),
+                                Color.Black.copy(alpha = 0.22f)
+                            )
+                        )
+                    )
+                } else Modifier
             ) {
-                Text("Create")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Header Icon
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    if (isDark) listOf(NovaPrimary, NovaSecondary)
+                                    else listOf(Color(0xFFE0F7FA), Color(0xFFCCFBF1))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "New Playlist",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 20.sp
+                        ),
+                        color = if (isDark) Color.White else Color(0xFF0F172A)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Create a custom mix of videos & music",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                        fontSize = 12.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Playlist Name Text Field with strict single-line "Playlist Name" placeholder
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        placeholder = {
+                            Text(
+                                text = "Playlist Name",
+                                color = tfPlaceholderColor,
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.DriveFileRenameOutline,
+                                contentDescription = null,
+                                tint = tfIconColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        singleLine = true,
+                        maxLines = 1,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = tfContainerColor,
+                            unfocusedContainerColor = tfContainerColor,
+                            focusedBorderColor = tfFocusedBorder,
+                            unfocusedBorderColor = tfUnfocusedBorder,
+                            focusedTextColor = tfTextColor,
+                            unfocusedTextColor = tfTextColor,
+                            cursorColor = tfFocusedBorder
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("playlist_name_input")
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Description Text Field with single-line guarantee
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        placeholder = {
+                            Text(
+                                text = "Description (Optional)",
+                                color = tfPlaceholderColor,
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Description,
+                                contentDescription = null,
+                                tint = tfIconColor.copy(alpha = 0.8f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        singleLine = true,
+                        maxLines = 1,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = tfContainerColor,
+                            unfocusedContainerColor = tfContainerColor,
+                            focusedBorderColor = tfFocusedBorder,
+                            unfocusedBorderColor = tfUnfocusedBorder,
+                            focusedTextColor = tfTextColor,
+                            unfocusedTextColor = tfTextColor,
+                            cursorColor = tfFocusedBorder
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("playlist_desc_input")
+                    )
+
+                    Spacer(modifier = Modifier.height(22.dp))
+
+                    // Action Buttons Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.testTag("cancel_create_playlist_btn")
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = {
+                                if (name.isNotBlank()) {
+                                    onCreate(name.trim(), description.trim())
+                                }
+                            },
+                            enabled = createBtnEnabled,
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isDark) NovaAccent else Color(0xFF007A99),
+                                contentColor = if (isDark) Color(0xFF0B1020) else Color.White,
+                                disabledContainerColor = if (isDark) Color(0xFF1E2638) else Color(0xFFE2E8F0),
+                                disabledContentColor = if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
+                            ),
+                            modifier = Modifier.testTag("confirm_create_playlist_btn")
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "Create",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -125,109 +313,169 @@ fun AddToPlaylistDialog(
     onSelectPlaylist: (Playlist) -> Unit,
     onCreateNewPlaylist: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Add to Playlist",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = video.title,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = NovaAccent,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+    val isDark = isNightMode()
+    val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
+    val glassBorder = if (isDark) nightGlassBorder(intensity = 1.35f) else null
 
-                Card(
-                    onClick = onCreateNewPlaylist,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    border = nightGlassBorder(),
-                    colors = CardDefaults.cardColors(containerColor = NovaPrimary.copy(alpha = 0.15f))
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .padding(vertical = 16.dp),
+            shape = RoundedCornerShape(26.dp),
+            color = dialogBg,
+            border = glassBorder,
+            shadowElevation = if (isDark) 0.dp else 6.dp
+        ) {
+            Box(
+                modifier = if (isDark) {
+                    Modifier.background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.06f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.20f)
+                            )
+                        )
+                    )
+                } else Modifier
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    if (isDark) listOf(NovaPrimary, NovaSecondary)
+                                    else listOf(Color(0xFFE0F7FA), Color(0xFFCCFBF1))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = NovaAccent)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Create New Playlist",
-                            fontWeight = FontWeight.SemiBold,
-                            color = NovaAccent
+                        Icon(
+                            imageVector = Icons.Default.VideoLibrary,
+                            contentDescription = null,
+                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                            modifier = Modifier.size(24.dp)
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                if (playlists.isEmpty()) {
                     Text(
-                        text = "No playlists created yet.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 12.dp)
+                        text = "Add Video to Playlist",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 19.sp
+                        ),
+                        color = if (isDark) Color.White else Color(0xFF0F172A)
                     )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(playlists) { playlist ->
-                            Card(
-                                onClick = { onSelectPlaylist(playlist) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                border = nightGlassBorder(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 10.dp, horizontal = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.PlaylistPlay,
-                                        contentDescription = null,
-                                        tint = NovaAccent,
-                                        modifier = Modifier.size(24.dp)
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = video.title,
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (isDark) NovaAccent else Color(0xFF007A99),
+                        maxLines = 1
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Create New Playlist Pill Button inside Add Dialog
+                    CreatePlaylistPillButton(
+                        onClick = onCreateNewPlaylist,
+                        text = "New Playlist"
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    if (playlists.isEmpty()) {
+                        Text(
+                            text = "No playlists created yet. Create one above!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(playlists) { playlist ->
+                                Card(
+                                    onClick = { onSelectPlaylist(playlist) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    border = nightGlassBorder(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (isDark) Color(0xFF1A2238) else Color(0xFFF1F5F9)
                                     )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = playlist.name,
-                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                            color = MaterialTheme.colorScheme.onSurface
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp, horizontal = 14.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlaylistPlay,
+                                            contentDescription = null,
+                                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                                            modifier = Modifier.size(24.dp)
                                         )
-                                        Text(
-                                            text = "${playlist.videoCount} videos",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 11.sp
-                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = playlist.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = "${playlist.videoCount} videos",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                fontSize = 11.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
+                            )
+                        }
+                    }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -238,109 +486,169 @@ fun AddSongToPlaylistDialog(
     onSelectPlaylist: (AudioPlaylist) -> Unit,
     onCreateNewPlaylist: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Add to Playlist",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = song.title,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = NovaAccent,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+    val isDark = isNightMode()
+    val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
+    val glassBorder = if (isDark) nightGlassBorder(intensity = 1.35f) else null
 
-                Card(
-                    onClick = onCreateNewPlaylist,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    border = nightGlassBorder(),
-                    colors = CardDefaults.cardColors(containerColor = NovaPrimary.copy(alpha = 0.15f))
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .padding(vertical = 16.dp),
+            shape = RoundedCornerShape(26.dp),
+            color = dialogBg,
+            border = glassBorder,
+            shadowElevation = if (isDark) 0.dp else 6.dp
+        ) {
+            Box(
+                modifier = if (isDark) {
+                    Modifier.background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.06f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.20f)
+                            )
+                        )
+                    )
+                } else Modifier
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    if (isDark) listOf(NovaPrimary, NovaSecondary)
+                                    else listOf(Color(0xFFE0F7FA), Color(0xFFCCFBF1))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = NovaAccent)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Create New Playlist",
-                            fontWeight = FontWeight.SemiBold,
-                            color = NovaAccent
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = null,
+                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                            modifier = Modifier.size(24.dp)
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                if (playlists.isEmpty()) {
                     Text(
-                        text = "No playlists created yet.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 12.dp)
+                        text = "Add Song to Playlist",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 19.sp
+                        ),
+                        color = if (isDark) Color.White else Color(0xFF0F172A)
                     )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(playlists) { playlist ->
-                            Card(
-                                onClick = { onSelectPlaylist(playlist) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                border = nightGlassBorder(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 10.dp, horizontal = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.PlaylistPlay,
-                                        contentDescription = null,
-                                        tint = NovaAccent,
-                                        modifier = Modifier.size(24.dp)
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "${song.title} • ${song.artist}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (isDark) NovaAccent else Color(0xFF007A99),
+                        maxLines = 1
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Create New Playlist Pill Button inside Add Dialog
+                    CreatePlaylistPillButton(
+                        onClick = onCreateNewPlaylist,
+                        text = "New Playlist"
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    if (playlists.isEmpty()) {
+                        Text(
+                            text = "No playlists created yet. Create one above!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(playlists) { playlist ->
+                                Card(
+                                    onClick = { onSelectPlaylist(playlist) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    border = nightGlassBorder(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (isDark) Color(0xFF1A2238) else Color(0xFFF1F5F9)
                                     )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = playlist.name,
-                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                            color = MaterialTheme.colorScheme.onSurface
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp, horizontal = 14.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlaylistPlay,
+                                            contentDescription = null,
+                                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                                            modifier = Modifier.size(24.dp)
                                         )
-                                        Text(
-                                            text = "${playlist.songs.size} tracks",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 11.sp
-                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = playlist.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = "${playlist.songs.size} tracks",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                fontSize = 11.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
+                            )
+                        }
+                    }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -349,24 +657,113 @@ fun DeletePlaylistConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    AlertDialog(
+    val isDark = isNightMode()
+    val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
+    val glassBorder = if (isDark) nightGlassBorder(intensity = 1.35f) else null
+
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete Playlist") },
-        text = { Text("Are you sure you want to delete \"$playlistName\"?") },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.90f)
+                .padding(vertical = 16.dp),
+            shape = RoundedCornerShape(26.dp),
+            color = dialogBg,
+            border = glassBorder,
+            shadowElevation = if (isDark) 0.dp else 6.dp
+        ) {
+            Box(
+                modifier = if (isDark) {
+                    Modifier.background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.06f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.20f)
+                            )
+                        )
+                    )
+                } else Modifier
             ) {
-                Text("Delete")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFFEF4444).copy(alpha = if (isDark) 0.20f else 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Delete Playlist",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 19.sp
+                        ),
+                        color = if (isDark) Color.White else Color(0xFF0F172A)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Are you sure you want to delete \"$playlistName\"? The items inside will remain safely on your device.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = onConfirm,
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                            modifier = Modifier.testTag("confirm_delete_playlist_btn")
+                        ) {
+                            Text(
+                                text = "Delete",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
