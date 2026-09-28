@@ -58,6 +58,7 @@ sealed class GestureHudState {
     data class SpeedBoost(val speed: Float) : GestureHudState()
     data class Zoom(val scale: Float) : GestureHudState()
     data class PlayPause(val isPlaying: Boolean) : GestureHudState()
+    data class AspectRatio(val label: String) : GestureHudState()
 }
 
 @Composable
@@ -65,7 +66,7 @@ fun GestureOverlayIndicator(
     hudState: GestureHudState,
     modifier: Modifier = Modifier
 ) {
-    val isPillHud = hudState is GestureHudState.SpeedBoost || hudState is GestureHudState.Zoom || hudState is GestureHudState.DoubleTapSeek || hudState is GestureHudState.PlayPause
+    val isPillHud = hudState is GestureHudState.SpeedBoost || hudState is GestureHudState.Zoom || hudState is GestureHudState.DoubleTapSeek || hudState is GestureHudState.PlayPause || hudState is GestureHudState.AspectRatio
 
     AnimatedVisibility(
         visible = hudState !is GestureHudState.None,
@@ -246,6 +247,26 @@ fun GestureOverlayIndicator(
                             color = Color.White,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 14.sp
+                        )
+                    }
+                }
+                is GestureHudState.AspectRatio -> {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CropFree,
+                            contentDescription = "Aspect Ratio",
+                            tint = NovaAccent,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = hudState.label,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
                         )
                     }
                 }

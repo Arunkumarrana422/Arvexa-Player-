@@ -10,6 +10,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -43,8 +45,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.example.ui.theme.NovaAccent
+import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -136,6 +143,19 @@ fun PlayerScreen(
         if (showResumeBanner) {
             delay(6000)
             showResumeBanner = false
+        }
+    }
+
+    var lastAspectRatio by remember { mutableStateOf(aspectRatioMode) }
+
+    LaunchedEffect(aspectRatioMode) {
+        if (lastAspectRatio != aspectRatioMode) {
+            lastAspectRatio = aspectRatioMode
+            hudState = GestureHudState.AspectRatio(aspectRatioMode.label)
+            delay(1500L)
+            if (hudState is GestureHudState.AspectRatio) {
+                hudState = GestureHudState.None
+            }
         }
     }
 
@@ -605,6 +625,8 @@ fun PlayerScreen(
                 }
             }
         }
+
+
 
         // Continue Watching Floating Banner (Photo 2)
         ContinueWatchingBanner(
