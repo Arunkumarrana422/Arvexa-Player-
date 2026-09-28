@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Info
@@ -81,6 +82,7 @@ fun SettingsScreen(
     onBackgroundAudioToggle: (Boolean) -> Unit,
     onHwDecoderToggle: (Boolean) -> Unit,
     onSaveHistoryToggle: (Boolean) -> Unit,
+    onIncludeSmallVideosToggle: (Boolean) -> Unit = {},
     onRescanLibrary: () -> Unit,
     onClearWatchHistory: () -> Unit,
     onClearSearchHistory: () -> Unit,
@@ -282,7 +284,17 @@ fun SettingsScreen(
 
             // PRIVACY & STORAGE
             item {
-                SettingsSection(title = "LIBRARY & PRIVACY") {
+                SettingsSection(title = "MEDIA SCANNING & STORAGE") {
+                    SettingsSwitchRow(
+                        icon = Icons.Default.FilterList,
+                        title = "Show Videos Smaller Than 1 MB",
+                        subtitle = "Include very small video files, clips & status media (< 1 MB). (Default: Off)",
+                        checked = settings.includeSmallVideos,
+                        onCheckedChange = onIncludeSmallVideosToggle
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
                     SettingsClickableRow(
                         icon = Icons.Default.Refresh,
                         title = "Rescan Media Library",

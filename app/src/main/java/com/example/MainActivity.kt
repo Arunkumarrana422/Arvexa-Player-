@@ -691,6 +691,7 @@ fun NovaPlayerApp(
                         onBackgroundAudioToggle = { viewModel.setBackgroundAudio(it) },
                         onHwDecoderToggle = { viewModel.setHardwareDecoder(it) },
                         onSaveHistoryToggle = { viewModel.setSaveHistory(it) },
+                        onIncludeSmallVideosToggle = { viewModel.setIncludeSmallVideos(it) },
                         onRescanLibrary = { viewModel.scanLibrary() },
                         onClearWatchHistory = { viewModel.clearAllHistory() },
                         onClearSearchHistory = { viewModel.clearSearchHistory() },

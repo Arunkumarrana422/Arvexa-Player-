@@ -39,7 +39,8 @@ data class UserSettings(
     val hardwareDecoderEnabled: Boolean = true,
     val saveHistory: Boolean = true,
     val onboardingCompleted: Boolean = false,
-    val videoBrightness: Float = 0.7f
+    val videoBrightness: Float = 0.7f,
+    val includeSmallVideos: Boolean = false
 )
 
 class SettingsRepository(private val context: Context) {
@@ -65,6 +66,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_SAVE_HISTORY = booleanPreferencesKey("save_history")
         private val KEY_ONBOARDING = booleanPreferencesKey("onboarding_completed")
         private val KEY_VIDEO_BRIGHTNESS = floatPreferencesKey("video_brightness")
+        private val KEY_INCLUDE_SMALL_VIDEOS = booleanPreferencesKey("include_small_videos")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data.map { prefs ->
@@ -105,7 +107,8 @@ class SettingsRepository(private val context: Context) {
             hardwareDecoderEnabled = prefs[KEY_HW_DECODER] ?: true,
             saveHistory = prefs[KEY_SAVE_HISTORY] ?: true,
             onboardingCompleted = prefs[KEY_ONBOARDING] ?: false,
-            videoBrightness = prefs[KEY_VIDEO_BRIGHTNESS] ?: 0.7f
+            videoBrightness = prefs[KEY_VIDEO_BRIGHTNESS] ?: 0.7f,
+            includeSmallVideos = prefs[KEY_INCLUDE_SMALL_VIDEOS] ?: false
         )
     }
 
@@ -190,5 +193,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVideoBrightness(brightness: Float) {
         context.dataStore.edit { it[KEY_VIDEO_BRIGHTNESS] = brightness }
+    }
+
+    suspend fun setIncludeSmallVideos(include: Boolean) {
+        context.dataStore.edit { it[KEY_INCLUDE_SMALL_VIDEOS] = include }
     }
 }

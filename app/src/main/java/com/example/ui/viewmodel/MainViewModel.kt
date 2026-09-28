@@ -116,26 +116,58 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         repository.getAllVideosFlow(),
         userSettings
     ) { videos, settings ->
-        sortVideos(videos, settings.sortOption)
+        val filtered = if (settings.includeSmallVideos) {
+            videos
+        } else {
+            videos.filter { it.isOnline || it.sizeBytes >= 1024 * 1024L }
+        }
+        sortVideos(filtered, settings.sortOption)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
-    val favoriteVideos: StateFlow<List<Video>> = repository.getFavoriteVideosFlow().stateIn(
+    val favoriteVideos: StateFlow<List<Video>> = combine(
+        repository.getFavoriteVideosFlow(),
+        userSettings
+    ) { videos, settings ->
+        if (settings.includeSmallVideos) {
+            videos
+        } else {
+            videos.filter { it.isOnline || it.sizeBytes >= 1024 * 1024L }
+        }
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
-    val watchHistory: StateFlow<List<Video>> = repository.getWatchHistoryFlow().stateIn(
+    val watchHistory: StateFlow<List<Video>> = combine(
+        repository.getWatchHistoryFlow(),
+        userSettings
+    ) { videos, settings ->
+        if (settings.includeSmallVideos) {
+            videos
+        } else {
+            videos.filter { it.isOnline || it.sizeBytes >= 1024 * 1024L }
+        }
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
-    val continueWatching: StateFlow<List<Video>> = repository.getContinueWatchingFlow().stateIn(
+    val continueWatching: StateFlow<List<Video>> = combine(
+        repository.getContinueWatchingFlow(),
+        userSettings
+    ) { videos, settings ->
+        if (settings.includeSmallVideos) {
+            videos
+        } else {
+            videos.filter { it.isOnline || it.sizeBytes >= 1024 * 1024L }
+        }
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -190,11 +222,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         initialValue = null
     )
 
-    val searchResults: StateFlow<List<Video>> = _searchQuery.flatMapLatest { query ->
+    val searchResults: StateFlow<List<Video>> = combine(_searchQuery.flatMapLatest { query ->
         if (query.isBlank()) {
             MutableStateFlow(emptyList())
         } else {
             repository.searchVideos(query)
+        }
+    }, userSettings) { results, settings ->
+        if (settings.includeSmallVideos) {
+            results
+        } else {
+            results.filter { it.isOnline || it.sizeBytes >= 1024 * 1024L }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -375,6 +413,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setSaveHistory(save: Boolean) = viewModelScope.launch { settingsRepository.setSaveHistory(save) }
     fun setOnboardingCompleted(completed: Boolean) = viewModelScope.launch { settingsRepository.setOnboardingCompleted(completed) }
     fun setVideoBrightness(brightness: Float) = viewModelScope.launch { settingsRepository.setVideoBrightness(brightness) }
+    fun setIncludeSmallVideos(include: Boolean) = viewModelScope.launch { settingsRepository.setIncludeSmallVideos(include) }
 
     private fun sortVideos(list: List<Video>, sortOption: SortOption): List<Video> {
         return when (sortOption) {
