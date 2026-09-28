@@ -162,229 +162,189 @@ fun PlaylistsScreen(
         selectedPlaylist?.let { sp -> playlists.find { it.id == sp.id } ?: sp }
     }
 
-    if (currentSelectedPlaylist != null) {
+    if (currentSelectedPlaylist != null && playlistVideosFlow != null) {
+        val playlistVideos by playlistVideosFlow(currentSelectedPlaylist.id).collectAsState(initial = emptyList())
+        var showDeleteConfirm by remember { mutableStateOf(false) }
+        var showMultiSelectAdd by remember { mutableStateOf(false) }
+
+        if (showDeleteConfirm) {
+            DeletePlaylistConfirmDialog(
+                playlistName = currentSelectedPlaylist.name,
+                onDismiss = { showDeleteConfirm = false },
+                onConfirm = {
+                    showDeleteConfirm = false
+                    onDeletePlaylist(currentSelectedPlaylist.id)
+                    onSelectPlaylist(null)
+                }
+            )
+        }
+
+        if (showMultiSelectAdd) {
+            DisposableEffect(Unit) {
+                onToggleBottomBarVisibility?.invoke(false)
+                onDispose {
+                    onToggleBottomBarVisibility?.invoke(true)
+                }
+            }
+            AddVideosScreen(
+                allVideos = allVideos,
+                existingVideoIds = playlistVideos.map { it.id }.toSet(),
+                onBack = { showMultiSelectAdd = false },
+                onAddVideos = { videos ->
+                    showMultiSelectAdd = false
+                    onAddVideosToPlaylist?.invoke(currentSelectedPlaylist.id, videos)
+                }
+            )
+            return
+        }
+
         BackHandler {
             onSelectPlaylist(null)
         }
-    }
 
-    AnimatedContent(
-        targetState = currentSelectedPlaylist,
-        transitionSpec = {
-            fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
-                .togetherWith(fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing)))
-        },
-        label = "video_playlist_screen_transfer"
-    ) { playlist ->
-        if (playlist != null && playlistVideosFlow != null) {
-            val playlistVideos by playlistVideosFlow(playlist.id).collectAsState(initial = emptyList())
-            var showDeleteConfirm by remember { mutableStateOf(false) }
-            var showMultiSelectAdd by remember { mutableStateOf(false) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .testTag("playlist_detail_screen")
+        ) {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { onSelectPlaylist(null) }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = currentSelectedPlaylist.name,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "${playlistVideos.size} videos",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NovaAccent
+                    )
+                }
+                IconButton(onClick = { showMultiSelectAdd = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Videos",
+                        tint = NovaAccent
+                    )
+                }
+                IconButton(onClick = {
+                    showDeleteConfirm = true
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Playlist",
+                        tint = Color(0xFFEF4444)
+                    )
+                }
+            }
 
-            if (showDeleteConfirm) {
-                DeletePlaylistConfirmDialog(
-                    playlistName = playlist.name,
-                    onDismiss = { showDeleteConfirm = false },
-                    onConfirm = {
-                        showDeleteConfirm = false
-                        onDeletePlaylist(playlist.id)
-                        onSelectPlaylist(null)
+            // Play / Shuffle Row
+            if (playlistVideos.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = { onPlayVideo(playlistVideos.first(), playlistVideos) },
+                        colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Play All")
                     }
+
+                    OutlinedButton(
+                        onClick = { onPlayVideo(playlistVideos.shuffled().first(), playlistVideos.shuffled()) },
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Shuffle")
+                    }
+                }
+            }
+
+            if (playlistVideos.isEmpty()) {
+                EmptyStateView(
+                    icon = Icons.Default.PlaylistPlay,
+                    title = "Playlist is Empty",
+                    description = "Add videos to '${currentSelectedPlaylist.name}' from your video library or folders."
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(playlistVideos, key = { it.id }) { video ->
+                        VideoCard(
+                            video = video,
+                            onClick = { onPlayVideo(video, playlistVideos) },
+                            isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                            currentPosMs = currentPosMs,
+                            onToggleFavorite = { onToggleFavorite(video) },
+                            onAddToPlaylist = { onAddToPlaylist(video) },
+                            onShowInfo = { onShowVideoInfo(video) },
+                            onRemoveFromPlaylist = { onRemoveFromPlaylist(currentSelectedPlaylist.id, video.id) }
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("playlists_screen")
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                CreatePlaylistPillButton(
+                    onClick = onCreatePlaylistClick,
+                    text = "Create New Playlist"
                 )
             }
 
-            AnimatedContent(
-                targetState = showMultiSelectAdd,
-                transitionSpec = {
-                    if (targetState) {
-                        (slideInHorizontally(
-                            initialOffsetX = { fullWidth -> fullWidth },
-                            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(300)))
-                        .togetherWith(
-                            slideOutHorizontally(
-                                targetOffsetX = { fullWidth -> -fullWidth / 4 },
-                                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                            ) + fadeOut(animationSpec = tween(200))
-                        )
-                    } else {
-                        (slideInHorizontally(
-                            initialOffsetX = { fullWidth -> -fullWidth / 4 },
-                            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(300)))
-                        .togetherWith(
-                            slideOutHorizontally(
-                                targetOffsetX = { fullWidth -> fullWidth },
-                                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                            ) + fadeOut(animationSpec = tween(200))
-                        )
-                    }
-                },
-                label = "playlist_add_videos_transfer"
-            ) { isAdding ->
-                if (isAdding) {
-                    DisposableEffect(Unit) {
-                        onToggleBottomBarVisibility?.invoke(false)
-                        onDispose {
-                            onToggleBottomBarVisibility?.invoke(true)
-                        }
-                    }
-                    AddVideosScreen(
-                        allVideos = allVideos,
-                        existingVideoIds = playlistVideos.map { it.id }.toSet(),
-                        onBack = { showMultiSelectAdd = false },
-                        onAddVideos = { videos ->
-                            showMultiSelectAdd = false
-                            onAddVideosToPlaylist?.invoke(playlist.id, videos)
-                        }
-                    )
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .navigationBarsPadding()
-                            .testTag("playlist_detail_screen")
-                    ) {
-                        // Header
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(onClick = { onSelectPlaylist(null) }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = playlist.name,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "${playlistVideos.size} videos",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = NovaAccent
-                                )
-                            }
-                            IconButton(onClick = { showMultiSelectAdd = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add Videos",
-                                    tint = NovaAccent
-                                )
-                            }
-                            IconButton(onClick = {
-                                showDeleteConfirm = true
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete Playlist",
-                                    tint = Color(0xFFEF4444)
-                                )
-                            }
-                        }
-
-                        // Play / Shuffle Row
-                        if (playlistVideos.isNotEmpty()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Button(
-                                    onClick = { onPlayVideo(playlistVideos.first(), playlistVideos) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                                    shape = RoundedCornerShape(10.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Play All")
-                                }
-
-                                OutlinedButton(
-                                    onClick = { onPlayVideo(playlistVideos.shuffled().first(), playlistVideos.shuffled()) },
-                                    shape = RoundedCornerShape(10.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Shuffle")
-                                }
-                            }
-                        }
-
-                        if (playlistVideos.isEmpty()) {
-                            EmptyStateView(
-                                icon = Icons.Default.PlaylistPlay,
-                                title = "Playlist is Empty",
-                                description = "Add videos to '${playlist.name}' from your video library or folders."
-                            )
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                items(playlistVideos, key = { it.id }) { video ->
-                                    VideoCard(
-                                        video = video,
-                                        onClick = { onPlayVideo(video, playlistVideos) },
-                                        isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
-                                        currentPosMs = currentPosMs,
-                                        onToggleFavorite = { onToggleFavorite(video) },
-                                        onAddToPlaylist = { onAddToPlaylist(video) },
-                                        onShowInfo = { onShowVideoInfo(video) },
-                                        onRemoveFromPlaylist = { onRemoveFromPlaylist(playlist.id, video.id) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .testTag("playlists_screen")
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
+            if (playlists.isEmpty()) {
+                EmptyStateView(
+                    icon = Icons.Default.PlaylistPlay,
+                    title = "No Playlists Yet",
+                    description = "Create custom playlists to organize your favorite movies, clips, and series."
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 100.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CreatePlaylistPillButton(
-                        onClick = onCreatePlaylistClick,
-                        text = "Create New Playlist"
-                    )
-                }
-
-                if (playlists.isEmpty()) {
-                    EmptyStateView(
-                        icon = Icons.Default.PlaylistPlay,
-                        title = "No Playlists Yet",
-                        description = "Create custom playlists to organize your favorite movies, clips, and series."
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 100.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(playlists, key = { it.id }) { p ->
-                            PlaylistCard(
-                                playlist = p,
-                                onClick = { onSelectPlaylist(p) },
-                                onDelete = { onDeletePlaylist(p.id) }
-                            )
-                        }
+                    items(playlists, key = { it.id }) { playlist ->
+                        PlaylistCard(
+                            playlist = playlist,
+                            onClick = { onSelectPlaylist(playlist) },
+                            onDelete = { onDeletePlaylist(playlist.id) }
+                        )
                     }
                 }
             }
