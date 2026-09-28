@@ -412,10 +412,9 @@ fun NovaPlayerApp(
 
     val isPlayerScreen = currentRoute == Screen.Player.route
     val isMainTabs = currentRoute == Screen.MainTabs.route || currentRoute == null
-    val showBottomBar = isMainTabs
-    val showTopBar = isMainTabs
-
-    val isAtMainRoot = isMainTabs && selectedFolder == null && selectedPlaylist == null
+    val isAtMainRoot = isMainTabs && selectedFolder == null && selectedPlaylist == null && isBottomNavVisible
+    val showBottomBar = isAtMainRoot
+    val showTopBar = isAtMainRoot
 
     // Double back press to exit
     BackHandler(enabled = isAtMainRoot) {
@@ -487,7 +486,7 @@ fun NovaPlayerApp(
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true
+                        userScrollEnabled = isAtMainRoot
                     ) { page ->
                         when (page) {
                             0 -> HomeScreen(
