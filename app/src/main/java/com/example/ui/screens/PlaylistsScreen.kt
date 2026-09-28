@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -145,7 +146,8 @@ fun PlaylistsScreen(
     onPlayVideo: (Video, List<Video>) -> Unit,
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
-    onShowVideoInfo: (Video) -> Unit
+    onShowVideoInfo: (Video) -> Unit,
+    onToggleBottomBarVisibility: ((Boolean) -> Unit)? = null
 ) {
     val currentSelectedPlaylist = remember(selectedPlaylist, playlists) {
         selectedPlaylist?.let { sp -> playlists.find { it.id == sp.id } ?: sp }
@@ -169,6 +171,12 @@ fun PlaylistsScreen(
         }
 
         if (showMultiSelectAdd) {
+            DisposableEffect(Unit) {
+                onToggleBottomBarVisibility?.invoke(false)
+                onDispose {
+                    onToggleBottomBarVisibility?.invoke(true)
+                }
+            }
             AddVideosScreen(
                 allVideos = allVideos,
                 existingVideoIds = playlistVideos.map { it.id }.toSet(),

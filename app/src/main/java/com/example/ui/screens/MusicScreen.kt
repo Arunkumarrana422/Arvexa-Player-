@@ -64,6 +64,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -119,6 +120,7 @@ fun MusicScreen(
     onDeletePlaylist: ((Long) -> Unit)? = null,
     onAddSongsToPlaylist: ((Long, List<Song>) -> Unit)? = null,
     onBack: (() -> Unit)? = null,
+    onToggleBottomBarVisibility: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val tabs = listOf("Tracks", "Artists", "Albums", "Folders", "Playlists", "Favorites")
@@ -263,7 +265,8 @@ fun MusicScreen(
             onRemoveFromPlaylist = onRemoveFromPlaylist,
             onDeletePlaylist = onDeletePlaylist,
             onAddSongsToPlaylist = onAddSongsToPlaylist,
-            onBack = { selectedPlaylist = null }
+            onBack = { selectedPlaylist = null },
+            onToggleBottomBarVisibility = onToggleBottomBarVisibility
         )
         return
     }
@@ -947,7 +950,8 @@ fun PlaylistDetailScreen(
     onRemoveFromPlaylist: ((Long, String) -> Unit)?,
     onDeletePlaylist: ((Long) -> Unit)?,
     onAddSongsToPlaylist: ((Long, List<Song>) -> Unit)? = null,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onToggleBottomBarVisibility: ((Boolean) -> Unit)? = null
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showMultiSelectAdd by remember { mutableStateOf(false) }
@@ -965,6 +969,12 @@ fun PlaylistDetailScreen(
     }
 
     if (showMultiSelectAdd) {
+        DisposableEffect(Unit) {
+            onToggleBottomBarVisibility?.invoke(false)
+            onDispose {
+                onToggleBottomBarVisibility?.invoke(true)
+            }
+        }
         AddSongsScreen(
             allSongs = allSongs,
             existingSongIds = playlist.songs.map { it.id }.toSet(),

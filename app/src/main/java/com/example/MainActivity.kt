@@ -53,6 +53,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -355,6 +358,7 @@ fun NovaPlayerApp(
     val selectedFolder by viewModel.selectedFolder.collectAsState()
     val selectedPlaylist by viewModel.selectedPlaylist.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
+    val isBottomNavVisible by viewModel.isBottomNavVisible.collectAsState()
 
     // Music states
     val allSongs by viewModel.allSongs.collectAsState()
@@ -581,7 +585,8 @@ fun NovaPlayerApp(
                                 },
                                 onToggleFavorite = { viewModel.toggleFavorite(it) },
                                 onAddToPlaylist = { videoToAddToPlaylist = it },
-                                onShowVideoInfo = { infoVideo = it }
+                                onShowVideoInfo = { infoVideo = it },
+                                onToggleBottomBarVisibility = { viewModel.setBottomNavVisible(it) }
                             )
                         }
                     }
@@ -614,7 +619,8 @@ fun NovaPlayerApp(
                             viewModel.addSongsToAudioPlaylist(plId, songs)
                             viewModel.showToast("Added ${songs.size} songs")
                         },
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        onToggleBottomBarVisibility = { viewModel.setBottomNavVisible(it) }
                     )
                 }
 
@@ -717,12 +723,26 @@ fun NovaPlayerApp(
                 }
             }
 
-            // Transparent Floating Bottom Bar & MiniPlayer Overlay
-            if (showBottomBar) {
+            // Transparent Floating Bottom Bar & MiniPlayer Overlay with smooth slide in/out animation
+            AnimatedVisibility(
+                visible = showBottomBar && isBottomNavVisible,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                ) + fadeIn(animationSpec = tween(250)),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(250)
+                ) + fadeOut(animationSpec = tween(200)),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+            ) {
                 Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     // Floating MiniPlayer bar: Prioritize audio when audio is active or playing
                     if (isAudioPlaying || (currentSongPlaying != null && !isPlaying)) {

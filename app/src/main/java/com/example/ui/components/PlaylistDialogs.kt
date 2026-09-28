@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -777,15 +779,29 @@ fun AddSongsScreen(
         allSongs.filter { !existingSongIds.contains(it.id) }
     }
     var selectedSongIds by remember { mutableStateOf(setOf<String>()) }
+    val isDark = isNightMode()
+
+    // Matching pill colors for the round outline button
+    val lightBg = Color(0xFFE0F7FA)
+    val lightBorder = Color(0xFF22D3EE).copy(alpha = 0.85f)
+    val lightContent = Color(0xFF007A99) // Deep sharp cyan
+    val darkContent = NovaAccent // Vibrant neon cyan #22D3EE
+    val darkBtnBg = Color(0xFF131B2E).copy(alpha = 0.75f)
+
+    val isEnabled = selectedSongIds.isNotEmpty()
+
+    BackHandler(onBack = onBack)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
     ) {
+        // Top Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
@@ -808,17 +824,16 @@ fun AddSongsScreen(
             ) {
                 Text(
                     text = if (selectedSongIds.size == availableSongs.size) "Deselect All" else "Select All",
-                    color = NovaAccent
+                    color = if (isDark) NovaAccent else Color(0xFF007A99),
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
         if (availableSongs.isEmpty()) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
@@ -833,6 +848,7 @@ fun AddSongsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(availableSongs, key = { it.id }) { song ->
@@ -846,10 +862,10 @@ fun AddSongsScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 2.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = if (isDark) Color(0xFF162032) else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         border = if (isSelected) BorderStroke(2.dp, NovaAccent) else nightGlassBorder()
                     ) {
@@ -916,24 +932,84 @@ fun AddSongsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = {
-                val songsToAdd = availableSongs.filter { selectedSongIds.contains(it.id) }
-                onAddSongs(songsToAdd)
-            },
-            enabled = selectedSongIds.isNotEmpty(),
-            colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+        // Bottom Add Selected Stadium Pill Button
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
-            Text(
-                text = "Add Selected (${selectedSongIds.size})",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
+            Surface(
+                onClick = {
+                    if (isEnabled) {
+                        val songsToAdd = availableSongs.filter { selectedSongIds.contains(it.id) }
+                        onAddSongs(songsToAdd)
+                    }
+                },
+                enabled = isEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("add_selected_songs_btn"),
+                shape = RoundedCornerShape(50),
+                color = if (!isEnabled) {
+                    if (isDark) Color(0xFF161F33).copy(alpha = 0.5f) else Color(0xFFF1F5F9)
+                } else {
+                    if (isDark) darkBtnBg else lightBg
+                },
+                border = if (!isEnabled) {
+                    BorderStroke(1.dp, if (isDark) Color(0xFF2E3A52) else Color(0xFFE2E8F0))
+                } else {
+                    if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.4f) else BorderStroke(1.5.dp, lightBorder)
+                },
+                shadowElevation = if (isDark || !isEnabled) 0.dp else 2.dp
+            ) {
+                Box(
+                    modifier = if (isDark && isEnabled) {
+                        Modifier.background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.09f),
+                                    Color(0x2222D3EE),
+                                    Color(0x350B1020)
+                                )
+                            )
+                        )
+                    } else Modifier,
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = if (!isEnabled) {
+                                if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
+                            } else {
+                                if (isDark) darkContent else lightContent
+                            },
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Add Selected (${selectedSongIds.size})",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 16.sp,
+                                letterSpacing = 0.4.sp
+                            ),
+                            color = if (!isEnabled) {
+                                if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
+                            } else {
+                                if (isDark) darkContent else lightContent
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -949,15 +1025,29 @@ fun AddVideosScreen(
         allVideos.filter { !existingVideoIds.contains(it.id) }
     }
     var selectedVideoIds by remember { mutableStateOf(setOf<String>()) }
+    val isDark = isNightMode()
+
+    // Matching pill colors for the round outline button
+    val lightBg = Color(0xFFE0F7FA)
+    val lightBorder = Color(0xFF22D3EE).copy(alpha = 0.85f)
+    val lightContent = Color(0xFF007A99) // Deep sharp cyan
+    val darkContent = NovaAccent // Vibrant neon cyan #22D3EE
+    val darkBtnBg = Color(0xFF131B2E).copy(alpha = 0.75f)
+
+    val isEnabled = selectedVideoIds.isNotEmpty()
+
+    BackHandler(onBack = onBack)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
     ) {
+        // Top Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
@@ -980,17 +1070,16 @@ fun AddVideosScreen(
             ) {
                 Text(
                     text = if (selectedVideoIds.size == availableVideos.size) "Deselect All" else "Select All",
-                    color = NovaAccent
+                    color = if (isDark) NovaAccent else Color(0xFF007A99),
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
         if (availableVideos.isEmpty()) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
@@ -1005,6 +1094,7 @@ fun AddVideosScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(availableVideos, key = { it.id }) { video ->
@@ -1018,10 +1108,10 @@ fun AddVideosScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 2.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = if (isDark) Color(0xFF162032) else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         border = if (isSelected) BorderStroke(2.dp, NovaAccent) else nightGlassBorder()
                     ) {
@@ -1070,24 +1160,84 @@ fun AddVideosScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = {
-                val videosToAdd = availableVideos.filter { selectedVideoIds.contains(it.id) }
-                onAddVideos(videosToAdd)
-            },
-            enabled = selectedVideoIds.isNotEmpty(),
-            colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+        // Bottom Add Selected Stadium Pill Button
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
-            Text(
-                text = "Add Selected (${selectedVideoIds.size})",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
+            Surface(
+                onClick = {
+                    if (isEnabled) {
+                        val videosToAdd = availableVideos.filter { selectedVideoIds.contains(it.id) }
+                        onAddVideos(videosToAdd)
+                    }
+                },
+                enabled = isEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("add_selected_videos_btn"),
+                shape = RoundedCornerShape(50),
+                color = if (!isEnabled) {
+                    if (isDark) Color(0xFF161F33).copy(alpha = 0.5f) else Color(0xFFF1F5F9)
+                } else {
+                    if (isDark) darkBtnBg else lightBg
+                },
+                border = if (!isEnabled) {
+                    BorderStroke(1.dp, if (isDark) Color(0xFF2E3A52) else Color(0xFFE2E8F0))
+                } else {
+                    if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.4f) else BorderStroke(1.5.dp, lightBorder)
+                },
+                shadowElevation = if (isDark || !isEnabled) 0.dp else 2.dp
+            ) {
+                Box(
+                    modifier = if (isDark && isEnabled) {
+                        Modifier.background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.09f),
+                                    Color(0x2222D3EE),
+                                    Color(0x350B1020)
+                                )
+                            )
+                        )
+                    } else Modifier,
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = if (!isEnabled) {
+                                if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
+                            } else {
+                                if (isDark) darkContent else lightContent
+                            },
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Add Selected (${selectedVideoIds.size})",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 16.sp,
+                                letterSpacing = 0.4.sp
+                            ),
+                            color = if (!isEnabled) {
+                                if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
+                            } else {
+                                if (isDark) darkContent else lightContent
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }

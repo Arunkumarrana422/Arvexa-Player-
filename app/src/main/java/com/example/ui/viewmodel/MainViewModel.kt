@@ -69,6 +69,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _hasStoragePermission = MutableStateFlow(false)
     val hasStoragePermission: StateFlow<Boolean> = _hasStoragePermission.asStateFlow()
 
+    private val _isBottomNavVisible = MutableStateFlow(true)
+    val isBottomNavVisible: StateFlow<Boolean> = _isBottomNavVisible.asStateFlow()
+
+    fun setBottomNavVisible(visible: Boolean) {
+        _isBottomNavVisible.value = visible
+    }
+
     init {
         // Pause video when audio starts playing
         audioPlayerManager.onAudioStarted = {
