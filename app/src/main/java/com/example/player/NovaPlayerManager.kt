@@ -11,6 +11,8 @@ import android.support.v4.media.MediaMetadataCompat
 import androidx.core.app.NotificationCompat
 import android.media.AudioManager
 import android.net.Uri
+import android.graphics.Bitmap
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
@@ -229,6 +231,22 @@ class NovaPlayerManager(private val context: Context) {
         }
     }
 
+    private fun getVideoThumbnail(video: Video): Bitmap? {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                context.contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
+            } else {
+                @Suppress("DEPRECATION")
+                android.media.ThumbnailUtils.createVideoThumbnail(
+                    video.path,
+                    android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                )
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun playVideo(video: Video, playlist: List<Video> = emptyList(), startPositionMs: Long = 0L) {
         onVideoStarted?.invoke()
         _errorMessage.value = null
@@ -250,6 +268,14 @@ class NovaPlayerManager(private val context: Context) {
             exoPlayer.seekTo(resumePos)
         }
 
+        AudioPlayerManager.activeInstance?.let {
+            if (it.isPlaying.value) {
+                it.pause()
+            }
+            it.mediaSession.isActive = false
+        }
+        mediaSession.isActive = true
+
         acquireWakeLock()
         exoPlayer.playWhenReady = true
         _isPlaying.value = true
@@ -270,6 +296,14 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     fun play() {
+        AudioPlayerManager.activeInstance?.let {
+            if (it.isPlaying.value) {
+                it.pause()
+            }
+            it.mediaSession.isActive = false
+        }
+        mediaSession.isActive = true
+
         acquireWakeLock()
         exoPlayer.play()
         _isPlaying.value = true
@@ -289,6 +323,7 @@ class NovaPlayerManager(private val context: Context) {
         flushProgress()
         releaseWakeLock()
         try {
+            mediaSession.isActive = false
             exoPlayer.stop()
             exoPlayer.clearMediaItems()
             MediaPlaybackService.stopService(context)
@@ -321,13 +356,23 @@ class NovaPlayerManager(private val context: Context) {
                 .setActions(actions)
                 .build()
         )
-        mediaSession.setMetadata(
-            MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, video.title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, video.folderName)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, video.durationMs)
-                .build()
-        )
+
+        val thumbBitmap = getVideoThumbnail(video)
+        val metadataBuilder = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, video.title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, video.folderName)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, video.folderName)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, video.title)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, video.folderName)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, video.durationMs)
+
+        if (thumbBitmap != null) {
+            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, thumbBitmap)
+            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, thumbBitmap)
+            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, thumbBitmap)
+        }
+        mediaSession.setMetadata(metadataBuilder.build())
+
         MediaPlaybackService.updateNotification(context)
     }
 

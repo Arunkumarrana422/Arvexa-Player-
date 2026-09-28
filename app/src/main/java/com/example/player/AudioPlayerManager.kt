@@ -301,6 +301,14 @@ class AudioPlayerManager(private val context: Context) {
         _queueIndex.value = index
 
         try {
+            NovaPlayerManager.activeInstance?.let {
+                if (it.isPlaying.value) {
+                    it.pause()
+                }
+                it.mediaSession.isActive = false
+            }
+            mediaSession.isActive = true
+
             acquireWakeLock()
             val mediaItem = MediaItem.fromUri(Uri.parse(song.uri))
             exoPlayer.setMediaItem(mediaItem)
@@ -319,6 +327,14 @@ class AudioPlayerManager(private val context: Context) {
 
     fun play() {
         onAudioStarted?.invoke()
+        NovaPlayerManager.activeInstance?.let {
+            if (it.isPlaying.value) {
+                it.pause()
+            }
+            it.mediaSession.isActive = false
+        }
+        mediaSession.isActive = true
+
         acquireWakeLock()
         exoPlayer.play()
         _isPlaying.value = true

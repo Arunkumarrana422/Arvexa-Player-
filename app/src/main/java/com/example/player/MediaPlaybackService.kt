@@ -126,7 +126,7 @@ class MediaPlaybackService : Service() {
         val video = videoManager?.currentVideo?.value
         val isVideoPlaying = videoManager?.isPlaying?.value ?: false
 
-        val isVideoActive = song == null && video != null
+        val isVideoActive = isVideoPlaying || (video != null && !isAudioPlaying)
 
         val title = if (isVideoActive) (video?.title ?: "Playing Video") else (song?.title ?: "Playing Music")
         val subtitle = if (isVideoActive) (video?.folderName ?: "Nova Video Player") else (song?.artist ?: "Nova Player")
