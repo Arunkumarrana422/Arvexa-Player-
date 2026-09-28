@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,11 +36,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -63,6 +62,7 @@ import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
 import com.example.ui.theme.nightGlassBorder
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubtitleSettingsBottomSheet(
     tracks: List<SubtitleTrack>,
@@ -78,6 +78,7 @@ fun SubtitleSettingsBottomSheet(
     onColorChange: (textColor: String, bgColor: String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isDark = isNightMode()
 
     val filePicker = rememberLauncherForActivityResult(
@@ -86,28 +87,18 @@ fun SubtitleSettingsBottomSheet(
         uri?.let { onLoadExternalSubtitle(it) }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(onClick = onDismiss)
-            .testTag("subtitle_settings_sheet"),
-        contentAlignment = Alignment.CenterEnd
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.testTag("subtitle_settings_sheet")
     ) {
-        Surface(
+        Column(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(380.dp)
-                .clickable(enabled = false, onClick = {}),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -290,7 +281,6 @@ fun SubtitleSettingsBottomSheet(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
-}
 }
 
 @Composable
