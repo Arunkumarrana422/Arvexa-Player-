@@ -129,28 +129,11 @@ class NovaPlayerManager(private val context: Context) {
     fun setDecoderMode(mode: DecoderMode) {
         if (_decoderMode.value == mode) return
         _decoderMode.value = mode
-        val currentVid = _currentVideo.value
-        val pos = try { _exoPlayer?.currentPosition ?: 0L } catch (_: Exception) { 0L }
-        val playing = try { _exoPlayer?.isPlaying ?: false } catch (_: Exception) { false }
-
         try {
-            _exoPlayer?.removeListener(playerListener)
-            _exoPlayer?.release()
+            if (_exoPlayer != null && !_exoPlayer!!.isPlaying) {
+                _exoPlayer?.play()
+            }
         } catch (_: Exception) {}
-
-        _exoPlayer = buildExoPlayer(mode)
-
-        if (currentVid != null) {
-            val mediaItem = MediaItem.Builder()
-                .setUri(Uri.parse(currentVid.uri))
-                .setMediaId(currentVid.id)
-                .setTag(currentVid)
-                .build()
-            _exoPlayer?.setMediaItem(mediaItem)
-            _exoPlayer?.prepare()
-            if (pos > 0) _exoPlayer?.seekTo(pos)
-            if (playing) _exoPlayer?.play()
-        }
     }
 
     var onVideoStarted: (() -> Unit)? = null
