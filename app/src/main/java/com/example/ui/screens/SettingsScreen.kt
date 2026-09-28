@@ -80,7 +80,7 @@ fun SettingsScreen(
     onSwipeVolumeToggle: (Boolean) -> Unit,
     onSwipeSeekToggle: (Boolean) -> Unit,
     onBackgroundAudioToggle: (Boolean) -> Unit,
-    onHwDecoderToggle: (Boolean) -> Unit,
+    onHwDecoderToggle: (Boolean) -> Unit = {},
     onSaveHistoryToggle: (Boolean) -> Unit,
     onIncludeSmallVideosToggle: (Boolean) -> Unit = {},
     onRescanLibrary: () -> Unit,
@@ -268,16 +268,6 @@ fun SettingsScreen(
                         subtitle = "Keep audio running when switching apps",
                         checked = settings.backgroundAudioEnabled,
                         onCheckedChange = onBackgroundAudioToggle
-                    )
-
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-
-                    SettingsSwitchRow(
-                        icon = Icons.Default.Memory,
-                        title = "Hardware Decoder (HW+)",
-                        subtitle = "Enable hardware video decoder by default",
-                        checked = settings.hardwareDecoderEnabled,
-                        onCheckedChange = onHwDecoderToggle
                     )
                 }
             }

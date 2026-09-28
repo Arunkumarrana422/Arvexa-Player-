@@ -579,6 +579,11 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     fun selectAudioTrack(track: AudioTrack) {
+        // If track is a multi-channel format like DDP / EAC3 / AC3 / DTS and mode is HW, auto-switch to HW+ for extension decoding support
+        if ((track.label.contains("DDP", true) || track.label.contains("AC3", true) || track.label.contains("EAC3", true) || track.label.contains("DTS", true)) && _decoderMode.value == DecoderMode.HW) {
+            setDecoderMode(DecoderMode.HW_PLUS)
+        }
+
         val tracks = exoPlayer.currentTracks
         for (groupIndex in 0 until tracks.groups.size) {
             val trackGroup = tracks.groups[groupIndex]
@@ -598,6 +603,11 @@ class NovaPlayerManager(private val context: Context) {
                 }
             }
         }
+        try {
+            if (!exoPlayer.isPlaying) {
+                exoPlayer.play()
+            }
+        } catch (_: Exception) {}
         updateAvailableTracks(exoPlayer.currentTracks)
     }
 
