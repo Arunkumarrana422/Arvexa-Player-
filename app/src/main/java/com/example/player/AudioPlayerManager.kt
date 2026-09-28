@@ -522,6 +522,10 @@ class AudioPlayerManager(private val context: Context) {
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             _isBuffering.value = (playbackState == Player.STATE_BUFFERING)
+            if (playbackState == Player.STATE_READY) {
+                _durationMs.value = exoPlayer.duration.coerceAtLeast(0L)
+                updateMediaNotification()
+            }
             if (playbackState == Player.STATE_ENDED) {
                 when (_repeatMode.value) {
                     AudioRepeatMode.ONE -> {
@@ -538,6 +542,7 @@ class AudioPlayerManager(private val context: Context) {
                         } else {
                             _isPlaying.value = false
                             seekTo(0L)
+                            updateMediaNotification()
                         }
                     }
                 }
@@ -546,6 +551,11 @@ class AudioPlayerManager(private val context: Context) {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
+            updateMediaNotification()
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            updateMediaNotification()
         }
 
         override fun onPlayerError(error: PlaybackException) {

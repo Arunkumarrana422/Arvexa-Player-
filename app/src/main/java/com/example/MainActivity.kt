@@ -724,20 +724,19 @@ fun NovaPlayerApp(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                 ) {
-                    // Floating MiniPlayer bar when playing video
-                    if (currentVideoPlaying != null) {
-                        MiniPlayerView(
-                            playerManager = viewModel.playerManager,
-                            onExpand = {
-                                navController.navigate(Screen.Player.route)
-                            }
-                        )
-                    } else if (currentSongPlaying != null) {
-                        // Floating MiniAudioPlayer bar when playing music
+                    // Floating MiniPlayer bar: Prioritize audio when audio is active or playing
+                    if (isAudioPlaying || (currentSongPlaying != null && !isPlaying)) {
                         MiniAudioPlayerBar(
                             audioPlayerManager = viewModel.audioPlayerManager,
                             onExpand = {
                                 viewModel.audioPlayerManager.openFullPlayer()
+                            }
+                        )
+                    } else if (currentVideoPlaying != null) {
+                        MiniPlayerView(
+                            playerManager = viewModel.playerManager,
+                            onExpand = {
+                                navController.navigate(Screen.Player.route)
                             }
                         )
                     }
