@@ -100,7 +100,6 @@ fun PlaybackSettingsBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
-                .verticalScroll(rememberScrollState())
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
