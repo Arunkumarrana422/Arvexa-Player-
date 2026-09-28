@@ -54,10 +54,6 @@ class MediaPlaybackService : Service() {
                 } else {
                     context.startService(intent)
                 }
-                activeInstance?.let { svc ->
-                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-                    nm?.notify(NOTIFICATION_ID, svc.buildMediaNotification())
-                }
             } catch (_: Exception) {}
         }
 
@@ -170,7 +166,7 @@ class MediaPlaybackService : Service() {
             ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
         } else null
 
-        val bitmap: Bitmap? = try {
+        val rawBitmap: Bitmap? = try {
             if (albumArtUri != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     val source = android.graphics.ImageDecoder.createSource(contentResolver, albumArtUri)
@@ -184,25 +180,33 @@ class MediaPlaybackService : Service() {
             } else if (isVideoActive && video != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try {
-                        contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
+                        contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(128, 128), null)
                     } catch (_: Exception) {
                         @Suppress("DEPRECATION")
                         android.media.ThumbnailUtils.createVideoThumbnail(
                             video.path,
-                            android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                            android.provider.MediaStore.Images.Thumbnails.MICRO_KIND
                         )
                     }
                 } else {
                     @Suppress("DEPRECATION")
                     android.media.ThumbnailUtils.createVideoThumbnail(
                         video.path,
-                        android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                        android.provider.MediaStore.Images.Thumbnails.MICRO_KIND
                     )
                 }
             } else null
         } catch (_: Exception) {
             null
         }
+
+        val bitmap: Bitmap? = if (rawBitmap != null) {
+            try {
+                Bitmap.createScaledBitmap(rawBitmap, 128, 128, true)
+            } catch (_: Exception) {
+                null
+            }
+        } else null
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_splash_icon)

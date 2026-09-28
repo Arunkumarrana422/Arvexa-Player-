@@ -233,23 +233,26 @@ class NovaPlayerManager(private val context: Context) {
 
     private fun getVideoThumbnail(video: Video): Bitmap? {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val raw = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 try {
-                    context.contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
+                    context.contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(128, 128), null)
                 } catch (_: Exception) {
                     @Suppress("DEPRECATION")
                     android.media.ThumbnailUtils.createVideoThumbnail(
                         video.path,
-                        android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                        android.provider.MediaStore.Images.Thumbnails.MICRO_KIND
                     )
                 }
             } else {
                 @Suppress("DEPRECATION")
                 android.media.ThumbnailUtils.createVideoThumbnail(
                     video.path,
-                    android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                    android.provider.MediaStore.Images.Thumbnails.MICRO_KIND
                 )
             }
+            if (raw != null) {
+                Bitmap.createScaledBitmap(raw, 128, 128, true)
+            } else null
         } catch (_: Exception) {
             null
         }
@@ -337,13 +340,15 @@ class NovaPlayerManager(private val context: Context) {
             mediaSession.isActive = false
             exoPlayer.stop()
             exoPlayer.clearMediaItems()
-            MediaPlaybackService.stopService(context)
         } catch (_: Exception) {}
         _currentVideo.value = null
         _isPlaying.value = false
         _isMiniPlayerActive.value = false
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
+        if (AudioPlayerManager.activeInstance?.isPlaying?.value != true) {
+            MediaPlaybackService.stopService(context)
+        }
     }
 
     fun updateVideoNotification() {
@@ -379,8 +384,6 @@ class NovaPlayerManager(private val context: Context) {
 
         if (thumbBitmap != null) {
             metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, thumbBitmap)
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, thumbBitmap)
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, thumbBitmap)
         }
         mediaSession.setMetadata(metadataBuilder.build())
 

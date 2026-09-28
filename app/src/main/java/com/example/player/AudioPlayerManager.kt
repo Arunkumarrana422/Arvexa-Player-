@@ -3,6 +3,7 @@ package com.example.player
 import android.app.Activity
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.AudioManager
 import android.net.Uri
 import android.app.NotificationChannel
@@ -214,7 +215,7 @@ class AudioPlayerManager(private val context: Context) {
         )
 
         val albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
-        val bitmap = try {
+        val rawBitmap = try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val source = android.graphics.ImageDecoder.createSource(context.contentResolver, albumArtUri)
                 android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
@@ -228,6 +229,14 @@ class AudioPlayerManager(private val context: Context) {
             null
         }
 
+        val bitmap: Bitmap? = if (rawBitmap != null) {
+            try {
+                Bitmap.createScaledBitmap(rawBitmap, 128, 128, true)
+            } catch (_: Exception) {
+                null
+            }
+        } else null
+
         val metadataBuilder = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
@@ -239,8 +248,6 @@ class AudioPlayerManager(private val context: Context) {
 
         if (bitmap != null) {
             metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap)
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, bitmap)
         }
         mediaSession.setMetadata(metadataBuilder.build())
 
@@ -498,15 +505,18 @@ class AudioPlayerManager(private val context: Context) {
     fun stopAndDismiss() {
         releaseWakeLock()
         try {
+            mediaSession.isActive = false
             exoPlayer.stop()
             exoPlayer.clearMediaItems()
-            MediaPlaybackService.stopService(context)
         } catch (_: Exception) {}
         _currentSong.value = null
         _isPlaying.value = false
         _isFullPlayerOpen.value = false
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
+        if (NovaPlayerManager.activeInstance?.isPlaying?.value != true) {
+            MediaPlaybackService.stopService(context)
+        }
     }
 
     private val playerListener = object : Player.Listener {
