@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -58,6 +60,8 @@ import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.AudioTrack
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
+import com.example.ui.theme.isNightMode
+import com.example.ui.theme.nightGlassBorder
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -81,6 +85,7 @@ fun PlaybackSettingsBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val speedPresets = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
+    val isDark = isNightMode()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -156,16 +161,43 @@ fun PlaybackSettingsBottomSheet(
 
                 audioTracks.forEach { track ->
                     val isSelected = selectedAudioTrack?.id == track.id || track.isSelected
+                    val audioTrackBorder = if (isSelected) {
+                        if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
+                        else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
+                    } else {
+                        BorderStroke(1.dp, if (isDark) Color(0xFF2A374F).copy(alpha = 0.6f) else Color(0xFFE2E8F0))
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(14.dp))
+                            .border(audioTrackBorder, RoundedCornerShape(14.dp))
                             .background(
-                                if (isSelected) NovaPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                if (isSelected) {
+                                    if (isDark) {
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color.White.copy(alpha = 0.08f),
+                                                Color(0x2222D3EE),
+                                                Color(0x350B1020)
+                                            )
+                                        )
+                                    } else {
+                                        Brush.linearGradient(listOf(Color(0xFFE0F7FA), Color(0xFFE0F2FE)))
+                                    }
+                                } else {
+                                    Brush.linearGradient(
+                                        listOf(
+                                            if (isDark) Color(0xFF162032).copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                            if (isDark) Color(0xFF162032).copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                        )
+                                    )
+                                }
                             )
                             .clickable { onSelectAudioTrack(track) }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -233,11 +265,27 @@ fun PlaybackSettingsBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            val pipBorder = if (isDark) nightGlassBorder(strokeWidth = 1.dp, intensity = 1.1f) ?: BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.6f))
+                            else BorderStroke(1.dp, Color(0xFFE2E8F0))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(NovaPrimary.copy(alpha = 0.15f))
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(pipBorder, RoundedCornerShape(14.dp))
+                    .background(
+                        if (isDark) {
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.05f),
+                                    Color(0x1522D3EE),
+                                    Color(0x250B1020)
+                                )
+                            )
+                        } else {
+                            Brush.linearGradient(listOf(Color(0xFFF1F5F9), Color(0xFFE2E8F0).copy(alpha = 0.5f)))
+                        }
+                    )
                     .clickable {
                         onDismiss()
                         onEnterPiP()
@@ -286,18 +334,66 @@ private fun OptionChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val isDark = isNightMode()
+    val chipShape = RoundedCornerShape(50) // Full Stadium / Pill Shape
+
+    val borderStroke = if (isSelected) {
+        if (isDark) {
+            nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
+        } else {
+            BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
+        }
+    } else {
+        BorderStroke(
+            width = 1.dp,
+            color = if (isDark) Color(0xFF2A374F).copy(alpha = 0.6f) else Color(0xFFCBD5E1).copy(alpha = 0.7f)
+        )
+    }
+
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) NovaPrimary else MaterialTheme.colorScheme.surfaceVariant)
+            .clip(chipShape)
+            .border(borderStroke, chipShape)
+            .background(
+                if (isSelected) {
+                    if (isDark) {
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.10f),
+                                Color(0x2822D3EE),
+                                Color(0x350B1020)
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(
+                            listOf(
+                                Color(0xFFE0F7FA),
+                                Color(0xFFE0F2FE)
+                            )
+                        )
+                    }
+                } else {
+                    Brush.linearGradient(
+                        listOf(
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                        )
+                    )
+                }
+            )
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 9.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+            color = if (isSelected) {
+                if (isDark) Color.White else Color(0xFF007A99)
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            fontSize = 12.sp
+            fontSize = 12.5.sp
         )
     }
 }

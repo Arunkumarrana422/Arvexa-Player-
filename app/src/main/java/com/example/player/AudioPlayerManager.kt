@@ -69,7 +69,7 @@ class AudioPlayerManager(private val context: Context) {
 
     val exoPlayer: ExoPlayer by lazy {
         val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context)
-            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
             .setEnableDecoderFallback(true)
 
         val audioAttributes = AudioAttributes.Builder()

@@ -3,6 +3,7 @@ package com.example.ui.components
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +59,8 @@ import androidx.compose.ui.unit.sp
 import com.example.domain.model.SubtitleTrack
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
+import com.example.ui.theme.isNightMode
+import com.example.ui.theme.nightGlassBorder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +79,7 @@ fun SubtitleSettingsBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isDark = isNightMode()
 
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -152,11 +157,12 @@ fun SubtitleSettingsBottomSheet(
             OutlinedButton(
                 onClick = { filePicker.launch("*/*") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(50),
+                border = if (isDark) nightGlassBorder(strokeWidth = 1.dp) ?: BorderStroke(1.dp, Color(0xFF2A374F)) else BorderStroke(1.dp, Color(0xFFCBD5E1))
             ) {
-                Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp), tint = NovaAccent)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Load External Subtitle File (.srt / .vtt)")
+                Text("Load External Subtitle File (.srt / .vtt)", color = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface)
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 14.dp))
@@ -182,19 +188,27 @@ fun SubtitleSettingsBottomSheet(
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Button(
-                        onClick = { onAdjustDelay(-100L) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                        shape = RoundedCornerShape(8.dp)
+                    val btnBorder = if (isDark) nightGlassBorder(strokeWidth = 1.dp) ?: BorderStroke(1.dp, Color(0xFF2A374F)) else BorderStroke(1.dp, Color(0xFFE2E8F0))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .border(btnBorder, RoundedCornerShape(50))
+                            .background(if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { onAdjustDelay(-100L) }
+                            .padding(horizontal = 14.dp, vertical = 7.dp)
                     ) {
-                        Text("-100ms", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
+                        Text("-100ms", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
-                    Button(
-                        onClick = { onAdjustDelay(100L) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                        shape = RoundedCornerShape(8.dp)
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .border(btnBorder, RoundedCornerShape(50))
+                            .background(if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { onAdjustDelay(100L) }
+                            .padding(horizontal = 14.dp, vertical = 7.dp)
                     ) {
-                        Text("+100ms", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
+                        Text("+100ms", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -277,13 +291,41 @@ private fun TrackRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit
 ) {
+    val isDark = isNightMode()
+    val trackBorder = if (isSelected) {
+        if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
+        else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
+    } else {
+        BorderStroke(1.dp, if (isDark) Color(0xFF2A374F).copy(alpha = 0.6f) else Color(0xFFE2E8F0))
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(14.dp))
+            .border(trackBorder, RoundedCornerShape(14.dp))
             .background(
-                if (isSelected) NovaPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                if (isSelected) {
+                    if (isDark) {
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.08f),
+                                Color(0x2222D3EE),
+                                Color(0x350B1020)
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(listOf(Color(0xFFE0F7FA), Color(0xFFE0F2FE)))
+                    }
+                } else {
+                    Brush.linearGradient(
+                        listOf(
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        )
+                    )
+                }
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
@@ -331,14 +373,39 @@ private fun ColorPresetChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isNightMode()
+    val chipBorder = if (isSelected) {
+        if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
+        else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
+    } else {
+        BorderStroke(1.dp, if (isDark) Color(0xFF2A374F).copy(alpha = 0.6f) else Color(0xFFCBD5E1).copy(alpha = 0.7f))
+    }
+
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) NovaPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
-            .border(
-                width = if (isSelected) 1.5.dp else 0.5.dp,
-                color = if (isSelected) NovaAccent else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .border(chipBorder, RoundedCornerShape(14.dp))
+            .background(
+                if (isSelected) {
+                    if (isDark) {
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.08f),
+                                Color(0x2222D3EE),
+                                Color(0x350B1020)
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(listOf(Color(0xFFE0F7FA), Color(0xFFE0F2FE)))
+                    }
+                } else {
+                    Brush.linearGradient(
+                        listOf(
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                        )
+                    )
+                }
             )
             .clickable(onClick = onClick)
             .padding(8.dp),

@@ -84,7 +84,7 @@ class NovaPlayerManager(private val context: Context) {
     private val trackSelector = DefaultTrackSelector(context)
     val exoPlayer: ExoPlayer by lazy {
         val renderersFactory = DefaultRenderersFactory(context)
-            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
             .setEnableDecoderFallback(true)
 
         val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
