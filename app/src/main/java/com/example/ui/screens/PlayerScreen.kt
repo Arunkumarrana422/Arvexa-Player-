@@ -631,7 +631,7 @@ fun PlayerScreen(
             aspectRatioMode = aspectRatioMode,
             isRepeatOne = isRepeatOne,
             isShuffle = isShuffle,
-            hwDecoderEnabled = settings.hardwareDecoderEnabled,
+            decoderMode = decoderMode,
             hasSubtitles = subtitleTracks.isNotEmpty(),
             onBack = onBack,
             onPlayPause = { playerManager.togglePlayPause() },

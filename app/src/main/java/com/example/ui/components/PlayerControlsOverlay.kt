@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.AspectRatioMode
+import com.example.domain.model.DecoderMode
 import com.example.domain.model.Video
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
@@ -85,7 +86,7 @@ fun PlayerControlsOverlay(
     aspectRatioMode: AspectRatioMode,
     isRepeatOne: Boolean,
     isShuffle: Boolean,
-    hwDecoderEnabled: Boolean,
+    decoderMode: DecoderMode,
     hasSubtitles: Boolean,
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
@@ -210,9 +211,13 @@ fun PlayerControlsOverlay(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (hwDecoderEnabled) "HW+" else "SW",
+                            text = decoderMode.label,
                             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.ExtraBold),
-                            color = if (hwDecoderEnabled) NovaAccent else Color(0xFFF59E0B),
+                            color = when (decoderMode) {
+                                DecoderMode.HW -> Color(0xFF38BDF8)
+                                DecoderMode.HW_PLUS -> NovaAccent
+                                DecoderMode.SW -> Color(0xFFF59E0B)
+                            },
                             fontSize = 11.sp
                         )
                         Text(
