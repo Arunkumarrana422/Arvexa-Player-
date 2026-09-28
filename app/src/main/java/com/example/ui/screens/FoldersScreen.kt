@@ -108,31 +108,8 @@ fun FoldersScreen(
     AnimatedContent(
         targetState = currentSelectedFolder,
         transitionSpec = {
-            if (targetState != null) {
-                // Forward animation: Enter Folder Detail (slide in from right + fade)
-                (slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                ) + fadeIn(animationSpec = tween(320)))
-                .togetherWith(
-                    slideOutHorizontally(
-                        targetOffsetX = { fullWidth -> -fullWidth / 4 },
-                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                    ) + fadeOut(animationSpec = tween(250))
-                )
-            } else {
-                // Backward animation: Exit Folder to Overview (slide out to right + fade)
-                (slideInHorizontally(
-                    initialOffsetX = { fullWidth -> -fullWidth / 4 },
-                    animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                ) + fadeIn(animationSpec = tween(320)))
-                .togetherWith(
-                    slideOutHorizontally(
-                        targetOffsetX = { fullWidth -> fullWidth },
-                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                    ) + fadeOut(animationSpec = tween(250))
-                )
-            }
+            fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                .togetherWith(fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing)))
         },
         label = "video_folder_screen_transfer"
     ) { folder ->

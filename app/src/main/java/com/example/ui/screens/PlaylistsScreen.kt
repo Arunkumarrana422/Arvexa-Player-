@@ -171,31 +171,8 @@ fun PlaylistsScreen(
     AnimatedContent(
         targetState = currentSelectedPlaylist,
         transitionSpec = {
-            if (targetState != null) {
-                // Forward animation: Enter Playlist Detail
-                (slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                ) + fadeIn(animationSpec = tween(320)))
-                .togetherWith(
-                    slideOutHorizontally(
-                        targetOffsetX = { fullWidth -> -fullWidth / 4 },
-                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                    ) + fadeOut(animationSpec = tween(250))
-                )
-            } else {
-                // Backward animation: Exit Playlist Detail
-                (slideInHorizontally(
-                    initialOffsetX = { fullWidth -> -fullWidth / 4 },
-                    animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                ) + fadeIn(animationSpec = tween(320)))
-                .togetherWith(
-                    slideOutHorizontally(
-                        targetOffsetX = { fullWidth -> fullWidth },
-                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
-                    ) + fadeOut(animationSpec = tween(250))
-                )
-            }
+            fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                .togetherWith(fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing)))
         },
         label = "video_playlist_screen_transfer"
     ) { playlist ->
