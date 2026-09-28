@@ -1,10 +1,5 @@
 package com.example.ui.components
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.BatteryManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,11 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Audiotrack
-import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Lock
@@ -57,11 +49,8 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -70,7 +59,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,67 +69,6 @@ import com.example.domain.model.Video
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-
-@Composable
-fun rememberBatteryInfo(): Pair<Int, Boolean> {
-    val context = LocalContext.current
-    var batteryLevel by remember { mutableIntStateOf(100) }
-    var isCharging by remember { mutableStateOf(false) }
-
-    DisposableEffect(context) {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(c: Context?, intent: Intent?) {
-                intent?.let {
-                    val level = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                    val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                    if (level >= 0 && scale > 0) {
-                        batteryLevel = (level * 100) / scale
-                    }
-                    val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                    isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                            status == BatteryManager.BATTERY_STATUS_FULL
-                }
-            }
-        }
-        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val stickyIntent = context.registerReceiver(receiver, filter)
-        stickyIntent?.let {
-            val level = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-            val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-            if (level >= 0 && scale > 0) {
-                batteryLevel = (level * 100) / scale
-            }
-            val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-            isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                    status == BatteryManager.BATTERY_STATUS_FULL
-        }
-        onDispose {
-            try {
-                context.unregisterReceiver(receiver)
-            } catch (_: Exception) {}
-        }
-    }
-    return Pair(batteryLevel, isCharging)
-}
-
-@Composable
-fun rememberCurrentTimeFormatted(): String {
-    var timeStr by remember {
-        mutableStateOf(SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date()))
-    }
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            timeStr = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
-            delay(10000L)
-        }
-    }
-    return timeStr
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -183,9 +110,6 @@ fun PlayerControlsOverlay(
     val effectivePos = if (isSeeking) seekPosition.toLong() else currentPositionMs
     val progress = if (durationMs > 0) (effectivePos.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
     val bufferedFraction = if (durationMs > 0) (bufferedPositionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
-
-    val (batteryLevel, isCharging) = rememberBatteryInfo()
-    val currentTimeStr = rememberCurrentTimeFormatted()
 
     // If locked, show only the unlock button
     if (isLocked) {
@@ -246,196 +170,96 @@ fun PlayerControlsOverlay(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xEE080C16),
-                            Color(0x44000000),
-                            Color(0xEE080C16)
+                            Color(0xCC0B1020),
+                            Color(0x33000000),
+                            Color(0xCC0B1020)
                         )
                     )
                 )
         ) {
-            // TOP BAR CONTAINER (Status Bar + Action Header)
-            Column(
+            // TOP ACTION BAR (Clean single row with native status bar padding)
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // 1. Sleek In-Player Status Bar Strip (Time, Battery, Resolution & HW Decoder)
-                Row(
+                IconButton(onClick = onBack, modifier = Modifier.testTag("player_back_button")) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1f)
+                        .padding(horizontal = 6.dp)
                 ) {
-                    // Left: Live Clock & Battery Percentage
+                    Text(
+                        text = video.title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Real-time Clock
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AccessTime,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.85f),
-                                modifier = Modifier.size(13.dp)
-                            )
+                        Text(
+                            text = if (hwDecoderEnabled) "HW+" else "SW",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.ExtraBold),
+                            color = if (hwDecoderEnabled) NovaAccent else Color(0xFFF59E0B),
+                            fontSize = 11.sp
+                        )
+                        Text(
+                            text = "• ${video.containerFormat}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xCCFFFFFF),
+                            fontSize = 11.sp
+                        )
+                        if (video.folderName.isNotBlank()) {
                             Text(
-                                text = currentTimeStr,
-                                color = Color.White.copy(alpha = 0.95f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-
-                        // Battery Indicator
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryFull,
-                                contentDescription = null,
-                                tint = if (batteryLevel <= 20 && !isCharging) Color(0xFFFF5252) else NovaAccent,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "$batteryLevel%",
-                                color = Color.White.copy(alpha = 0.85f),
+                                text = "• ${video.folderName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0x99FFFFFF),
                                 fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-
-                    // Right: Video Quality & Format Badges
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        val resolutionText = if (video.width > 0 && video.height > 0) {
-                            if (video.height >= 2160 || video.width >= 3840) "4K"
-                            else if (video.height >= 1080 || video.width >= 1920) "1080p"
-                            else if (video.height >= 720 || video.width >= 1280) "720p"
-                            else "${video.width}×${video.height}"
-                        } else null
-
-                        if (resolutionText != null) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = Color(0x33FFFFFF)
-                            ) {
-                                Text(
-                                    text = resolutionText,
-                                    color = Color.White,
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = if (hwDecoderEnabled) NovaAccent.copy(alpha = 0.25f) else Color(0x33F59E0B)
-                        ) {
-                            Text(
-                                text = if (hwDecoderEnabled) "HW+" else "SW",
-                                color = if (hwDecoderEnabled) NovaAccent else Color(0xFFFBBF24),
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 }
 
-                // 2. Video Title & Action Buttons Row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack, modifier = Modifier.testTag("player_back_button")) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
-                    }
+                // Top Action Icons
+                IconButton(onClick = onOpenAudioSelector, modifier = Modifier.testTag("player_audio_btn")) {
+                    Icon(Icons.Default.Audiotrack, contentDescription = "Audio Track", tint = Color.White)
+                }
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        Text(
-                            text = video.title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${video.containerFormat} • ${video.folderName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xCCFFFFFF),
-                                fontSize = 11.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            // Aspect Ratio Chip Badge
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = Color(0x33FFFFFF),
-                                modifier = Modifier.clickable { onCycleAspectRatio() }
-                            ) {
-                                Text(
-                                    text = aspectRatioMode.label.uppercase(),
-                                    color = NovaAccent,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
-                                )
-                            }
-                        }
-                    }
+                IconButton(onClick = onOpenSubtitleSelector, modifier = Modifier.testTag("player_subtitles_btn")) {
+                    Icon(
+                        Icons.Default.Subtitles,
+                        contentDescription = "Subtitles",
+                        tint = if (hasSubtitles) NovaAccent else Color.White
+                    )
+                }
 
-                    // Top Action Icons
-                    IconButton(onClick = onOpenAudioSelector, modifier = Modifier.testTag("player_audio_btn")) {
-                        Icon(Icons.Default.Audiotrack, contentDescription = "Audio Track", tint = Color.White)
+                if (onEnterPiP != null) {
+                    IconButton(onClick = onEnterPiP, modifier = Modifier.testTag("player_pip_btn")) {
+                        Icon(Icons.Default.PictureInPictureAlt, contentDescription = "Picture in Picture", tint = Color.White)
                     }
+                }
 
-                    IconButton(onClick = onOpenSubtitleSelector, modifier = Modifier.testTag("player_subtitles_btn")) {
-                        Icon(
-                            Icons.Default.Subtitles,
-                            contentDescription = "Subtitles",
-                            tint = if (hasSubtitles) NovaAccent else Color.White
-                        )
-                    }
+                IconButton(onClick = onToggleLock, modifier = Modifier.testTag("player_lock_btn")) {
+                    Icon(Icons.Default.LockOpen, contentDescription = "Lock Controls", tint = Color.White)
+                }
 
-                    if (onEnterPiP != null) {
-                        IconButton(onClick = onEnterPiP, modifier = Modifier.testTag("player_pip_btn")) {
-                            Icon(Icons.Default.PictureInPictureAlt, contentDescription = "Picture in Picture", tint = Color.White)
-                        }
-                    }
-
-                    IconButton(onClick = onToggleLock, modifier = Modifier.testTag("player_lock_btn")) {
-                        Icon(Icons.Default.LockOpen, contentDescription = "Lock Controls", tint = Color.White)
-                    }
-
-                    IconButton(onClick = onOpenPlaybackSettings, modifier = Modifier.testTag("player_settings_btn")) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More Settings", tint = Color.White)
-                    }
+                IconButton(onClick = onOpenPlaybackSettings, modifier = Modifier.testTag("player_settings_btn")) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More Settings", tint = Color.White)
                 }
             }
 
