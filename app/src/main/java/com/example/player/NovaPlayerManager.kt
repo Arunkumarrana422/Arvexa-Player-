@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
+import android.os.PowerManager
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -47,6 +48,27 @@ class NovaPlayerManager(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    private var wakeLock: PowerManager.WakeLock? = null
+
+    private fun acquireWakeLock() {
+        try {
+            if (wakeLock == null) {
+                wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NovaPlayer:VideoWakeLock")
+            }
+            if (wakeLock?.isHeld == false) {
+                wakeLock?.acquire(24 * 60 * 60 * 1000L)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun releaseWakeLock() {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+            }
+        } catch (_: Exception) {}
+    }
 
     init {
         scope.launch {
@@ -63,8 +85,16 @@ class NovaPlayerManager(private val context: Context) {
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             .setEnableDecoderFallback(true)
 
+        val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+            .setUsage(C.USAGE_MEDIA)
+            .build()
+
         ExoPlayer.Builder(context, renderersFactory)
             .setTrackSelector(trackSelector)
+            .setAudioAttributes(audioAttributes, true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setHandleAudioBecomingNoisy(true)
             .setSeekBackIncrementMs(10000)
             .setSeekForwardIncrementMs(10000)
             .build().apply {
@@ -215,10 +245,12 @@ class NovaPlayerManager(private val context: Context) {
             exoPlayer.seekTo(resumePos)
         }
 
+        acquireWakeLock()
         exoPlayer.playWhenReady = true
         _isPlaying.value = true
         _isMiniPlayerActive.value = false
         onProgressUpdate?.invoke(video, if (resumePos > 0) resumePos else 1L, video.durationMs)
+        MediaPlaybackService.startService(context)
         updateVideoNotification()
     }
 
@@ -233,8 +265,10 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     fun play() {
+        acquireWakeLock()
         exoPlayer.play()
         _isPlaying.value = true
+        MediaPlaybackService.startService(context)
         updateVideoNotification()
     }
 
@@ -242,24 +276,23 @@ class NovaPlayerManager(private val context: Context) {
         flushProgress()
         exoPlayer.pause()
         _isPlaying.value = false
+        releaseWakeLock()
         updateVideoNotification()
     }
 
     fun stopAndDismiss() {
         flushProgress()
+        releaseWakeLock()
         try {
             exoPlayer.stop()
             exoPlayer.clearMediaItems()
+            MediaPlaybackService.stopService(context)
         } catch (_: Exception) {}
         _currentVideo.value = null
         _isPlaying.value = false
         _isMiniPlayerActive.value = false
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        try {
-            notificationManager.cancel(1002)
-        } catch (_: Exception) {}
     }
 
     fun updateVideoNotification() {
@@ -280,6 +313,7 @@ class NovaPlayerManager(private val context: Context) {
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, video.durationMs)
                 .build()
         )
+        MediaPlaybackService.updateNotification(context)
     }
 
     private fun createVideoActionPendingIntent(action: String): PendingIntent {

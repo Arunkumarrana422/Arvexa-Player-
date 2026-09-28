@@ -14,6 +14,9 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.MediaMetadataCompat
 import androidx.core.app.NotificationCompat
+import android.os.PowerManager
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -41,9 +44,38 @@ class AudioPlayerManager(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    private var wakeLock: PowerManager.WakeLock? = null
+
+    private fun acquireWakeLock() {
+        try {
+            if (wakeLock == null) {
+                wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NovaPlayer:AudioWakeLock")
+            }
+            if (wakeLock?.isHeld == false) {
+                wakeLock?.acquire(24 * 60 * 60 * 1000L)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun releaseWakeLock() {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+            }
+        } catch (_: Exception) {}
+    }
 
     val exoPlayer: ExoPlayer by lazy {
+        val audioAttributes = AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .build()
+
         ExoPlayer.Builder(context)
+            .setAudioAttributes(audioAttributes, true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setHandleAudioBecomingNoisy(true)
             .setSeekBackIncrementMs(10000)
             .setSeekForwardIncrementMs(10000)
             .build().apply {
@@ -197,6 +229,8 @@ class AudioPlayerManager(private val context: Context) {
             metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap)
         }
         mediaSession.setMetadata(metadataBuilder.build())
+
+        MediaPlaybackService.updateNotification(context)
     }
 
     private fun createActionPendingIntent(action: String): PendingIntent {
@@ -267,6 +301,7 @@ class AudioPlayerManager(private val context: Context) {
         _queueIndex.value = index
 
         try {
+            acquireWakeLock()
             val mediaItem = MediaItem.fromUri(Uri.parse(song.uri))
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
@@ -274,22 +309,27 @@ class AudioPlayerManager(private val context: Context) {
             _isPlaying.value = true
             _durationMs.value = song.durationMs
             _currentPositionMs.value = 0L
+            MediaPlaybackService.startService(context)
             updateMediaNotification()
         } catch (e: Exception) {
             _errorMessage.value = "Failed to load track: ${e.localizedMessage}"
+            releaseWakeLock()
         }
     }
 
     fun play() {
         onAudioStarted?.invoke()
+        acquireWakeLock()
         exoPlayer.play()
         _isPlaying.value = true
+        MediaPlaybackService.startService(context)
         updateMediaNotification()
     }
 
     fun pause() {
         exoPlayer.pause()
         _isPlaying.value = false
+        releaseWakeLock()
         updateMediaNotification()
     }
 
@@ -426,11 +466,11 @@ class AudioPlayerManager(private val context: Context) {
     }
 
     fun stopAndDismiss() {
+        releaseWakeLock()
         try {
             exoPlayer.stop()
             exoPlayer.clearMediaItems()
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.cancel(1001)
+            MediaPlaybackService.stopService(context)
         } catch (_: Exception) {}
         _currentSong.value = null
         _isPlaying.value = false

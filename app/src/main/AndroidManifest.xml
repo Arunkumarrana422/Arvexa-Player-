@@ -64,6 +64,11 @@
         <receiver
             android:name=".player.MediaActionReceiver"
             android:exported="false" />
+
+        <service
+            android:name=".player.MediaPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
     </application>
 
 </manifest>
