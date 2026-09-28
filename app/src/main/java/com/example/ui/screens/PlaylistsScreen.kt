@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
@@ -30,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -53,7 +58,75 @@ import com.example.ui.components.PlaylistCard
 import com.example.ui.components.VideoCard
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
+import com.example.ui.theme.isNightMode
+import com.example.ui.theme.nightGlassBorder
 import kotlinx.coroutines.flow.Flow
+
+@Composable
+fun CreatePlaylistPillButton(
+    onClick: () -> Unit,
+    text: String = "Create New Playlist",
+    modifier: Modifier = Modifier
+) {
+    val isDark = isNightMode()
+
+    // Vibrant, high-contrast cyan styling matching navigation bar in Light Mode
+    val lightBg = Color(0xFFE0F7FA) // Matching navigation active pill cyan
+    val lightBorder = Color(0xFF22D3EE).copy(alpha = 0.80f)
+    val lightContent = Color(0xFF007A99) // Deep, crisp, razor-sharp cyan (no blurriness)
+
+    // Glowing metallic glass effect in Dark / Night Mode
+    val darkBgGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.09f),
+            Color(0x2222D3EE),
+            Color(0x350B1020)
+        )
+    )
+    val darkContent = NovaAccent // Vibrant neon cyan #22D3EE
+
+    val glassBorder = nightGlassBorder(intensity = 1.35f) ?: BorderStroke(1.2.dp, lightBorder)
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("create_playlist_btn"),
+        shape = RoundedCornerShape(50),
+        color = if (isDark) Color(0xFF131B2E).copy(alpha = 0.75f) else lightBg,
+        border = if (isDark) glassBorder else BorderStroke(1.5.dp, lightBorder),
+        shadowElevation = if (isDark) 0.dp else 2.dp
+    ) {
+        Box(
+            modifier = if (isDark) Modifier.background(darkBgGradient) else Modifier
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 13.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = if (isDark) darkContent else lightContent,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 15.sp,
+                        letterSpacing = 0.3.sp
+                    ),
+                    color = if (isDark) darkContent else lightContent
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun PlaylistsScreen(
@@ -228,18 +301,12 @@ fun PlaylistsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                Button(
+                CreatePlaylistPillButton(
                     onClick = onCreatePlaylistClick,
-                    modifier = Modifier.fillMaxWidth().testTag("create_playlist_btn"),
-                    colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.PlaylistAdd, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Create New Playlist", fontWeight = FontWeight.Bold)
-                }
+                    text = "Create New Playlist"
+                )
             }
 
             if (playlists.isEmpty()) {

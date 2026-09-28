@@ -617,18 +617,12 @@ fun MusicScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
-                            Button(
+                            CreatePlaylistPillButton(
                                 onClick = { showCreatePlaylistDialog = true },
-                                modifier = Modifier.fillMaxWidth().testTag("create_playlist_btn"),
-                                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.PlaylistAdd, contentDescription = null, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Create New Playlist", fontWeight = FontWeight.Bold)
-                            }
+                                text = "Create New Playlist"
+                            )
                         }
 
                         if (playlists.isEmpty()) {
