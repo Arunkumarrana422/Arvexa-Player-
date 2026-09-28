@@ -551,6 +551,8 @@ fun NovaPlayerApp(
                                 isPlaying = isPlaying,
                                 currentPosMs = currentPosMs,
                                 currentPlayingVideo = currentVideoPlaying,
+                                isScanning = isScanning,
+                                onRefresh = { viewModel.scanLibrary() },
                                 onSelectFolder = { viewModel.selectFolder(it) },
                                 onPlayVideo = { video, playlist ->
                                     viewModel.playerManager.playVideo(video, playlist)
