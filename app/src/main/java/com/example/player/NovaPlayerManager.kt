@@ -98,14 +98,13 @@ class NovaPlayerManager(private val context: Context) {
 
     private fun buildExoPlayer(mode: DecoderMode): ExoPlayer {
         val renderersFactory = DefaultRenderersFactory(context).apply {
+            setEnableDecoderFallback(true)
             when (mode) {
                 DecoderMode.HW -> {
                     setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
-                    setEnableDecoderFallback(false)
                 }
                 DecoderMode.HW_PLUS, DecoderMode.SW -> {
                     setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-                    setEnableDecoderFallback(true)
                 }
             }
         }
@@ -592,21 +591,19 @@ class NovaPlayerManager(private val context: Context) {
                     val trackId = "audio_${groupIndex}_$i"
                     val format = trackGroup.getTrackFormat(i)
                     if (trackId == track.id || format.id == track.id || (format.language == track.language && track.id.contains("_$i"))) {
-                        trackSelector.setParameters(
-                            trackSelector.buildUponParameters()
-                                .setOverrideForType(
-                                    TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
-                                )
-                        )
+                        val override = TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                            .buildUpon()
+                            .setOverrideForType(override)
+                            .build()
                         break
                     }
                 }
             }
         }
         try {
-            if (!exoPlayer.isPlaying) {
-                exoPlayer.play()
-            }
+            exoPlayer.prepare()
+            exoPlayer.play()
         } catch (_: Exception) {}
         updateAvailableTracks(exoPlayer.currentTracks)
     }
