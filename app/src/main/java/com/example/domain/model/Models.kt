@@ -215,3 +215,9 @@ enum class ThemePreference(val label: String) {
     DARK("Deep Nova Dark"),
     LIGHT("Modern Light")
 }
+
+enum class DecoderMode(val label: String, val description: String) {
+    HW("HW", "Hardware Decoder"),
+    HW_PLUS("HW+", "Hardware Accelerated + Extensions"),
+    SW("SW", "Software Decoder")
+}

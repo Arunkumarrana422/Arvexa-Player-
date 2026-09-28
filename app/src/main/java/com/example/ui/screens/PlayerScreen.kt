@@ -98,6 +98,7 @@ fun PlayerScreen(
     val activeSubtitleText by playerManager.activeSubtitleText.collectAsState()
     val subtitleDelayMs by playerManager.subtitleDelayMs.collectAsState()
     val sleepTimerMinutes by playerManager.sleepTimerMinutes.collectAsState()
+    val decoderMode by playerManager.decoderMode.collectAsState()
     val errorMessage by playerManager.errorMessage.collectAsState()
 
     var areControlsVisible by remember { mutableStateOf(true) }
@@ -682,6 +683,7 @@ fun PlayerScreen(
         PlaybackSettingsBottomSheet(
             currentSpeed = playbackSpeed,
             currentAspectRatio = aspectRatioMode,
+            decoderMode = decoderMode,
             audioTracks = audioTracks,
             selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
             sleepTimerMinutes = sleepTimerMinutes,
@@ -689,6 +691,7 @@ fun PlayerScreen(
             hwDecoderEnabled = settings.hardwareDecoderEnabled,
             onSpeedChange = { playerManager.setSpeed(it) },
             onAspectRatioChange = { playerManager.setAspectRatio(it) },
+            onDecoderModeChange = { playerManager.setDecoderMode(it) },
             onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
             onSleepTimerChange = { playerManager.setSleepTimer(it) },
             onBackgroundAudioToggle = { /* Handled in settings */ },

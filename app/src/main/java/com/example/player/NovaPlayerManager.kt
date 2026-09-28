@@ -28,6 +28,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.AudioTrack
+import com.example.domain.model.DecoderMode
 import com.example.domain.model.SubtitleTrack
 import com.example.domain.model.Video
 import com.example.data.repository.SettingsRepository
@@ -82,17 +83,39 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     private val trackSelector = DefaultTrackSelector(context)
-    val exoPlayer: ExoPlayer by lazy {
-        val renderersFactory = DefaultRenderersFactory(context)
-            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
-            .setEnableDecoderFallback(true)
+    
+    private val _decoderMode = MutableStateFlow(DecoderMode.HW_PLUS)
+    val decoderMode: StateFlow<DecoderMode> = _decoderMode.asStateFlow()
+
+    private var _exoPlayer: ExoPlayer? = null
+    val exoPlayer: ExoPlayer
+        get() {
+            if (_exoPlayer == null) {
+                _exoPlayer = buildExoPlayer(_decoderMode.value)
+            }
+            return _exoPlayer!!
+        }
+
+    private fun buildExoPlayer(mode: DecoderMode): ExoPlayer {
+        val renderersFactory = DefaultRenderersFactory(context).apply {
+            when (mode) {
+                DecoderMode.HW -> {
+                    setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+                    setEnableDecoderFallback(false)
+                }
+                DecoderMode.HW_PLUS, DecoderMode.SW -> {
+                    setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                    setEnableDecoderFallback(true)
+                }
+            }
+        }
 
         val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .setUsage(C.USAGE_MEDIA)
             .build()
 
-        ExoPlayer.Builder(context, renderersFactory)
+        return ExoPlayer.Builder(context, renderersFactory)
             .setTrackSelector(trackSelector)
             .setAudioAttributes(audioAttributes, true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
@@ -102,6 +125,33 @@ class NovaPlayerManager(private val context: Context) {
             .build().apply {
                 addListener(playerListener)
             }
+    }
+
+    fun setDecoderMode(mode: DecoderMode) {
+        if (_decoderMode.value == mode) return
+        _decoderMode.value = mode
+        val currentVid = _currentVideo.value
+        val pos = try { _exoPlayer?.currentPosition ?: 0L } catch (_: Exception) { 0L }
+        val playing = try { _exoPlayer?.isPlaying ?: false } catch (_: Exception) { false }
+
+        try {
+            _exoPlayer?.removeListener(playerListener)
+            _exoPlayer?.release()
+        } catch (_: Exception) {}
+
+        _exoPlayer = buildExoPlayer(mode)
+
+        if (currentVid != null) {
+            val mediaItem = MediaItem.Builder()
+                .setUri(Uri.parse(currentVid.uri))
+                .setMediaId(currentVid.id)
+                .setTag(currentVid)
+                .build()
+            _exoPlayer?.setMediaItem(mediaItem)
+            _exoPlayer?.prepare()
+            if (pos > 0) _exoPlayer?.seekTo(pos)
+            if (playing) _exoPlayer?.play()
+        }
     }
 
     var onVideoStarted: (() -> Unit)? = null
@@ -680,12 +730,14 @@ class NovaPlayerManager(private val context: Context) {
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            if (error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) {
+                // Software fallback is active and playback will continue normally. Ignore error banner.
+                return
+            }
             val message = when (error.errorCode) {
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
                     "Network error: Unable to connect to streaming server. Check your connection."
-                PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ->
-                    "Hardware decoder failed. Switched to software decoding fallback."
                 PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
                 PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ->
                     "Unsupported or corrupted video stream format."
@@ -705,7 +757,10 @@ class NovaPlayerManager(private val context: Context) {
     fun release() {
         progressJob?.cancel()
         sleepTimerJob?.cancel()
-        exoPlayer.removeListener(playerListener)
-        exoPlayer.release()
+        try {
+            _exoPlayer?.removeListener(playerListener)
+            _exoPlayer?.release()
+        } catch (_: Exception) {}
+        _exoPlayer = null
     }
 }

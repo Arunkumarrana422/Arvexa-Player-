@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.AudioTrack
+import com.example.domain.model.DecoderMode
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
@@ -68,6 +69,7 @@ import com.example.ui.theme.nightGlassBorder
 fun PlaybackSettingsBottomSheet(
     currentSpeed: Float,
     currentAspectRatio: AspectRatioMode,
+    decoderMode: DecoderMode,
     audioTracks: List<AudioTrack>,
     selectedAudioTrack: AudioTrack?,
     sleepTimerMinutes: Int?,
@@ -75,6 +77,7 @@ fun PlaybackSettingsBottomSheet(
     hwDecoderEnabled: Boolean,
     onSpeedChange: (Float) -> Unit,
     onAspectRatioChange: (AspectRatioMode) -> Unit,
+    onDecoderModeChange: (DecoderMode) -> Unit,
     onSelectAudioTrack: (AudioTrack) -> Unit,
     onSleepTimerChange: (Int?) -> Unit,
     onBackgroundAudioToggle: (Boolean) -> Unit,
@@ -150,6 +153,26 @@ fun PlaybackSettingsBottomSheet(
                         text = mode.label,
                         isSelected = currentAspectRatio == mode,
                         onClick = { onAspectRatioChange(mode) }
+                    )
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 12.dp))
+
+            // Decoder Mode (HW / HW+ / SW)
+            SectionHeader(icon = Icons.Default.Memory, title = "DECODER MODE (HW / HW+ / SW)")
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                DecoderMode.values().forEach { mode ->
+                    OptionChip(
+                        text = mode.label,
+                        isSelected = decoderMode == mode,
+                        onClick = { onDecoderModeChange(mode) }
                     )
                 }
             }
