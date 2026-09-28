@@ -29,6 +29,8 @@ class MediaPlaybackService : Service() {
         const val ACTION_UPDATE = "com.example.player.ACTION_UPDATE"
         const val ACTION_STOP = "com.example.player.ACTION_STOP"
 
+        var activeInstance: MediaPlaybackService? = null
+
         fun startService(context: Context) {
             try {
                 val intent = Intent(context, MediaPlaybackService::class.java).apply {
@@ -52,6 +54,10 @@ class MediaPlaybackService : Service() {
                 } else {
                     context.startService(intent)
                 }
+                activeInstance?.let { svc ->
+                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                    nm?.notify(NOTIFICATION_ID, svc.buildMediaNotification())
+                }
             } catch (_: Exception) {}
         }
 
@@ -69,7 +75,13 @@ class MediaPlaybackService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        activeInstance = this
         createNotificationChannel()
+    }
+
+    override fun onDestroy() {
+        activeInstance = null
+        super.onDestroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -86,15 +98,13 @@ class MediaPlaybackService : Service() {
                         this,
                         NOTIFICATION_ID,
                         notification,
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-                        } else {
-                            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-                        }
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
                     )
                 } else {
                     startForeground(NOTIFICATION_ID, notification)
                 }
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                nm?.notify(NOTIFICATION_ID, notification)
             }
         }
         return START_STICKY
@@ -126,7 +136,8 @@ class MediaPlaybackService : Service() {
         val video = videoManager?.currentVideo?.value
         val isVideoPlaying = videoManager?.isPlaying?.value ?: false
 
-        val isVideoActive = isVideoPlaying || (video != null && !isAudioPlaying)
+        val isAudioActive = isAudioPlaying || (song != null && !isVideoPlaying)
+        val isVideoActive = !isAudioActive && (isVideoPlaying || video != null)
 
         val title = if (isVideoActive) (video?.title ?: "Playing Video") else (song?.title ?: "Playing Music")
         val subtitle = if (isVideoActive) (video?.folderName ?: "Nova Video Player") else (song?.artist ?: "Nova Player")
@@ -175,9 +186,19 @@ class MediaPlaybackService : Service() {
                     try {
                         contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
                     } catch (_: Exception) {
-                        null
+                        @Suppress("DEPRECATION")
+                        android.media.ThumbnailUtils.createVideoThumbnail(
+                            video.path,
+                            android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                        )
                     }
-                } else null
+                } else {
+                    @Suppress("DEPRECATION")
+                    android.media.ThumbnailUtils.createVideoThumbnail(
+                        video.path,
+                        android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                    )
+                }
             } else null
         } catch (_: Exception) {
             null
@@ -238,9 +259,5 @@ class MediaPlaybackService : Service() {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 }

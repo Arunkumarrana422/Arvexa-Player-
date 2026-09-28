@@ -70,17 +70,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val hasStoragePermission: StateFlow<Boolean> = _hasStoragePermission.asStateFlow()
 
     init {
-        // Stop video when audio starts playing
+        // Stop and clear video when audio starts playing
         audioPlayerManager.onAudioStarted = {
-            if (playerManager.isPlaying.value) {
-                playerManager.pause()
-            }
+            playerManager.stopAndDismiss()
         }
-        // Stop audio when video starts playing
+        // Stop and clear audio when video starts playing
         playerManager.onVideoStarted = {
-            if (audioPlayerManager.isPlaying.value) {
-                audioPlayerManager.pause()
-            }
+            audioPlayerManager.stopAndDismiss()
         }
         audioPlayerManager.onToggleFavorite = { song ->
             toggleFavoriteSong(song)

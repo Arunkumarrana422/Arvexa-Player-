@@ -234,7 +234,15 @@ class NovaPlayerManager(private val context: Context) {
     private fun getVideoThumbnail(video: Video): Bitmap? {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                context.contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
+                try {
+                    context.contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
+                } catch (_: Exception) {
+                    @Suppress("DEPRECATION")
+                    android.media.ThumbnailUtils.createVideoThumbnail(
+                        video.path,
+                        android.provider.MediaStore.Images.Thumbnails.MINI_KIND
+                    )
+                }
             } else {
                 @Suppress("DEPRECATION")
                 android.media.ThumbnailUtils.createVideoThumbnail(
@@ -257,6 +265,9 @@ class NovaPlayerManager(private val context: Context) {
         _queueIndex.value = idx
 
         val resumePos = if (startPositionMs > 0) startPositionMs else video.lastPositionMs
+        _currentPositionMs.value = resumePos
+        _durationMs.value = video.durationMs
+
         val mediaItem = MediaItem.fromUri(Uri.parse(video.uri))
         if (resumePos > 0) {
             exoPlayer.setMediaItem(mediaItem, resumePos)
@@ -640,6 +651,10 @@ class NovaPlayerManager(private val context: Context) {
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             _isBuffering.value = (playbackState == Player.STATE_BUFFERING)
+            if (playbackState == Player.STATE_READY) {
+                _durationMs.value = exoPlayer.duration.coerceAtLeast(0L)
+                updateVideoNotification()
+            }
             if (playbackState == Player.STATE_ENDED) {
                 _isPlaying.value = false
                 if (!_isRepeatOne.value) {
@@ -650,6 +665,11 @@ class NovaPlayerManager(private val context: Context) {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
+            updateVideoNotification()
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            updateVideoNotification()
         }
 
         override fun onTracksChanged(tracks: Tracks) {
