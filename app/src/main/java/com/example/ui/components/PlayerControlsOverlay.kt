@@ -177,12 +177,11 @@ fun PlayerControlsOverlay(
                     )
                 )
         ) {
-            // TOP ACTION BAR (Clean single row with native status bar padding)
+            // TOP BAR
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
-                    .statusBarsPadding()
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -197,7 +196,7 @@ fun PlayerControlsOverlay(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 6.dp)
+                        .padding(horizontal = 4.dp)
                 ) {
                     Text(
                         text = video.title,
@@ -222,20 +221,10 @@ fun PlayerControlsOverlay(
                             color = Color(0xCCFFFFFF),
                             fontSize = 11.sp
                         )
-                        if (video.folderName.isNotBlank()) {
-                            Text(
-                                text = "• ${video.folderName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0x99FFFFFF),
-                                fontSize = 11.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
                     }
                 }
 
-                // Top Action Icons
+                // Top Actions
                 IconButton(onClick = onOpenAudioSelector, modifier = Modifier.testTag("player_audio_btn")) {
                     Icon(Icons.Default.Audiotrack, contentDescription = "Audio Track", tint = Color.White)
                 }
@@ -248,10 +237,8 @@ fun PlayerControlsOverlay(
                     )
                 }
 
-                if (onEnterPiP != null) {
-                    IconButton(onClick = onEnterPiP, modifier = Modifier.testTag("player_pip_btn")) {
-                        Icon(Icons.Default.PictureInPictureAlt, contentDescription = "Picture in Picture", tint = Color.White)
-                    }
+                IconButton(onClick = onCycleAspectRatio, modifier = Modifier.testTag("player_aspect_ratio_btn")) {
+                    Icon(Icons.Default.AspectRatio, contentDescription = "Aspect Ratio", tint = Color.White)
                 }
 
                 IconButton(onClick = onToggleLock, modifier = Modifier.testTag("player_lock_btn")) {
