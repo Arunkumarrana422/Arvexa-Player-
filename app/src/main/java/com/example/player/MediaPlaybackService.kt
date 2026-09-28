@@ -144,7 +144,7 @@ class MediaPlaybackService : Service() {
         )
 
         // Action intents
-        val prevPendingIntent = createActionPendingIntent("ACTION_PREV")
+        val prevPendingIntent = createActionPendingIntent(if (isVideoActive) "VIDEO_PREV" else "ACTION_PREV")
         val playPausePendingIntent = createActionPendingIntent(
             if (isVideoActive) {
                 if (isVideoPlaying) "VIDEO_PAUSE" else "VIDEO_PLAY"
@@ -152,7 +152,7 @@ class MediaPlaybackService : Service() {
                 if (isAudioPlaying) "ACTION_PAUSE" else "ACTION_PLAY"
             }
         )
-        val nextPendingIntent = createActionPendingIntent("ACTION_NEXT")
+        val nextPendingIntent = createActionPendingIntent(if (isVideoActive) "VIDEO_NEXT" else "ACTION_NEXT")
         val stopPendingIntent = createActionPendingIntent(if (isVideoActive) "VIDEO_STOP" else "ACTION_STOP")
 
         val albumArtUri = if (song != null) {
@@ -170,6 +170,14 @@ class MediaPlaybackService : Service() {
                     @Suppress("DEPRECATION")
                     android.provider.MediaStore.Images.Media.getBitmap(contentResolver, albumArtUri)
                 }
+            } else if (isVideoActive && video != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        contentResolver.loadThumbnail(Uri.parse(video.uri), android.util.Size(512, 512), null)
+                    } catch (_: Exception) {
+                        null
+                    }
+                } else null
             } else null
         } catch (_: Exception) {
             null

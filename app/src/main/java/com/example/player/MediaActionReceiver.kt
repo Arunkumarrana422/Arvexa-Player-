@@ -22,6 +22,8 @@ class MediaActionReceiver : BroadcastReceiver() {
             }
             "VIDEO_PLAY" -> NovaPlayerManager.activeInstance?.play()
             "VIDEO_PAUSE" -> NovaPlayerManager.activeInstance?.pause()
+            "VIDEO_PREV" -> NovaPlayerManager.activeInstance?.previousVideo()
+            "VIDEO_NEXT" -> NovaPlayerManager.activeInstance?.nextVideo()
             "VIDEO_STOP" -> {
                 NovaPlayerManager.activeInstance?.stopAndDismiss()
                 val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
