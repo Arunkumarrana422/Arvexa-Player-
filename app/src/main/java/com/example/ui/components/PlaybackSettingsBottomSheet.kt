@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,13 +36,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -64,7 +63,7 @@ import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
 import com.example.ui.theme.nightGlassBorder
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlaybackSettingsBottomSheet(
     currentSpeed: Float,
@@ -85,22 +84,32 @@ fun PlaybackSettingsBottomSheet(
     onEnterPiP: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val speedPresets = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
     val isDark = isNightMode()
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.testTag("playback_settings_sheet")
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .clickable(onClick = onDismiss)
+            .testTag("playback_settings_sheet"),
+        contentAlignment = Alignment.CenterEnd
     ) {
-        Column(
+        Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .fillMaxHeight()
+                .width(380.dp)
+                .clickable(enabled = false, onClick = {}),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -335,6 +344,7 @@ fun PlaybackSettingsBottomSheet(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
+}
 }
 
 @Composable
