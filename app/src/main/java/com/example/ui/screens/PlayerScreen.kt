@@ -178,16 +178,22 @@ fun PlayerScreen(
         onDispose {}
     }
 
-    // Immersive Fullscreen Mode & Brightness Management
-    DisposableEffect(Unit) {
+    // Immersive Fullscreen Mode & Status Bar Management
+    DisposableEffect(areControlsVisible) {
         val window = activity?.window
         if (window != null) {
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+            insetsController.isAppearanceLightStatusBars = false
+            insetsController.isAppearanceLightNavigationBars = false
+            if (areControlsVisible) {
+                insetsController.show(WindowInsetsCompat.Type.statusBars())
+                insetsController.hide(WindowInsetsCompat.Type.navigationBars())
+            } else {
+                insetsController.hide(WindowInsetsCompat.Type.systemBars())
+            }
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
-        // Apply saved video player brightness
         playerManager.applyPlayerBrightness(activity)
 
         onDispose {
@@ -652,7 +658,8 @@ fun PlayerScreen(
                 } else {
                     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
-            }
+            },
+            onEnterPiP = onEnterPiP
         )
     }
 
