@@ -265,7 +265,11 @@ fun PlayerScreen(
                     }
                 },
                 update = { playerView ->
-                    playerView.player = playerManager.exoPlayer
+                    val currentPlayer = playerManager.exoPlayer
+                    if (playerView.player != currentPlayer) {
+                        playerView.player = null
+                        playerView.player = currentPlayer
+                    }
                     playerView.keepScreenOn = true
                     playerView.resizeMode = when (aspectRatioMode) {
                         AspectRatioMode.FIT -> AspectRatioFrameLayout.RESIZE_MODE_FIT
