@@ -140,6 +140,7 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     var onVideoStarted: (() -> Unit)? = null
+    var playerViewBounds: android.graphics.Rect? = null
 
     private val _currentVideo = MutableStateFlow<Video?>(null)
     val currentVideo: StateFlow<Video?> = _currentVideo.asStateFlow()

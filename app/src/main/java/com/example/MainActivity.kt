@@ -307,19 +307,52 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    fun updatePiPParams(isPlayingVideo: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val builder = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9))
+
+            viewModel.playerManager.playerViewBounds?.let { rect ->
+                if (!rect.isEmpty) {
+                    builder.setSourceRectHint(rect)
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                builder.setAutoEnterEnabled(isPlayingVideo)
+                builder.setSeamlessResizeEnabled(true)
+            }
+            try {
+                setPictureInPictureParams(builder.build())
+            } catch (_: Exception) {}
+        }
+    }
+
     private fun enterPiPMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val params = PictureInPictureParams.Builder()
+            val builder = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
-                .build()
-            enterPictureInPictureMode(params)
+
+            viewModel.playerManager.playerViewBounds?.let { rect ->
+                if (!rect.isEmpty) {
+                    builder.setSourceRectHint(rect)
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                builder.setAutoEnterEnabled(true)
+                builder.setSeamlessResizeEnabled(true)
+            }
+            try {
+                enterPictureInPictureMode(builder.build())
+            } catch (_: Exception) {}
         }
     }
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         val bgAudio = viewModel.userSettings.value.backgroundAudioEnabled
-        if (bgAudio) {
+        if (bgAudio || viewModel.playerManager.currentVideo.value != null) {
             if (viewModel.playerManager.isPlaying.value && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 enterPiPMode()
             }
@@ -340,6 +373,15 @@ fun NovaPlayerApp(
     viewModel: MainViewModel,
     onEnterPiP: () -> Unit
 ) {
+    val context = LocalContext.current
+    val currentVideoPlayingForPip by viewModel.playerManager.currentVideo.collectAsState()
+    val isPlayingForPip by viewModel.playerManager.isPlaying.collectAsState()
+    LaunchedEffect(isPlayingForPip, currentVideoPlayingForPip) {
+        (context as? MainActivity)?.let { activity ->
+            activity.updatePiPParams(currentVideoPlayingForPip != null && isPlayingForPip)
+        }
+    }
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -381,7 +423,6 @@ fun NovaPlayerApp(
 
     // Double back to exit state
     var lastBackPressTime by remember { mutableLongStateOf(0L) }
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val needManageStorage by viewModel.needManageStorage.collectAsState()
