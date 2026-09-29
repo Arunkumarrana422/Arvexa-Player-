@@ -95,6 +95,8 @@ import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
+import com.example.ui.theme.isNightMode
+import androidx.compose.foundation.BorderStroke
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 
@@ -691,11 +693,13 @@ fun FullMusicPlayerBottomSheet(
         }
     }
 
+    val isDark = isNightMode()
+
     // Equalizer Sheet
     if (showEqualizerSheet) {
         ModalBottomSheet(
             onDismissRequest = { showEqualizerSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isDark) Color(0xFF0F1523) else MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier
@@ -714,17 +718,26 @@ fun FullMusicPlayerBottomSheet(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     presets.forEach { preset ->
                         val isSelected = preset.name == currentPreset
+                        val cardBorder = if (isSelected) {
+                            BorderStroke(1.5.dp, NovaAccent)
+                        } else {
+                            if (isDark) nightGlassBorder(strokeWidth = 1.dp, intensity = 1.2f) ?: BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.6f))
+                            else BorderStroke(1.dp, Color(0xFFE2E8F0))
+                        }
+                        val cardBg = if (isSelected) {
+                            if (isDark) NovaAccent.copy(alpha = 0.25f) else Color(0xFFE0F7FA)
+                        } else {
+                            if (isDark) Color(0xFF162032).copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        }
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    audioPlayerManager.setPreset(preset.name)
-                                    showEqualizerSheet = false
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) NovaAccent.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                            shape = RoundedCornerShape(10.dp)
+                            onClick = {
+                                audioPlayerManager.setPreset(preset.name)
+                                showEqualizerSheet = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = cardBg),
+                            border = cardBorder,
+                            shape = RoundedCornerShape(14.dp)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -755,7 +768,7 @@ fun FullMusicPlayerBottomSheet(
     if (showSpeedSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSpeedSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isDark) Color(0xFF0F1523) else MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier
@@ -771,23 +784,33 @@ fun FullMusicPlayerBottomSheet(
                 val speeds = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
                 speeds.forEach { spd ->
                     val isSelected = playbackSpeed == spd
+                    val cardBorder = if (isSelected) {
+                        BorderStroke(1.5.dp, NovaAccent)
+                    } else {
+                        if (isDark) nightGlassBorder(strokeWidth = 1.dp, intensity = 1.2f) ?: BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.6f))
+                        else BorderStroke(1.dp, Color(0xFFE2E8F0))
+                    }
+                    val cardBg = if (isSelected) {
+                        if (isDark) NovaAccent.copy(alpha = 0.25f) else Color(0xFFE0F7FA)
+                    } else {
+                        if (isDark) Color(0xFF162032).copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    }
                     Card(
+                        onClick = {
+                            audioPlayerManager.setSpeed(spd)
+                            showSpeedSheet = false
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                audioPlayerManager.setSpeed(spd)
-                                showSpeedSheet = false
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) NovaAccent.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        shape = RoundedCornerShape(8.dp)
+                            .padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = cardBg),
+                        border = cardBorder,
+                        shape = RoundedCornerShape(14.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp),
+                                .padding(14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
@@ -806,7 +829,7 @@ fun FullMusicPlayerBottomSheet(
     if (showSleepTimerSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSleepTimerSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isDark) Color(0xFF0F1523) else MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier
@@ -822,23 +845,33 @@ fun FullMusicPlayerBottomSheet(
                 val timers = listOf(null to "Off", 15 to "15 minutes", 30 to "30 minutes", 45 to "45 minutes", 60 to "60 minutes")
                 timers.forEach { (mins, label) ->
                     val isSelected = sleepTimerMinutes == mins
+                    val cardBorder = if (isSelected) {
+                        BorderStroke(1.5.dp, NovaAccent)
+                    } else {
+                        if (isDark) nightGlassBorder(strokeWidth = 1.dp, intensity = 1.2f) ?: BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.6f))
+                        else BorderStroke(1.dp, Color(0xFFE2E8F0))
+                    }
+                    val cardBg = if (isSelected) {
+                        if (isDark) NovaAccent.copy(alpha = 0.25f) else Color(0xFFE0F7FA)
+                    } else {
+                        if (isDark) Color(0xFF162032).copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    }
                     Card(
+                        onClick = {
+                            audioPlayerManager.setSleepTimer(mins)
+                            showSleepTimerSheet = false
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                audioPlayerManager.setSleepTimer(mins)
-                                showSleepTimerSheet = false
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) NovaAccent.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        shape = RoundedCornerShape(8.dp)
+                            .padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = cardBg),
+                        border = cardBorder,
+                        shape = RoundedCornerShape(14.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp),
+                                .padding(14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
