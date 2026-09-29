@@ -595,28 +595,29 @@ fun PlayerScreen(
                                     change.consume()
                                 } else if (isDragging) {
                                     change.consume()
-                                    if (isDragHorizontal && settings.swipeSeekEnabled) {
-                                        if (!isSeekingGesture) {
-                                            isSeekingGesture = true
-                                            seekStartPos = currentPosMs
+                                     if (isDragHorizontal && settings.swipeSeekEnabled) {
+                                         if (!isSeekingGesture) {
+                                             isSeekingGesture = true
+                                             seekStartPos = currentPosMs
+                                         }
+                                         val seekRatio = totalDragX / size.width
+                                         val maxSeekSpan = durationMs.coerceAtLeast(60000L).toFloat()
+                                         val seekSpan = kotlin.math.max(10000f, kotlin.math.abs(seekRatio) * maxSeekSpan)
+                                         seekDragDeltaMs = (seekRatio * seekSpan).toLong()
+                                         val target = (seekStartPos + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
+                                         playerManager.seekTo(target)
+                                         hudState = GestureHudState.Seek(target, seekDragDeltaMs, durationMs)
+                                     } else {
+                                         val deltaFraction = -dragAmount.y / (size.height * 0.75f)
+                                         if (isLeft && settings.swipeBrightnessEnabled) {
+                                             playerManager.adjustBrightnessBy(deltaFraction, activity)
+                                             hudState = GestureHudState.Brightness(playerManager.brightnessFraction.value)
+                                         } else if (!isLeft && settings.swipeVolumeEnabled) {
+                                             playerManager.adjustVolumeBy(deltaFraction)
+                                             hudState = GestureHudState.Volume(playerManager.volumeFraction.value)
+                                         }
+                                     }
                                         }
-                                        val seekRatio = totalDragX / size.width
-                                        val maxSeekSpan = (durationMs * 0.15f).coerceAtLeast(30000f)
-                                        seekDragDeltaMs = (seekRatio * maxSeekSpan).toLong()
-                                        val target = (seekStartPos + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
-                                        playerManager.seekTo(target)
-                                        hudState = GestureHudState.Seek(target, seekDragDeltaMs, durationMs)
-                                    } else {
-                                        val deltaFraction = -dragAmount.y / (size.height * 0.75f)
-                                        if (isLeft && settings.swipeBrightnessEnabled) {
-                                            playerManager.adjustBrightnessBy(deltaFraction, activity)
-                                            hudState = GestureHudState.Brightness(playerManager.brightnessFraction.value)
-                                        } else if (!isLeft && settings.swipeVolumeEnabled) {
-                                            playerManager.adjustVolumeBy(deltaFraction)
-                                            hudState = GestureHudState.Volume(playerManager.volumeFraction.value)
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
