@@ -531,7 +531,7 @@ fun PlayerScreen(
                                     val deltaDistance = kotlin.math.abs(distance - previousDistance)
                                     val deltaY = centroid.y - previousCentroid.y
 
-                                    if (deltaDistance > 4f || zoomScale > 1.02f) {
+                                    if (zoomScale > 1.02f || deltaDistance > 8f) {
                                         val scaleFactor = distance / previousDistance
                                         val newScale = (zoomScale * scaleFactor).coerceIn(1.0f, 4.5f)
                                         zoomScale = newScale
