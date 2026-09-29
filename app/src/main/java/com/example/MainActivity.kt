@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.NotificationManager
 import android.app.PictureInPictureParams
 import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -349,6 +350,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        viewModel.setIsInPiP(isInPictureInPictureMode)
+    }
+
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         val bgAudio = viewModel.userSettings.value.backgroundAudioEnabled
@@ -385,6 +391,17 @@ fun NovaPlayerApp(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val isInPiP by viewModel.isInPiP.collectAsState()
+    LaunchedEffect(isInPiP) {
+        if (isInPiP) {
+            if (currentRoute != Screen.Player.route) {
+                navController.navigate(Screen.Player.route) {
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
 
     val userSettings by viewModel.userSettings.collectAsState()
     val allVideos by viewModel.allVideos.collectAsState()

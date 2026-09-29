@@ -40,6 +40,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _needManageStorage = MutableStateFlow(false)
     val needManageStorage: StateFlow<Boolean> = _needManageStorage.asStateFlow()
 
+    private val _isInPiP = MutableStateFlow(false)
+    val isInPiP: StateFlow<Boolean> = _isInPiP.asStateFlow()
+
+    fun setIsInPiP(inPiP: Boolean) {
+        _isInPiP.value = inPiP
+    }
+
     fun clearManageStorageFlag() {
         _needManageStorage.value = false
     }
