@@ -373,6 +373,8 @@ fun PlayerScreen(
 
                         var previousCentroid = Offset.Zero
                         var previousDistance = 0f
+                        var totalTwoFingerDragY = 0f
+                        var hasTriggeredAspectGesture = false
 
                         while (true) {
                             val event = awaitPointerEvent()
@@ -518,30 +520,43 @@ fun PlayerScreen(
                                     playerManager.setSpeed(originalSpeed)
                                     hudState = GestureHudState.None
                                 }
-                                // 2-FINGER PINCH TO ZOOM & PAN
+                                // 2-FINGER GESTURES (Pinch Zoom / Pan OR 2-Finger Vertical Swipe for Aspect Ratio)
                                 isMultiTouch = true
                                 val p1 = activePointers[0].position
                                 val p2 = activePointers[1].position
                                 val centroid = (p1 + p2) / 2f
                                 val distance = (p1 - p2).getDistance()
 
-                                if (previousDistance > 0f) {
-                                    val scaleFactor = distance / previousDistance
-                                    val newScale = (zoomScale * scaleFactor).coerceIn(1.0f, 4.5f)
-                                    zoomScale = newScale
+                                if (previousDistance > 0f && previousCentroid != Offset.Zero) {
+                                    val deltaDistance = kotlin.math.abs(distance - previousDistance)
+                                    val deltaY = centroid.y - previousCentroid.y
 
-                                    if (newScale > 1.02f) {
-                                        val maxPanX = (size.width * (zoomScale - 1f)) / 2f
-                                        val maxPanY = (size.height * (zoomScale - 1f)) / 2f
-                                        val panDelta = centroid - previousCentroid
-                                        panOffsetX = (panOffsetX + panDelta.x).coerceIn(-maxPanX, maxPanX)
-                                        panOffsetY = (panOffsetY + panDelta.y).coerceIn(-maxPanY, maxPanY)
+                                    if (deltaDistance > 4f || zoomScale > 1.02f) {
+                                        val scaleFactor = distance / previousDistance
+                                        val newScale = (zoomScale * scaleFactor).coerceIn(1.0f, 4.5f)
+                                        zoomScale = newScale
+
+                                        if (newScale > 1.02f) {
+                                            val maxPanX = (size.width * (zoomScale - 1f)) / 2f
+                                            val maxPanY = (size.height * (zoomScale - 1f)) / 2f
+                                            val panDelta = centroid - previousCentroid
+                                            panOffsetX = (panOffsetX + panDelta.x).coerceIn(-maxPanX, maxPanX)
+                                            panOffsetY = (panOffsetY + panDelta.y).coerceIn(-maxPanY, maxPanY)
+                                        } else {
+                                            zoomScale = 1f
+                                            panOffsetX = 0f
+                                            panOffsetY = 0f
+                                        }
+                                        hudState = GestureHudState.Zoom(zoomScale)
                                     } else {
-                                        zoomScale = 1f
-                                        panOffsetX = 0f
-                                        panOffsetY = 0f
+                                        // 2-Finger Vertical Swipe -> Aspect Ratio Change!
+                                        totalTwoFingerDragY += deltaY
+                                        if (kotlin.math.abs(totalTwoFingerDragY) > 80f && !hasTriggeredAspectGesture) {
+                                            hasTriggeredAspectGesture = true
+                                            playerManager.cycleAspectRatio()
+                                            totalTwoFingerDragY = 0f
+                                        }
                                     }
-                                    hudState = GestureHudState.Zoom(zoomScale)
                                 }
 
                                 previousCentroid = centroid
