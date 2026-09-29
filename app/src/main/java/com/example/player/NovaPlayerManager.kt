@@ -26,6 +26,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.AudioTrack
@@ -120,6 +121,7 @@ class NovaPlayerManager(private val context: Context) {
             .setAudioAttributes(audioAttributes, true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .setHandleAudioBecomingNoisy(true)
+            .setSeekParameters(SeekParameters.EXACT)
             .setSeekBackIncrementMs(10000)
             .setSeekForwardIncrementMs(10000)
             .build().apply {
