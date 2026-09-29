@@ -282,6 +282,7 @@ fun PlayerScreen(
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
                         setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+                        subtitleView?.visibility = android.view.View.GONE
                     }
                 },
                 update = { playerView ->
