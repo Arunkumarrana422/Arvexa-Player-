@@ -606,6 +606,7 @@ fun PlayerScreen(
                                         val target = (seekStartPos + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
                                         playerManager.seekTo(target)
                                         hudState = GestureHudState.Seek(target, seekDragDeltaMs, durationMs)
+                                    } else {
                                         val deltaFraction = -dragAmount.y / (size.height * 0.75f)
                                         if (isLeft && settings.swipeBrightnessEnabled) {
                                             playerManager.adjustBrightnessBy(deltaFraction, activity)
