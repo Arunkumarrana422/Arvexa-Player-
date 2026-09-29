@@ -23,6 +23,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
+import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -598,16 +599,44 @@ class NovaPlayerManager(private val context: Context) {
                 trackSelector.buildUponParameters()
                     .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
             )
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                .buildUpon()
+                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .build()
             _externalCues.value = emptyList()
             _activeSubtitleText.value = null
         } else if (subtitle.isExternal) {
-            // Handled via external parser
+            trackSelector.setParameters(
+                trackSelector.buildUponParameters()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            )
         } else {
             trackSelector.setParameters(
                 trackSelector.buildUponParameters()
                     .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
             )
+            val tracks = exoPlayer.currentTracks
+            for (groupIndex in 0 until tracks.groups.size) {
+                val trackGroup = tracks.groups[groupIndex]
+                if (trackGroup.type == C.TRACK_TYPE_TEXT) {
+                    for (i in 0 until trackGroup.length) {
+                        val trackId = "sub_${groupIndex}_$i"
+                        val format = trackGroup.getTrackFormat(i)
+                        if (trackId == subtitle.id || format.id == subtitle.id || (format.language == subtitle.language && subtitle.id.contains("_$i"))) {
+                            val override = TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                                .buildUpon()
+                                .setOverrideForType(override)
+                                .build()
+                            break
+                        }
+                    }
+                }
+            }
         }
+        try {
+            exoPlayer.prepare()
+        } catch (_: Exception) {}
         updateAvailableTracks(exoPlayer.currentTracks)
     }
 
@@ -717,6 +746,13 @@ class NovaPlayerManager(private val context: Context) {
 
         override fun onTracksChanged(tracks: Tracks) {
             updateAvailableTracks(tracks)
+        }
+
+        override fun onCues(cueGroup: CueGroup) {
+            val text = cueGroup.cues.mapNotNull { it.text }.joinToString("\n")
+            if (_externalCues.value.isEmpty()) {
+                _activeSubtitleText.value = if (text.isNotBlank()) text else null
+            }
         }
 
         override fun onPlayerError(error: PlaybackException) {
