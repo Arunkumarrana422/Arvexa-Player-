@@ -602,7 +602,7 @@ fun PlayerScreen(
                                          }
                                          val seekRatio = totalDragX / size.width
                                          val maxSeekSpan = durationMs.coerceAtLeast(60000L).toFloat()
-                                         val seekSpan = kotlin.math.max(10000f, kotlin.math.abs(seekRatio) * maxSeekSpan)
+                                         val seekSpan = kotlin.math.max(1000f, kotlin.math.abs(seekRatio) * maxSeekSpan)
                                          seekDragDeltaMs = (seekRatio * seekSpan).toLong()
                                          val target = (seekStartPos + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
                                          playerManager.seekTo(target)
