@@ -358,6 +358,7 @@ fun PlayerScreen(
                         var totalDragY = 0f
                         var isLongPressActive = false
                         var originalSpeed = 1f
+                        var seekStartPos = 0L
                         val isLeft = startPos.x < size.width / 2
                         var anyPointerConsumed = firstDown.isConsumed
 
@@ -595,13 +596,16 @@ fun PlayerScreen(
                                 } else if (isDragging) {
                                     change.consume()
                                     if (isDragHorizontal && settings.swipeSeekEnabled) {
-                                        isSeekingGesture = true
+                                        if (!isSeekingGesture) {
+                                            isSeekingGesture = true
+                                            seekStartPos = currentPosMs
+                                        }
                                         val seekRatio = totalDragX / size.width
                                         val maxSeekSpan = (durationMs * 0.15f).coerceAtLeast(30000f)
                                         seekDragDeltaMs = (seekRatio * maxSeekSpan).toLong()
-                                        val target = (currentPosMs + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
+                                        val target = (seekStartPos + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
+                                        playerManager.seekTo(target)
                                         hudState = GestureHudState.Seek(target, seekDragDeltaMs, durationMs)
-                                    } else {
                                         val deltaFraction = -dragAmount.y / (size.height * 0.75f)
                                         if (isLeft && settings.swipeBrightnessEnabled) {
                                             playerManager.adjustBrightnessBy(deltaFraction, activity)
