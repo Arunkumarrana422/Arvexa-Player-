@@ -210,26 +210,34 @@ fun PlayerScreen(
         onDispose {}
     }
 
-    // Immersive Fullscreen Mode & Brightness Management
-    DisposableEffect(Unit) {
+    // Immersive Fullscreen Mode & Brightness Management synced with controls visibility
+    DisposableEffect(areControlsVisible) {
         val window = activity?.window
         if (window != null) {
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+            if (areControlsVisible) {
+                insetsController.show(WindowInsetsCompat.Type.systemBars())
+            } else {
+                insetsController.hide(WindowInsetsCompat.Type.systemBars())
+            }
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
-        // Apply saved video player brightness
+        onDispose {}
+    }
+
+    DisposableEffect(Unit) {
+        val window = activity?.window
+        window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         playerManager.applyPlayerBrightness(activity)
 
         onDispose {
             val win = activity?.window
             if (win != null) {
                 val insetsController = WindowCompat.getInsetsController(win, win.decorView)
-                insetsController.hide(WindowInsetsCompat.Type.systemBars())
+                insetsController.show(WindowInsetsCompat.Type.systemBars())
                 win.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                // Restore phone's automatic / default system brightness
                 playerManager.restoreSystemBrightness(activity)
             }
             playerManager.flushProgress()
