@@ -47,6 +47,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.example.ui.theme.NovaAccent
@@ -161,9 +163,9 @@ fun PlayerScreen(
         }
     }
 
-    // Auto-rotation based on aspect ratio:
-    // 9:16 (vertical/portrait video) -> no sensor auto rotation (locked to portrait)
-    // 16:9 (horizontal video) -> sensor auto rotation enabled
+    // Auto-rotation & force landscape on non-short/non-portrait video start:
+    // 9:16 (vertical/portrait video) -> portrait
+    // 16:9 / horizontal -> automatically start in landscape, then allow sensor rotation
     LaunchedEffect(video, isLocked) {
         if (isLocked) return@LaunchedEffect
         if (video != null) {
@@ -171,7 +173,7 @@ fun PlayerScreen(
             activity?.requestedOrientation = if (isPortraitVideo) {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             } else {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR
+                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             }
         }
     }
@@ -660,20 +662,24 @@ fun PlayerScreen(
 
 
 
-        // Continue Watching Floating Banner (Photo 2)
-        ContinueWatchingBanner(
-            isVisible = showResumeBanner,
-            onStartOver = {
-                playerManager.seekTo(0L)
-                showResumeBanner = false
-            },
-            onDismiss = {
-                showResumeBanner = false
-            },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = if (areControlsVisible) 115.dp else 24.dp)
-        )
+        // Continue Watching Floating Banner (Photo 2 - Landscape only)
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (isLandscape) {
+            ContinueWatchingBanner(
+                isVisible = showResumeBanner,
+                onStartOver = {
+                    playerManager.seekTo(0L)
+                    showResumeBanner = false
+                },
+                onDismiss = {
+                    showResumeBanner = false
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = if (areControlsVisible) 115.dp else 24.dp)
+            )
+        }
 
         // Arvexa Player Controls Overlay
         PlayerControlsOverlay(
@@ -705,8 +711,9 @@ fun PlayerScreen(
             onToggleRepeat = { playerManager.toggleRepeat() },
             onToggleShuffle = { playerManager.toggleShuffle() },
             onToggleOrientation = {
-                isLandscape = !isLandscape
-                activity?.requestedOrientation = if (isLandscape) {
+                val currentLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                val nextLandscape = !currentLandscape
+                activity?.requestedOrientation = if (nextLandscape) {
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 } else {
                     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
