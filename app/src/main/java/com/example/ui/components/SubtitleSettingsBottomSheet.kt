@@ -80,7 +80,7 @@ fun SubtitleSettingsBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val isDark = isNightMode()
+    val isDark = true
 
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -295,7 +295,7 @@ private fun TrackRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit
 ) {
-    val isDark = isNightMode()
+    val isDark = true
     val trackBorder = if (isSelected) {
         if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
         else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
@@ -377,7 +377,7 @@ private fun ColorPresetChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isNightMode()
+    val isDark = true
     val chipBorder = if (isSelected) {
         if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
         else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))

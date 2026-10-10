@@ -88,7 +88,7 @@ fun PlaybackSettingsBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val speedPresets = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
-    val isDark = isNightMode()
+    val isDark = true
 
     Box(
         modifier = Modifier
@@ -360,7 +360,7 @@ private fun OptionChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val isDark = isNightMode()
+    val isDark = true
     val chipShape = RoundedCornerShape(50) // Full Stadium / Pill Shape
 
     val borderStroke = if (isSelected) {
