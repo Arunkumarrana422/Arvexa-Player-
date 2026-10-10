@@ -331,13 +331,41 @@ fun FullMusicPlayerBottomSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Dynamic Sound Wave Visualizer (Positioned above Title)
-            DynamicMusicVisualizer(
-                isPlaying = isPlaying,
+            // Shuffle & Repeat Controls (Moved above song title where music bar was)
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(34.dp)
-            )
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { audioPlayerManager.toggleShuffle() },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (isShuffle) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = { audioPlayerManager.cycleRepeatMode() },
+                    modifier = Modifier.clip(CircleShape)
+                ) {
+                    Icon(
+                        imageVector = when (repeatMode) {
+                            AudioRepeatMode.ONE -> Icons.Default.RepeatOne
+                            else -> Icons.Default.Repeat
+                        },
+                        contentDescription = repeatMode.label,
+                        tint = if (repeatMode != AudioRepeatMode.OFF) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -415,19 +443,6 @@ fun FullMusicPlayerBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Shuffle
-                IconButton(
-                    onClick = { audioPlayerManager.toggleShuffle() },
-                    modifier = Modifier.clip(CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Shuffle,
-                        contentDescription = "Shuffle",
-                        tint = if (isShuffle) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
                 // Prev Track
                 IconButton(
                     onClick = { audioPlayerManager.previousSong() },
@@ -497,22 +512,6 @@ fun FullMusicPlayerBottomSheet(
                         contentDescription = "Next",
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(32.dp)
-                    )
-                }
-
-                // Repeat Mode
-                IconButton(
-                    onClick = { audioPlayerManager.cycleRepeatMode() },
-                    modifier = Modifier.clip(CircleShape)
-                ) {
-                    Icon(
-                        imageVector = when (repeatMode) {
-                            AudioRepeatMode.ONE -> Icons.Default.RepeatOne
-                            else -> Icons.Default.Repeat
-                        },
-                        contentDescription = repeatMode.label,
-                        tint = if (repeatMode != AudioRepeatMode.OFF) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
