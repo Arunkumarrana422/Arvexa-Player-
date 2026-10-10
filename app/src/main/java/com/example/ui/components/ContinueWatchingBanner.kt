@@ -61,40 +61,30 @@ fun ContinueWatchingBanner(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.weight(1f, fill = true)
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp).testTag("dismiss_resume_banner")
                 ) {
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(24.dp).testTag("dismiss_resume_banner")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Dismiss",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-
-                    Text(
-                        text = "Continue from where you stopped.",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Dismiss",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Continue from where you stopped.",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 Text(
                     text = "START OVER",
