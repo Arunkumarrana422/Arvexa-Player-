@@ -747,7 +747,7 @@ fun PlayerScreen(
             val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
             insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             onDispose {
-                insetsController?.show(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             }
         }
 
@@ -763,7 +763,7 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.48f)
+                    .fillMaxWidth(0.70f)
                     .align(Alignment.CenterEnd)
                     .background(Color.Transparent)
                     .pointerInput(Unit) {
@@ -807,7 +807,7 @@ fun PlayerScreen(
             val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
             insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             onDispose {
-                insetsController?.show(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             }
         }
 
@@ -823,7 +823,7 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.48f)
+                    .fillMaxWidth(0.70f)
                     .align(Alignment.CenterEnd)
                     .background(Color.Transparent)
                     .pointerInput(Unit) {

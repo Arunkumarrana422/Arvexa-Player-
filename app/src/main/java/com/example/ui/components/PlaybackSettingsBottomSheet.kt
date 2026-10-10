@@ -101,8 +101,8 @@ fun PlaybackSettingsBottomSheet(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(Color.Transparent)
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .background(Color(0xCC050814))
+                .padding(start = 24.dp, end = 20.dp, top = 24.dp, bottom = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Row(
