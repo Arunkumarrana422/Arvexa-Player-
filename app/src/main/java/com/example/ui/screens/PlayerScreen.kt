@@ -163,9 +163,9 @@ fun PlayerScreen(
         }
     }
 
-    // Auto-rotation & force landscape on non-short/non-portrait video start:
+    // Auto-rotation & force sensor landscape on non-short/non-portrait video start:
     // 9:16 (vertical/portrait video) -> portrait
-    // 16:9 / horizontal -> automatically start in landscape, then allow sensor rotation
+    // 16:9 / horizontal -> automatically start in landscape and allow rotating between landscape angles
     LaunchedEffect(video, isLocked) {
         if (isLocked) return@LaunchedEffect
         if (video != null) {
@@ -173,7 +173,7 @@ fun PlayerScreen(
             activity?.requestedOrientation = if (isPortraitVideo) {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             } else {
-                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
         }
     }
