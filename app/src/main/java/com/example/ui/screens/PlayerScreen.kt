@@ -9,6 +9,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -18,6 +22,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -743,29 +750,62 @@ fun PlayerScreen(
         )
     }
 
-    // Playback Settings Bottom Sheet
-    if (showPlaybackSheet) {
-        PlaybackSettingsBottomSheet(
-            currentSpeed = playbackSpeed,
-            currentAspectRatio = aspectRatioMode,
-            decoderMode = decoderMode,
-            audioTracks = audioTracks,
-            selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
-            sleepTimerMinutes = sleepTimerMinutes,
-            backgroundAudioEnabled = settings.backgroundAudioEnabled,
-            hwDecoderEnabled = settings.hardwareDecoderEnabled,
-            onSpeedChange = { playerManager.setSpeed(it) },
-            onAspectRatioChange = { playerManager.setAspectRatio(it) },
-            onDecoderModeChange = { playerManager.setDecoderMode(it) },
-            onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
-            onSleepTimerChange = { playerManager.setSleepTimer(it) },
-            onBackgroundAudioToggle = { /* Handled in settings */ },
-            onHwDecoderToggle = { /* Handled in settings */ },
-            onEnterPiP = {
-                showPlaybackSheet = false
-                onEnterPiP()
-            },
-            onDismiss = { showPlaybackSheet = false }
-        )
+    // Playback Settings Custom Right-to-Left Drawer with Dim Background and Status bar hidden
+    androidx.compose.animation.AnimatedVisibility(
+        visible = showPlaybackSheet,
+        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        modifier = Modifier.fillMaxSize().zIndex(100f)
+    ) {
+        androidx.compose.runtime.DisposableEffect(Unit) {
+            val window = activity?.window
+            val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            onDispose {
+                insetsController?.show(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.35f))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { showPlaybackSheet = false }
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.48f)
+                    .align(Alignment.CenterEnd)
+                    .background(Color.Transparent)
+                    .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) {}
+            ) {
+                PlaybackSettingsBottomSheet(
+                    currentSpeed = playbackSpeed,
+                    currentAspectRatio = aspectRatioMode,
+                    decoderMode = decoderMode,
+                    audioTracks = audioTracks,
+                    selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
+                    sleepTimerMinutes = sleepTimerMinutes,
+                    backgroundAudioEnabled = settings.backgroundAudioEnabled,
+                    hwDecoderEnabled = settings.hardwareDecoderEnabled,
+                    onSpeedChange = { playerManager.setSpeed(it) },
+                    onAspectRatioChange = { playerManager.setAspectRatio(it) },
+                    onDecoderModeChange = { playerManager.setDecoderMode(it) },
+                    onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
+                    onSleepTimerChange = { playerManager.setSleepTimer(it) },
+                    onBackgroundAudioToggle = { /* Handled in settings */ },
+                    onHwDecoderToggle = { /* Handled in settings */ },
+                    onEnterPiP = {
+                        showPlaybackSheet = false
+                        onEnterPiP()
+                    },
+                    onDismiss = { showPlaybackSheet = false }
+                )
+            }
+        }
     }
 }
