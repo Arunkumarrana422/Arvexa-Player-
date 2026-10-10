@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,31 +61,39 @@ fun ContinueWatchingBanner(
         ) {
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(24.dp).testTag("dismiss_resume_banner")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(24.dp).testTag("dismiss_resume_banner")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Dismiss",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Continue from where you stopped.",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Text(
-                    text = "Continue from where you stopped.",
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Text(
                     text = "START OVER",
@@ -95,7 +104,7 @@ fun ContinueWatchingBanner(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .clickable(onClick = onStartOver)
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                         .testTag("start_over_btn")
                 )
             }

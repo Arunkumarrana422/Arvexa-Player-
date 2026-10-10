@@ -71,7 +71,7 @@ fun OnboardingScreen(
             .verticalScroll(rememberScrollState())
             .testTag("onboarding_screen"),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.Top
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -188,7 +188,7 @@ fun OnboardingScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Fully Rounded Stadium Pill Button with matching border/theme color (No heavy solid fill)
         Surface(
