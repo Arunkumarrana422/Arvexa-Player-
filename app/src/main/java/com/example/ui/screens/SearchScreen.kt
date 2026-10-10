@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
@@ -60,6 +63,7 @@ fun SearchScreen(
     isPlaying: Boolean = false,
     currentPosMs: Long = 0L,
     onQueryChange: (String) -> Unit,
+    onSearch: (String) -> Unit = {},
     onBack: () -> Unit,
     onDeleteRecentSearch: (String) -> Unit,
     onClearAllSearches: () -> Unit,
@@ -96,8 +100,24 @@ fun SearchScreen(
                     )
                 },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        if (query.isNotBlank()) {
+                            onSearch(query)
+                        }
+                    }
+                ),
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = NovaAccent)
+                    IconButton(
+                        onClick = {
+                            if (query.isNotBlank()) {
+                                onSearch(query)
+                            }
+                        }
+                    ) {
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = NovaAccent)
+                    }
                 },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
@@ -150,7 +170,10 @@ fun SearchScreen(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable { onQueryChange(search) }
+                                    .clickable {
+                                        onQueryChange(search)
+                                        onSearch(search)
+                                    }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -211,7 +234,10 @@ fun SearchScreen(
                     items(searchResults, key = { it.id }) { video ->
                         VideoCard(
                             video = video,
-                            onClick = { onPlayVideo(video, searchResults) },
+                            onClick = {
+                                if (query.isNotBlank()) onSearch(query)
+                                onPlayVideo(video, searchResults)
+                            },
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
                             currentPosMs = currentPosMs,
                             onToggleFavorite = { onToggleFavorite(video) },

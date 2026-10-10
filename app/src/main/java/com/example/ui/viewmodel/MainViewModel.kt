@@ -349,9 +349,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
-        if (query.isNotBlank()) {
+    }
+
+    fun commitSearchQuery(query: String) {
+        val trimmed = query.trim()
+        if (trimmed.isNotBlank()) {
             viewModelScope.launch {
-                repository.addSearchQuery(query)
+                repository.addSearchQuery(trimmed)
             }
         }
     }

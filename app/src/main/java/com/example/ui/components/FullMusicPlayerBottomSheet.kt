@@ -423,7 +423,8 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.Shuffle,
                         contentDescription = "Shuffle",
-                        tint = if (isShuffle) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isShuffle) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
@@ -436,7 +437,7 @@ fun FullMusicPlayerBottomSheet(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Previous",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
 
@@ -448,7 +449,8 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.Replay10,
                         contentDescription = "Rewind 10s",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
@@ -480,7 +482,8 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.Forward10,
                         contentDescription = "Forward 10s",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
@@ -493,7 +496,7 @@ fun FullMusicPlayerBottomSheet(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Next",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
 
@@ -508,7 +511,8 @@ fun FullMusicPlayerBottomSheet(
                             else -> Icons.Default.Repeat
                         },
                         contentDescription = repeatMode.label,
-                        tint = if (repeatMode != AudioRepeatMode.OFF) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (repeatMode != AudioRepeatMode.OFF) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

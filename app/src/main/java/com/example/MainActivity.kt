@@ -727,6 +727,7 @@ fun NovaPlayerApp(
                         isPlaying = isPlaying,
                         currentPosMs = currentPosMs,
                         onQueryChange = { viewModel.setSearchQuery(it) },
+                        onSearch = { viewModel.commitSearchQuery(it) },
                         onBack = { navController.popBackStack() },
                         onDeleteRecentSearch = { viewModel.deleteSearchQuery(it) },
                         onClearAllSearches = { viewModel.clearSearchHistory() },

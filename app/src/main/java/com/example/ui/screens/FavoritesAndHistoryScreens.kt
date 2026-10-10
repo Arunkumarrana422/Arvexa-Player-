@@ -120,7 +120,7 @@ fun HistoryScreen(
     currentPosMs: Long = 0L,
     onPlayVideo: (Video, List<Video>) -> Unit,
     onRemoveFromHistory: (String) -> Unit,
-    onClearAllHistory: () -> Unit,
+    onClearAllHistory: (() -> Unit)? = null,
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
     onShowVideoInfo: (Video) -> Unit
@@ -135,7 +135,6 @@ fun HistoryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -143,16 +142,6 @@ fun HistoryScreen(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
-                OutlinedButton(
-                    onClick = onClearAllHistory,
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color(0xFFEF4444))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Clear All", fontSize = 12.sp, color = Color(0xFFEF4444))
-                }
             }
         }
 

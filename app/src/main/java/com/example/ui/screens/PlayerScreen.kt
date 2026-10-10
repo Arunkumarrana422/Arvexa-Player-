@@ -411,7 +411,6 @@ fun PlayerScreen(
                                     }
                                 } else if (isDragging) {
                                     if (isSeekingGesture) {
-                                        playerManager.seekBy(seekDragDeltaMs)
                                         isSeekingGesture = false
                                         hudState = GestureHudState.None
                                     }
@@ -611,10 +610,10 @@ fun PlayerScreen(
                                              isSeekingGesture = true
                                              seekStartPos = currentPosMs
                                          }
-                                         val seekRatio = totalDragX / size.width
-                                         val maxSeekSpan = durationMs.coerceAtLeast(60000L).toFloat()
-                                         val seekSpan = kotlin.math.max(1000f, kotlin.math.abs(seekRatio) * maxSeekSpan)
-                                         seekDragDeltaMs = (seekRatio * seekSpan).toLong()
+                                         val maxSeekSpan = if (durationMs > 600_000L) (durationMs * 0.15f).coerceAtMost(600_000f) else 90_000f
+                                         val widthFloat = size.width.coerceAtLeast(1).toFloat()
+                                         val seekRatio = (totalDragX / widthFloat).coerceIn(-1f, 1f)
+                                         seekDragDeltaMs = (seekRatio * maxSeekSpan).toLong()
                                          val target = (seekStartPos + seekDragDeltaMs).coerceIn(0L, durationMs.coerceAtLeast(1L))
                                          playerManager.seekTo(target)
                                          hudState = GestureHudState.Seek(target, seekDragDeltaMs, durationMs)
