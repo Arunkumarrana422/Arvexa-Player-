@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -210,17 +211,13 @@ fun PlayerScreen(
         onDispose {}
     }
 
-    // Immersive Fullscreen Mode & Brightness Management synced with controls visibility
-    DisposableEffect(areControlsVisible) {
+    // Immersive Fullscreen Mode & Brightness Management (hide status bar in video player)
+    DisposableEffect(Unit) {
         val window = activity?.window
         if (window != null) {
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            if (areControlsVisible) {
-                insetsController.show(WindowInsetsCompat.Type.systemBars())
-            } else {
-                insetsController.hide(WindowInsetsCompat.Type.systemBars())
-            }
+            insetsController.hide(WindowInsetsCompat.Type.statusBars())
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
         onDispose {}
@@ -769,6 +766,13 @@ fun PlayerScreen(
                     .fillMaxWidth(0.48f)
                     .align(Alignment.CenterEnd)
                     .background(Color.Transparent)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showSubtitleSheet = false
+                            }
+                        }
+                    }
                     .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) {}
             ) {
                 SubtitleSettingsBottomSheet(
@@ -822,6 +826,13 @@ fun PlayerScreen(
                     .fillMaxWidth(0.48f)
                     .align(Alignment.CenterEnd)
                     .background(Color.Transparent)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showPlaybackSheet = false
+                            }
+                        }
+                    }
                     .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) {}
             ) {
                 PlaybackSettingsBottomSheet(
