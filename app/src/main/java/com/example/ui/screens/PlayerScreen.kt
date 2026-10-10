@@ -226,7 +226,7 @@ fun PlayerScreen(
             val win = activity?.window
             if (win != null) {
                 val insetsController = WindowCompat.getInsetsController(win, win.decorView)
-                insetsController.show(WindowInsetsCompat.Type.systemBars())
+                insetsController.hide(WindowInsetsCompat.Type.systemBars())
                 win.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 // Restore phone's automatic / default system brightness
@@ -730,24 +730,57 @@ fun PlayerScreen(
         )
     }
 
-    // Subtitle Settings Bottom Sheet
-    if (showSubtitleSheet) {
-        SubtitleSettingsBottomSheet(
-            tracks = subtitleTracks,
-            selectedTrack = subtitleTracks.firstOrNull { it.isSelected },
-            subtitleDelayMs = subtitleDelayMs,
-            fontSize = settings.subtitleFontSize,
-            textColor = settings.subtitleTextColor,
-            bgColor = settings.subtitleBgColor,
-            onSelectTrack = { playerManager.selectSubtitleTrack(it) },
-            onLoadExternalSubtitle = { uri ->
-                scope.launch { playerManager.loadExternalSubtitle(uri) }
-            },
-            onAdjustDelay = { delta -> playerManager.adjustSubtitleDelay(delta) },
-            onFontSizeChange = { onFontSizeChange(it) },
-            onColorChange = { text, bg -> onColorChange(text, bg) },
-            onDismiss = { showSubtitleSheet = false }
-        )
+    // Subtitle Settings Custom Right-to-Left Drawer with Dim Background and Status bar hidden
+    androidx.compose.animation.AnimatedVisibility(
+        visible = showSubtitleSheet,
+        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        modifier = Modifier.fillMaxSize().zIndex(100f)
+    ) {
+        androidx.compose.runtime.DisposableEffect(Unit) {
+            val window = activity?.window
+            val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            onDispose {
+                insetsController?.show(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.35f))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { showSubtitleSheet = false }
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.48f)
+                    .align(Alignment.CenterEnd)
+                    .background(Color.Transparent)
+                    .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) {}
+            ) {
+                SubtitleSettingsBottomSheet(
+                    tracks = subtitleTracks,
+                    selectedTrack = subtitleTracks.firstOrNull { it.isSelected },
+                    subtitleDelayMs = subtitleDelayMs,
+                    fontSize = settings.subtitleFontSize,
+                    textColor = settings.subtitleTextColor,
+                    bgColor = settings.subtitleBgColor,
+                    onSelectTrack = { playerManager.selectSubtitleTrack(it) },
+                    onLoadExternalSubtitle = { uri ->
+                        scope.launch { playerManager.loadExternalSubtitle(uri) }
+                    },
+                    onAdjustDelay = { delta -> playerManager.adjustSubtitleDelay(delta) },
+                    onFontSizeChange = { onFontSizeChange(it) },
+                    onColorChange = { text, bg -> onColorChange(text, bg) },
+                    onDismiss = { showSubtitleSheet = false }
+                )
+            }
+        }
     }
 
     // Playback Settings Custom Right-to-Left Drawer with Dim Background and Status bar hidden
