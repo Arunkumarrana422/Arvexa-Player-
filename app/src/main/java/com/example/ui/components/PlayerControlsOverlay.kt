@@ -178,80 +178,153 @@ fun PlayerControlsOverlay(
                     )
                 )
         ) {
-            // TOP BAR
-            Row(
+            // TOP BAR (Column with title row and action buttons toolbar right below)
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
-                IconButton(onClick = onBack, modifier = Modifier.testTag("player_back_button")) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 4.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = video.title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    IconButton(onClick = onBack, modifier = Modifier.testTag("player_back_button")) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 6.dp)
                     ) {
                         Text(
-                            text = decoderMode.label,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.ExtraBold),
-                            color = when (decoderMode) {
-                                DecoderMode.HW -> Color(0xFF38BDF8)
-                                DecoderMode.HW_PLUS -> NovaAccent
-                                DecoderMode.SW -> Color(0xFFF59E0B)
-                            },
-                            fontSize = 11.sp
+                            text = video.title,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                        Text(
-                            text = "• ${video.containerFormat}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xCCFFFFFF),
-                            fontSize = 11.sp
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = decoderMode.label,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.ExtraBold),
+                                color = when (decoderMode) {
+                                    DecoderMode.HW -> Color(0xFF38BDF8)
+                                    DecoderMode.HW_PLUS -> NovaAccent
+                                    DecoderMode.SW -> Color(0xFFF59E0B)
+                                },
+                                fontSize = 11.sp,
+                                maxLines = 1
+                            )
+                            Text(
+                                text = "• ${video.containerFormat}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xCCFFFFFF),
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onToggleLock, modifier = Modifier.testTag("player_lock_btn")) {
+                        Icon(Icons.Default.LockOpen, contentDescription = "Lock Controls", tint = Color.White)
                     }
                 }
 
-                // Top Actions
-                IconButton(onClick = onOpenAudioSelector, modifier = Modifier.testTag("player_audio_btn")) {
-                    Icon(Icons.Default.Audiotrack, contentDescription = "Audio Track", tint = Color.White)
-                }
+                Spacer(modifier = Modifier.height(4.dp))
 
-                IconButton(onClick = onOpenSubtitleSelector, modifier = Modifier.testTag("player_subtitles_btn")) {
-                    Icon(
-                        Icons.Default.Subtitles,
-                        contentDescription = "Subtitles",
-                        tint = if (hasSubtitles) NovaAccent else Color.White
-                    )
-                }
+                // Action Buttons Toolbar shifted right below the title
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Audio Track Button
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0x44000000),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(onClick = onOpenAudioSelector)
+                            .testTag("player_audio_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(Icons.Default.Audiotrack, contentDescription = "Audio", tint = Color.White, modifier = Modifier.size(15.dp))
+                            Text("Audio", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
 
-                IconButton(onClick = onCycleAspectRatio, modifier = Modifier.testTag("player_aspect_ratio_btn")) {
-                    Icon(Icons.Default.AspectRatio, contentDescription = "Aspect Ratio", tint = Color.White)
-                }
+                    // Subtitles Button
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0x44000000),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(onClick = onOpenSubtitleSelector)
+                            .testTag("player_subtitles_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(Icons.Default.Subtitles, contentDescription = "Subtitles", tint = if (hasSubtitles) NovaAccent else Color.White, modifier = Modifier.size(15.dp))
+                            Text("Sub", color = if (hasSubtitles) NovaAccent else Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
 
-                IconButton(onClick = onToggleLock, modifier = Modifier.testTag("player_lock_btn")) {
-                    Icon(Icons.Default.LockOpen, contentDescription = "Lock Controls", tint = Color.White)
-                }
+                    // Aspect Ratio Button
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0x44000000),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(onClick = onCycleAspectRatio)
+                            .testTag("player_aspect_ratio_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(Icons.Default.AspectRatio, contentDescription = "Aspect Ratio", tint = Color.White, modifier = Modifier.size(15.dp))
+                            Text("Fit", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
 
-                IconButton(onClick = onOpenPlaybackSettings, modifier = Modifier.testTag("player_settings_btn")) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More Settings", tint = Color.White)
+                    // More Settings Button
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0x44000000),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(onClick = onOpenPlaybackSettings)
+                            .testTag("player_settings_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(15.dp))
+                            Text("More", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
                 }
             }
 
