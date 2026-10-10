@@ -91,7 +91,7 @@ fun PlaybackSettingsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color(0xCC0B1020),
         modifier = Modifier.testTag("playback_settings_sheet")
     ) {
         Column(
@@ -108,10 +108,10 @@ fun PlaybackSettingsBottomSheet(
                 Text(
                     text = "Playback Controls & Audio",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                 }
             }
 
@@ -408,11 +408,7 @@ private fun OptionChip(
     ) {
         Text(
             text = text,
-            color = if (isSelected) {
-                if (isDark) Color.White else Color(0xFF007A99)
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
+            color = Color.White,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 12.5.sp
         )
@@ -439,12 +435,12 @@ private fun ToggleRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color(0xCCFFFFFF),
                 fontSize = 11.sp
             )
         }
