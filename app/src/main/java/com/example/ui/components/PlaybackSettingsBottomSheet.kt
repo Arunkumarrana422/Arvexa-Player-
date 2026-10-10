@@ -91,7 +91,7 @@ fun PlaybackSettingsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xCC0B1020),
+        containerColor = Color.Transparent,
         modifier = Modifier.testTag("playback_settings_sheet")
     ) {
         Column(
