@@ -763,7 +763,7 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.70f)
+                    .fillMaxWidth(0.48f)
                     .align(Alignment.CenterEnd)
                     .background(Color.Transparent)
                     .pointerInput(Unit) {
@@ -823,7 +823,7 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.70f)
+                    .fillMaxWidth(0.48f)
                     .align(Alignment.CenterEnd)
                     .background(Color.Transparent)
                     .pointerInput(Unit) {

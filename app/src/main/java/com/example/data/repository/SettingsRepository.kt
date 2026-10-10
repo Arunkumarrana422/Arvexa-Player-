@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "nova_player_settings")
 
 data class UserSettings(
-    val theme: ThemePreference = ThemePreference.SYSTEM,
+    val theme: ThemePreference = ThemePreference.DARK,
     val sortOption: SortOption = SortOption.DATE_DESC,
     val viewMode: ViewMode = ViewMode.LIST,
     val defaultSpeed: Float = 1.0f,
@@ -72,9 +72,9 @@ class SettingsRepository(private val context: Context) {
     val settingsFlow: Flow<UserSettings> = context.dataStore.data.map { prefs ->
         UserSettings(
             theme = try {
-                ThemePreference.valueOf(prefs[KEY_THEME] ?: ThemePreference.SYSTEM.name)
+                ThemePreference.valueOf(prefs[KEY_THEME] ?: ThemePreference.DARK.name)
             } catch (e: Exception) {
-                ThemePreference.SYSTEM
+                ThemePreference.DARK
             },
             sortOption = try {
                 SortOption.valueOf(prefs[KEY_SORT] ?: SortOption.DATE_DESC.name)

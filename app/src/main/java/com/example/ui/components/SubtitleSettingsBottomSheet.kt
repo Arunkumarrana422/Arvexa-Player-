@@ -99,8 +99,8 @@ fun SubtitleSettingsBottomSheet(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(Color(0xCC050814))
-                .padding(start = 24.dp, end = 20.dp, top = 24.dp, bottom = 24.dp)
+                .background(Color.Transparent)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Row(
