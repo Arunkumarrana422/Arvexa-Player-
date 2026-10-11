@@ -99,7 +99,6 @@ import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.MusicScreen
 import com.example.ui.screens.OnboardingScreen
-import com.example.ui.screens.SplashScreen
 import com.example.ui.screens.OnlineStreamScreen
 import com.example.ui.screens.PlayerScreen
 import com.example.ui.screens.PlaylistsScreen
@@ -464,7 +463,7 @@ fun NovaPlayerApp(
 
     val sharedPrefs = remember { context.getSharedPreferences("nova_prefs", Context.MODE_PRIVATE) }
     val onboardingDone = remember { sharedPrefs.getBoolean("onboarding_completed", false) || userSettings.onboardingCompleted }
-    val startDestination = Screen.Splash.route
+    val startDestination = if (onboardingDone) Screen.MainTabs.route else Screen.Onboarding.route
 
     // Main 4 tabs Pager (Default start at Folders = index 2)
     val pagerState = rememberPagerState(initialPage = 2) { 4 }
@@ -529,18 +528,7 @@ fun NovaPlayerApp(
                 startDestination = startDestination,
                 modifier = Modifier.fillMaxSize()
             ) {
-                composable(Screen.Splash.route) {
-                    SplashScreen(
-                        onSplashFinished = {
-                            val nextDest = if (onboardingDone) Screen.MainTabs.route else Screen.Onboarding.route
-                            navController.navigate(nextDest) {
-                                popUpTo(Screen.Splash.route) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-
-                composable(Screen.Onboarding.route) {
+composable(Screen.Onboarding.route) {
                     OnboardingScreen(
                         onGetStarted = {
                             sharedPrefs.edit().putBoolean("onboarding_completed", true).apply()
