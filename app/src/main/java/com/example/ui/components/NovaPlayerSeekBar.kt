@@ -109,7 +109,7 @@ fun NovaPlayerSeekBar(
                 val width = size.width
                 val height = size.height
 
-                val trackHeight = 10.dp.toPx()
+                val trackHeight = 4.dp.toPx()
                 val trackCornerRadius = trackHeight / 2f
                 val trackTop = (height - trackHeight) / 2f
 
@@ -147,22 +147,19 @@ fun NovaPlayerSeekBar(
                 if (bufferedFraction > displayProgressFraction && bufferedFraction < 0.99f) {
                     drawCircle(
                         color = Color(0xFF00E5FF).copy(alpha = 0.7f),
-                        radius = 2.5.dp.toPx(),
+                        radius = 2.dp.toPx(),
                         center = Offset(width * bufferedFraction, height / 2f)
                     )
                 }
 
-                // 5. Thumb: Distinct Vertical Cyan Pill Cursor (Matching Photo 3)
-                val cursorWidth = 3.5.dp.toPx()
-                val cursorHeight = 22.dp.toPx()
-                val cursorLeft = (progressWidth - cursorWidth / 2f).coerceIn(0f, width - cursorWidth)
-                val cursorTop = (height - cursorHeight) / 2f
+                // 5. Thumb: Circular Thumb Cursor (Matching user request)
+                val thumbRadius = 7.dp.toPx()
+                val thumbCenter = Offset(progressWidth.coerceIn(thumbRadius, width - thumbRadius), height / 2f)
 
-                drawRoundRect(
+                drawCircle(
                     color = Color(0xFF00E5FF),
-                    topLeft = Offset(cursorLeft, cursorTop),
-                    size = Size(cursorWidth, cursorHeight),
-                    cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx())
+                    radius = thumbRadius,
+                    center = thumbCenter
                 )
             }
         }
