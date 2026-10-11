@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.example.domain.model.ThemePreference
 
-private val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     primary = NovaPrimary,
     onPrimary = Color.White,
     primaryContainer = NovaSecondary,
@@ -61,7 +61,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun ArvexaPlayerTheme(
-    themePreference: ThemePreference = ThemePreference.SYSTEM,
+    themePreference: ThemePreference = ThemePreference.DARK,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -74,7 +74,7 @@ fun ArvexaPlayerTheme(
 
 @Composable
 fun NovaPlayerTheme(
-    themePreference: ThemePreference = ThemePreference.SYSTEM,
+    themePreference: ThemePreference = ThemePreference.DARK,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

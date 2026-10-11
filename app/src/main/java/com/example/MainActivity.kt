@@ -78,6 +78,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.domain.model.Playlist
 import com.example.domain.model.Song
 import com.example.domain.model.ThemePreference
+import com.example.ui.components.DeleteSongDialog
+import com.example.ui.components.DeleteVideoDialog
+
 import com.example.domain.model.Video
 import com.example.ui.components.AddToPlaylistDialog
 import com.example.ui.components.AddSongToPlaylistDialog
@@ -434,7 +437,8 @@ fun NovaPlayerApp(
     // Dialog & BottomSheet state
     var showCreatePlaylistDialog by remember { mutableStateOf(false) }
     var videoToAddToPlaylist by remember { mutableStateOf<Video?>(null) }
-    var songToAddToPlaylist by remember { mutableStateOf<Song?>(null) }
+        var songToAddToPlaylist by remember { mutableStateOf<Song?>(null) }
+    var songToDelete by remember { mutableStateOf<Song?>(null) }
     var infoVideo by remember { mutableStateOf<Video?>(null) }
     var videoToDelete by remember { mutableStateOf<Video?>(null) }
 
@@ -662,6 +666,7 @@ composable(Screen.Onboarding.route) {
                             viewModel.audioPlayerManager.openFullPlayer()
                         },
                         onToggleFavorite = { viewModel.toggleFavoriteSong(it) },
+                        onDeleteSong = { songToDelete = it },
                         onAddToPlaylist = { song ->
                             songToAddToPlaylist = song
                         },
@@ -897,6 +902,20 @@ composable(Screen.Onboarding.route) {
             onCreateNewPlaylist = {
                 songToAddToPlaylist = null
                 showCreatePlaylistDialog = true
+            }
+        )
+    }
+
+    songToDelete?.let { song ->
+        DeleteSongDialog(
+            song = song,
+            onDismiss = { songToDelete = null },
+            onConfirm = { deleteFromFileSystem ->
+                viewModel.deleteSong(song, deleteFromFileSystem)
+                songToDelete = null
+                viewModel.showToast(
+                    if (deleteFromFileSystem) "Song permanently deleted from storage" else "Song removed from library"
+                )
             }
         )
     }

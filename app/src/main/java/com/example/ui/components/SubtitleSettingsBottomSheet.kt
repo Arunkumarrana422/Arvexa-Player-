@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.SubtitleTrack
+import com.example.ui.theme.DarkColorScheme
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
@@ -88,13 +89,14 @@ fun SubtitleSettingsBottomSheet(
         uri?.let { onLoadExternalSubtitle(it) }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            .testTag("subtitle_settings_sheet")
-    ) {
+    MaterialTheme(colorScheme = DarkColorScheme) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .background(Color.Transparent)
+                .testTag("subtitle_settings_sheet")
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -285,6 +287,7 @@ fun SubtitleSettingsBottomSheet(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
+}
 }
 
 @Composable

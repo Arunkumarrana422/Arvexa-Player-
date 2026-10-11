@@ -114,6 +114,7 @@ fun MusicScreen(
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
     onToggleFavorite: (Song) -> Unit,
+    onDeleteSong: (Song) -> Unit,
     onAddToPlaylist: (Song) -> Unit,
     onCreatePlaylist: (String) -> Unit,
     onRemoveFromPlaylist: ((Long, String) -> Unit)? = null,
@@ -218,6 +219,7 @@ fun MusicScreen(
             isPlaying = isPlaying,
             onPlaySong = onPlaySong,
             onToggleFavorite = onToggleFavorite,
+            onDeleteSong = onDeleteSong,
             onAddToPlaylist = onAddToPlaylist,
             onBack = { selectedFolder = null }
         )
@@ -232,6 +234,7 @@ fun MusicScreen(
             isPlaying = isPlaying,
             onPlaySong = onPlaySong,
             onToggleFavorite = onToggleFavorite,
+            onDeleteSong = onDeleteSong,
             onAddToPlaylist = onAddToPlaylist,
             onBack = { selectedAlbum = null }
         )
@@ -246,6 +249,7 @@ fun MusicScreen(
             isPlaying = isPlaying,
             onPlaySong = onPlaySong,
             onToggleFavorite = onToggleFavorite,
+            onDeleteSong = onDeleteSong,
             onAddToPlaylist = onAddToPlaylist,
             onBack = { selectedArtist = null }
         )
@@ -421,7 +425,8 @@ fun MusicScreen(
                                     isCurrentlyPlaying = (currentPlayingSongId == song.id && isPlaying),
                                     onClick = { onPlaySong(song, filteredSongs) },
                                     onToggleFavorite = { onToggleFavorite(song) },
-                                    onAddToPlaylist = { onAddToPlaylist(song) }
+                                    onAddToPlaylist = { onAddToPlaylist(song) },
+                                    onDeleteSong = { onDeleteSong(song) }
                                 )
                             }
                         }
@@ -713,7 +718,8 @@ fun MusicScreen(
                                     isCurrentlyPlaying = (currentPlayingSongId == song.id && isPlaying),
                                     onClick = { onPlaySong(song, favoriteSongs) },
                                     onToggleFavorite = { onToggleFavorite(song) },
-                                    onAddToPlaylist = { onAddToPlaylist(song) }
+                                    onAddToPlaylist = { onAddToPlaylist(song) },
+                                    onDeleteSong = { onDeleteSong(song) }
                                 )
                             }
                         }
@@ -732,6 +738,7 @@ fun FolderDetailScreen(
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
     onToggleFavorite: (Song) -> Unit,
+    onDeleteSong: (Song) -> Unit,
     onAddToPlaylist: (Song) -> Unit,
     onBack: () -> Unit
 ) {
@@ -789,7 +796,8 @@ fun FolderDetailScreen(
                     isCurrentlyPlaying = (currentPlayingSongId == song.id && isPlaying),
                     onClick = { onPlaySong(song, folder.songs) },
                     onToggleFavorite = { onToggleFavorite(song) },
-                    onAddToPlaylist = { onAddToPlaylist(song) }
+                    onAddToPlaylist = { onAddToPlaylist(song) },
+                    onDeleteSong = { onDeleteSong(song) }
                 )
             }
         }
@@ -803,6 +811,7 @@ fun AlbumDetailScreen(
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
     onToggleFavorite: (Song) -> Unit,
+    onDeleteSong: (Song) -> Unit,
     onAddToPlaylist: (Song) -> Unit,
     onBack: () -> Unit
 ) {
@@ -860,7 +869,8 @@ fun AlbumDetailScreen(
                     isCurrentlyPlaying = (currentPlayingSongId == song.id && isPlaying),
                     onClick = { onPlaySong(song, album.songs) },
                     onToggleFavorite = { onToggleFavorite(song) },
-                    onAddToPlaylist = { onAddToPlaylist(song) }
+                    onAddToPlaylist = { onAddToPlaylist(song) },
+                    onDeleteSong = { onDeleteSong(song) }
                 )
             }
         }
@@ -874,6 +884,7 @@ fun ArtistDetailScreen(
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
     onToggleFavorite: (Song) -> Unit,
+    onDeleteSong: (Song) -> Unit,
     onAddToPlaylist: (Song) -> Unit,
     onBack: () -> Unit
 ) {
@@ -931,7 +942,8 @@ fun ArtistDetailScreen(
                     isCurrentlyPlaying = (currentPlayingSongId == song.id && isPlaying),
                     onClick = { onPlaySong(song, artist.songs) },
                     onToggleFavorite = { onToggleFavorite(song) },
-                    onAddToPlaylist = { onAddToPlaylist(song) }
+                    onAddToPlaylist = { onAddToPlaylist(song) },
+                    onDeleteSong = { onDeleteSong(song) }
                 )
             }
         }
@@ -1106,6 +1118,7 @@ fun SongItemCard(
     onToggleFavorite: () -> Unit,
     onAddToPlaylist: () -> Unit,
     onRemoveFromPlaylist: (() -> Unit)? = null,
+    onDeleteSong: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -1274,6 +1287,16 @@ fun SongItemCard(
                             onClick = {
                                 menuExpanded = false
                                 onRemoveFromPlaylist()
+                            }
+                        )
+                    }
+                    if (onRemoveFromPlaylist == null && onDeleteSong != null) {
+                        DropdownMenuItem(
+                            text = { Text("Delete Song") },
+                            leadingIcon = { Icon(Icons.Default.Delete, null, tint = Color(0xFFEF4444)) },
+                            onClick = {
+                                menuExpanded = false
+                                onDeleteSong()
                             }
                         )
                     }

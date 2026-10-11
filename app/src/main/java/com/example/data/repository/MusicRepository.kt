@@ -272,6 +272,46 @@ class MusicRepository(private val context: Context) {
         }
     }
 
+
+    suspend fun deleteSong(song: Song, deleteFromFileSystem: Boolean = false, onNeedManageStorage: () -> Unit = {}) = withContext(Dispatchers.IO) {
+        if (deleteFromFileSystem) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (!android.os.Environment.isExternalStorageManager()) {
+                        onNeedManageStorage()
+                    }
+                }
+                if (song.dataPath.isNotBlank()) {
+                    val file = File(song.dataPath)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                    try {
+                        android.media.MediaScannerConnection.scanFile(
+                            context,
+                            arrayOf(song.dataPath),
+                            null,
+                            null
+                        )
+                    } catch (_: Exception) {}
+                }
+                if (song.uri.isNotBlank()) {
+                    try {
+                        val uri = Uri.parse(song.uri)
+                        context.contentResolver.delete(uri, null, null)
+                    } catch (_: Exception) {}
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        _allSongs.value = _allSongs.value.filterNot { it.id == song.id }
+        _audioPlaylists.value = _audioPlaylists.value.map { pl ->
+            val updatedSongs = pl.songs.filterNot { it.id == song.id }
+            pl.copy(songs = updatedSongs, songCount = updatedSongs.size)
+        }
+    }
+
     fun deletePlaylist(playlistId: Long) {
         _audioPlaylists.value = _audioPlaylists.value.filterNot { it.id == playlistId }
     }

@@ -298,6 +298,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         musicRepository.removeSongFromPlaylist(playlistId, songId)
     }
 
+
+    fun deleteSong(song: Song, deleteFromFileSystem: Boolean = false) {
+        viewModelScope.launch {
+            musicRepository.deleteSong(song, deleteFromFileSystem) {
+                _needManageStorage.value = true
+            }
+        }
+    }
+
     fun deleteAudioPlaylist(playlistId: Long) {
         musicRepository.deletePlaylist(playlistId)
     }

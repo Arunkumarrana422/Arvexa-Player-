@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.AudioTrack
 import com.example.domain.model.DecoderMode
+import com.example.ui.theme.DarkColorScheme
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
@@ -90,13 +91,14 @@ fun PlaybackSettingsBottomSheet(
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
     val isDark = true
 
-    Box(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            .testTag("playback_settings_sheet")
-    ) {
+    MaterialTheme(colorScheme = DarkColorScheme) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .background(Color.Transparent)
+                .testTag("playback_settings_sheet")
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -339,6 +341,7 @@ fun PlaybackSettingsBottomSheet(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
+}
 }
 
 @Composable
