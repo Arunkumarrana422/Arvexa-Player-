@@ -66,7 +66,7 @@ fun GestureOverlayIndicator(
     hudState: GestureHudState,
     modifier: Modifier = Modifier
 ) {
-    val isPillHud = hudState is GestureHudState.SpeedBoost || hudState is GestureHudState.Zoom || hudState is GestureHudState.DoubleTapSeek || hudState is GestureHudState.PlayPause || hudState is GestureHudState.AspectRatio
+    val isPillHud = hudState is GestureHudState.SpeedBoost || hudState is GestureHudState.Zoom || hudState is GestureHudState.DoubleTapSeek || hudState is GestureHudState.PlayPause || hudState is GestureHudState.AspectRatio || hudState is GestureHudState.Seek
 
     AnimatedVisibility(
         visible = hudState !is GestureHudState.None,

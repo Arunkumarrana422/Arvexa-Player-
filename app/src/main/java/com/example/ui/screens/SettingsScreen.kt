@@ -120,44 +120,7 @@ fun SettingsScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // APPEARANCE
-            item {
-                SettingsSection(title = "APPEARANCE") {
-                    SettingsClickableRow(
-                        icon = Icons.Default.Palette,
-                        title = "Theme Mode",
-                        subtitle = when (settings.theme) {
-                            ThemePreference.SYSTEM -> "Follow System (Default)"
-                            ThemePreference.DARK -> "Dark Theme"
-                            ThemePreference.LIGHT -> "Light Theme"
-                        },
-                        onClick = { themeMenuExpanded = true }
-                    ) {
-                        DropdownMenu(
-                            expanded = themeMenuExpanded,
-                            onDismissRequest = { themeMenuExpanded = false }
-                        ) {
-                            ThemePreference.values().forEach { pref ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            when (pref) {
-                                                ThemePreference.SYSTEM -> "System Default"
-                                                ThemePreference.DARK -> "Dark Theme"
-                                                ThemePreference.LIGHT -> "Light Theme"
-                                            }
-                                        )
-                                    },
-                                    onClick = {
-                                        themeMenuExpanded = false
-                                        onThemeChange(pref)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+
 
             // PLAYBACK CONTROLS & GESTURES
             item {
