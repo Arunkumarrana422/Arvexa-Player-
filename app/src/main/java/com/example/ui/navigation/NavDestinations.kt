@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector? = null) {
+    data object Splash : Screen("splash", "Splash")
     data object MainTabs : Screen("main_tabs", "Main")
     data object Home : Screen("home", "Home", Icons.Default.Home)
     data object Videos : Screen("videos", "Videos", Icons.Default.VideoLibrary)

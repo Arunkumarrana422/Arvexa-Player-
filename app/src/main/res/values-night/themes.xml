@@ -5,7 +5,5 @@
         <item name="android:statusBarColor">#0B1020</item>
         <item name="android:navigationBarColor">#0B1020</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-        <item name="android:windowSplashScreenBackground" tools:targetApi="s">#0B1020</item>
-        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@drawable/ic_splash_icon</item>
     </style>
 </resources>
