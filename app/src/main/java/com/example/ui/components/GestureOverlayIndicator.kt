@@ -143,30 +143,15 @@ fun GestureOverlayIndicator(
                     }
                 }
                 is GestureHudState.Seek -> {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = if (hudState.deltaMs >= 0) Icons.Default.FastForward else Icons.Default.FastRewind,
-                            contentDescription = "Seek",
-                            tint = NovaAccent,
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        val sign = if (hudState.deltaMs >= 0) "+" else ""
-                        Text(
-                            text = "$sign${hudState.deltaMs / 1000}s",
-                            color = NovaAccent,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 18.sp
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "${Video.formatDuration(hudState.targetPosMs)} / ${Video.formatDuration(hudState.totalDurationMs)}",
                             color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
