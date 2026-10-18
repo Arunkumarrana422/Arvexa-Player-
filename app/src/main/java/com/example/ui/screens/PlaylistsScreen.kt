@@ -205,7 +205,6 @@ fun PlaylistsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding()
                 .testTag("playlist_detail_screen")
         ) {
             // Header

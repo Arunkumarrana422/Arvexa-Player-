@@ -120,7 +120,6 @@ fun FoldersScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding()
                 .testTag("folder_detail_view")
         ) {
             // Folder Breadcrumb Header

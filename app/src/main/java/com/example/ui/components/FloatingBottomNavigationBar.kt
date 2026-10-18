@@ -90,7 +90,6 @@ fun FloatingBottomNavigationBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 8.dp)
             .testTag("floating_bottom_nav_bar"),
         contentAlignment = Alignment.Center
