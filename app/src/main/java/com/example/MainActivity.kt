@@ -182,8 +182,7 @@ class MainActivity : ComponentActivity() {
         // Enforce background video playback preference
         val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
         if (!bgVideo) {
-            val isPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-            if (!isPip && viewModel.playerManager.isPlaying.value) {
+            if (viewModel.playerManager.isPlaying.value) {
                 viewModel.playerManager.pause()
             }
         }
@@ -194,14 +193,13 @@ class MainActivity : ComponentActivity() {
         viewModel.audioPlayerManager.isAppInForeground = false
         viewModel.playerManager.isAppInForeground = false
         val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
-        if (bgVideo) {
+        if (!bgVideo) {
             if (viewModel.playerManager.isPlaying.value) {
-                viewModel.playerManager.updateVideoNotification()
+                viewModel.playerManager.pause()
             }
         } else {
-            val isPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-            if (!isPip && viewModel.playerManager.isPlaying.value) {
-                viewModel.playerManager.pause()
+            if (viewModel.playerManager.isPlaying.value) {
+                viewModel.playerManager.updateVideoNotification()
             }
         }
         if (viewModel.audioPlayerManager.isPlaying.value) {
@@ -316,7 +314,8 @@ class MainActivity : ComponentActivity() {
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                builder.setAutoEnterEnabled(isPlayingVideo)
+                val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
+                builder.setAutoEnterEnabled(isPlayingVideo && bgVideo)
                 builder.setSeamlessResizeEnabled(true)
             }
             try {
@@ -326,6 +325,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun enterPiPMode() {
+        val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
+        if (!bgVideo) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val builder = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
@@ -349,6 +350,9 @@ class MainActivity : ComponentActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         viewModel.setIsInPiP(isInPictureInPictureMode)
+        if (isInPictureInPictureMode && !viewModel.userSettings.value.backgroundAudioEnabled) {
+            viewModel.playerManager.pause()
+        }
     }
 
     override fun onUserLeaveHint() {
@@ -373,11 +377,12 @@ fun NovaPlayerApp(
     onEnterPiP: () -> Unit
 ) {
     val context = LocalContext.current
+    val userSettings by viewModel.userSettings.collectAsState()
     val currentVideoPlayingForPip by viewModel.playerManager.currentVideo.collectAsState()
     val isPlayingForPip by viewModel.playerManager.isPlaying.collectAsState()
-    LaunchedEffect(isPlayingForPip, currentVideoPlayingForPip) {
+    LaunchedEffect(isPlayingForPip, currentVideoPlayingForPip, userSettings.backgroundAudioEnabled) {
         (context as? MainActivity)?.let { activity ->
-            activity.updatePiPParams(currentVideoPlayingForPip != null && isPlayingForPip)
+            activity.updatePiPParams(currentVideoPlayingForPip != null && isPlayingForPip && userSettings.backgroundAudioEnabled)
         }
     }
 
@@ -395,8 +400,6 @@ fun NovaPlayerApp(
             }
         }
     }
-
-    val userSettings by viewModel.userSettings.collectAsState()
     val allVideos by viewModel.allVideos.collectAsState()
     val favoriteVideos by viewModel.favoriteVideos.collectAsState()
     val watchHistory by viewModel.watchHistory.collectAsState()

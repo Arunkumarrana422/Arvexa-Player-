@@ -93,7 +93,9 @@ fun PlayerScreen(
     onFontSizeChange: (Int) -> Unit,
     onColorChange: (String, String) -> Unit,
     onBack: () -> Unit,
-    onEnterPiP: () -> Unit
+    onEnterPiP: () -> Unit,
+    onBackgroundAudioToggle: (Boolean) -> Unit = {},
+    onHwDecoderToggle: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -849,8 +851,8 @@ fun PlayerScreen(
                     onDecoderModeChange = { playerManager.setDecoderMode(it) },
                     onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
                     onSleepTimerChange = { playerManager.setSleepTimer(it) },
-                    onBackgroundAudioToggle = { /* Handled in settings */ },
-                    onHwDecoderToggle = { /* Handled in settings */ },
+                    onBackgroundAudioToggle = onBackgroundAudioToggle,
+                    onHwDecoderToggle = onHwDecoderToggle,
                     onEnterPiP = {
                         showPlaybackSheet = false
                         onEnterPiP()

@@ -88,6 +88,9 @@ class NovaPlayerManager(private val context: Context) {
             }
         } else {
             dismissVideoNotification()
+            if (!isAppInForeground && _isPlaying.value) {
+                pause()
+            }
         }
     }
 
@@ -100,6 +103,9 @@ class NovaPlayerManager(private val context: Context) {
                     _backgroundAudioEnabled.value = settings.backgroundAudioEnabled
                     if (!settings.backgroundAudioEnabled) {
                         dismissVideoNotification()
+                        if (!isAppInForeground && _isPlaying.value) {
+                            pause()
+                        }
                     } else if (!wasEnabled && _isPlaying.value && _currentVideo.value != null) {
                         mediaSession.isActive = true
                         MediaPlaybackService.startService(context)
@@ -378,6 +384,10 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     fun play() {
+        if (!isAppInForeground && !_backgroundAudioEnabled.value) {
+            return
+        }
+
         AudioPlayerManager.activeInstance?.let {
             if (it.isPlaying.value) {
                 it.pause()
