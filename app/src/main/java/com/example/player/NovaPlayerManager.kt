@@ -75,11 +75,37 @@ class NovaPlayerManager(private val context: Context) {
         } catch (_: Exception) {}
     }
 
+    private val _backgroundAudioEnabled = MutableStateFlow(false)
+    val backgroundAudioEnabled: StateFlow<Boolean> = _backgroundAudioEnabled.asStateFlow()
+
+    fun setBackgroundAudioEnabled(enabled: Boolean) {
+        _backgroundAudioEnabled.value = enabled
+        if (enabled) {
+            if (_isPlaying.value && _currentVideo.value != null) {
+                mediaSession.isActive = true
+                MediaPlaybackService.startService(context)
+                updateVideoNotification()
+            }
+        } else {
+            dismissVideoNotification()
+        }
+    }
+
     init {
         scope.launch {
             try {
-                val settings = SettingsRepository(context).settingsFlow.first()
-                _aspectRatioMode.value = settings.defaultAspectRatio
+                SettingsRepository(context).settingsFlow.collect { settings ->
+                    _aspectRatioMode.value = settings.defaultAspectRatio
+                    val wasEnabled = _backgroundAudioEnabled.value
+                    _backgroundAudioEnabled.value = settings.backgroundAudioEnabled
+                    if (!settings.backgroundAudioEnabled) {
+                        dismissVideoNotification()
+                    } else if (!wasEnabled && _isPlaying.value && _currentVideo.value != null) {
+                        mediaSession.isActive = true
+                        MediaPlaybackService.startService(context)
+                        updateVideoNotification()
+                    }
+                }
             } catch (_: Exception) {}
         }
     }
@@ -331,8 +357,14 @@ class NovaPlayerManager(private val context: Context) {
         _isPlaying.value = true
         _isMiniPlayerActive.value = false
         onProgressUpdate?.invoke(video, if (resumePos > 0) resumePos else 1L, video.durationMs)
-        MediaPlaybackService.startService(context)
-        updateVideoNotification()
+        if (_backgroundAudioEnabled.value) {
+            mediaSession.isActive = true
+            MediaPlaybackService.startService(context)
+            updateVideoNotification()
+        } else {
+            mediaSession.isActive = false
+            dismissVideoNotification()
+        }
     }
 
     fun flushProgress() {
@@ -352,13 +384,18 @@ class NovaPlayerManager(private val context: Context) {
             }
             it.mediaSession.isActive = false
         }
-        mediaSession.isActive = true
 
         acquireWakeLock()
         exoPlayer.play()
         _isPlaying.value = true
-        MediaPlaybackService.startService(context)
-        updateVideoNotification()
+        if (_backgroundAudioEnabled.value) {
+            mediaSession.isActive = true
+            MediaPlaybackService.startService(context)
+            updateVideoNotification()
+        } else {
+            mediaSession.isActive = false
+            dismissVideoNotification()
+        }
     }
 
     fun pause() {
@@ -366,7 +403,11 @@ class NovaPlayerManager(private val context: Context) {
         exoPlayer.pause()
         _isPlaying.value = false
         releaseWakeLock()
-        updateVideoNotification()
+        if (_backgroundAudioEnabled.value) {
+            updateVideoNotification()
+        } else {
+            dismissVideoNotification()
+        }
     }
 
     fun stopAndDismiss() {
@@ -382,14 +423,32 @@ class NovaPlayerManager(private val context: Context) {
         _isMiniPlayerActive.value = false
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
-        if (AudioPlayerManager.activeInstance?.isPlaying?.value != true) {
-            MediaPlaybackService.stopService(context)
-        }
+        dismissVideoNotification()
+    }
+
+    fun dismissVideoNotification() {
+        try {
+            mediaSession.isActive = false
+            val audioManager = AudioPlayerManager.activeInstance
+            if (audioManager?.isPlaying?.value == true || audioManager?.currentSong?.value != null) {
+                MediaPlaybackService.updateNotification(context)
+            } else {
+                MediaPlaybackService.stopService(context)
+            }
+        } catch (_: Exception) {}
     }
 
     fun updateVideoNotification() {
-        val video = _currentVideo.value ?: return
+        if (!_backgroundAudioEnabled.value) {
+            dismissVideoNotification()
+            return
+        }
+        val video = _currentVideo.value ?: run {
+            dismissVideoNotification()
+            return
+        }
         val isPlaying = _isPlaying.value
+        mediaSession.isActive = true
 
         val actions = PlaybackStateCompat.ACTION_PLAY or
                 PlaybackStateCompat.ACTION_PAUSE or

@@ -275,8 +275,8 @@ fun PlaybackSettingsBottomSheet(
             // Switches
             ToggleRow(
                 icon = Icons.Default.Headphones,
-                title = "Background Audio Playback",
-                description = "Continue playing audio when app is minimized or screen is locked",
+                title = "Background Video Playback",
+                description = "Show video in Media Player & continue playing in background (Default: Off)",
                 checked = backgroundAudioEnabled,
                 onCheckedChange = onBackgroundAudioToggle
             )

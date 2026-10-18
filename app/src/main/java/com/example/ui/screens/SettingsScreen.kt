@@ -226,9 +226,9 @@ fun SettingsScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
                     SettingsSwitchRow(
-                        icon = Icons.Default.Headphones,
-                        title = "Background Audio Playback",
-                        subtitle = "Keep audio running when switching apps",
+                        icon = Icons.Default.PlayCircle,
+                        title = "Background Video Playback",
+                        subtitle = "Show video in Media Player & continue playing in background (Default: Off)",
                         checked = settings.backgroundAudioEnabled,
                         onCheckedChange = onBackgroundAudioToggle
                     )

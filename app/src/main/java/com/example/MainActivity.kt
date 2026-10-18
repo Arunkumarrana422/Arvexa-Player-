@@ -25,7 +25,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
@@ -176,17 +179,12 @@ class MainActivity : ComponentActivity() {
             contentResolver.unregisterContentObserver(mediaObserver)
         } catch (_: Exception) {}
 
-        // Enforce background audio playback preference
-        val bgAudio = viewModel.userSettings.value.backgroundAudioEnabled
-        if (!bgAudio) {
+        // Enforce background video playback preference
+        val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
+        if (!bgVideo) {
             val isPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-            if (!isPip) {
-                if (viewModel.playerManager.isPlaying.value) {
-                    viewModel.playerManager.pause()
-                }
-                if (viewModel.audioPlayerManager.isPlaying.value) {
-                    viewModel.audioPlayerManager.pause()
-                }
+            if (!isPip && viewModel.playerManager.isPlaying.value) {
+                viewModel.playerManager.pause()
             }
         }
     }
@@ -195,24 +193,19 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         viewModel.audioPlayerManager.isAppInForeground = false
         viewModel.playerManager.isAppInForeground = false
-        val bgAudio = viewModel.userSettings.value.backgroundAudioEnabled
-        if (bgAudio) {
-            if (viewModel.audioPlayerManager.isPlaying.value) {
-                viewModel.audioPlayerManager.updateMediaNotification()
-            }
+        val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
+        if (bgVideo) {
             if (viewModel.playerManager.isPlaying.value) {
                 viewModel.playerManager.updateVideoNotification()
             }
         } else {
             val isPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-            if (!isPip) {
-                if (viewModel.playerManager.isPlaying.value) {
-                    viewModel.playerManager.pause()
-                }
-                if (viewModel.audioPlayerManager.isPlaying.value) {
-                    viewModel.audioPlayerManager.pause()
-                }
+            if (!isPip && viewModel.playerManager.isPlaying.value) {
+                viewModel.playerManager.pause()
             }
+        }
+        if (viewModel.audioPlayerManager.isPlaying.value) {
+            viewModel.audioPlayerManager.updateMediaNotification()
         }
     }
 
@@ -360,18 +353,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        val bgAudio = viewModel.userSettings.value.backgroundAudioEnabled
-        if (bgAudio || viewModel.playerManager.currentVideo.value != null) {
+        val bgVideo = viewModel.userSettings.value.backgroundAudioEnabled
+        if (bgVideo) {
             if (viewModel.playerManager.isPlaying.value && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 enterPiPMode()
             }
         } else {
-            // Strictly pause if background audio playback is turned off
+            // Strictly pause video if background video playback is turned off
             if (viewModel.playerManager.isPlaying.value) {
                 viewModel.playerManager.pause()
-            }
-            if (viewModel.audioPlayerManager.isPlaying.value) {
-                viewModel.audioPlayerManager.pause()
             }
         }
     }
@@ -520,6 +510,7 @@ fun NovaPlayerApp(
                 )
             }
         },
+        contentWindowInsets = WindowInsets.statusBars,
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
@@ -805,6 +796,7 @@ composable(Screen.Onboarding.route) {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    .navigationBarsPadding()
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth()

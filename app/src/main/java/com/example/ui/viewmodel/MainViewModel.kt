@@ -436,8 +436,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setSubtitleFontSize(size: Int) = viewModelScope.launch { settingsRepository.setSubtitleFontSize(size) }
     fun setSubtitleColors(text: String, bg: String) = viewModelScope.launch { settingsRepository.setSubtitleColors(text, bg) }
     fun setAutoHideSeconds(sec: Int) = viewModelScope.launch { settingsRepository.setAutoHideSeconds(sec) }
-    fun setResumePlayback(resume: Boolean) = viewModelScope.launch { settingsRepository.setResumePlayback(resume) }
-    fun setBackgroundAudio(enabled: Boolean) = viewModelScope.launch { settingsRepository.setBackgroundAudio(enabled) }
+    fun setBackgroundAudio(enabled: Boolean) = viewModelScope.launch {
+        settingsRepository.setBackgroundAudio(enabled)
+        playerManager.setBackgroundAudioEnabled(enabled)
+    }
     fun setHardwareDecoder(enabled: Boolean) = viewModelScope.launch { settingsRepository.setHardwareDecoder(enabled) }
     fun setSaveHistory(save: Boolean) = viewModelScope.launch { settingsRepository.setSaveHistory(save) }
     fun setOnboardingCompleted(completed: Boolean) = viewModelScope.launch { settingsRepository.setOnboardingCompleted(completed) }

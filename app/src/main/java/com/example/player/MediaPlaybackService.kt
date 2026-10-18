@@ -45,6 +45,16 @@ class MediaPlaybackService : Service() {
         }
 
         fun updateNotification(context: Context) {
+            val audioManager = AudioPlayerManager.activeInstance
+            val videoManager = NovaPlayerManager.activeInstance
+            val isAudioActive = (audioManager?.isPlaying?.value == true) || (audioManager?.currentSong?.value != null)
+            val isVideoActive = (videoManager?.isPlaying?.value == true || videoManager?.currentVideo?.value != null) && (videoManager?.backgroundAudioEnabled?.value == true)
+
+            if (!isAudioActive && !isVideoActive) {
+                stopService(context)
+                return
+            }
+
             try {
                 val intent = Intent(context, MediaPlaybackService::class.java).apply {
                     action = ACTION_UPDATE
@@ -131,9 +141,10 @@ class MediaPlaybackService : Service() {
 
         val video = videoManager?.currentVideo?.value
         val isVideoPlaying = videoManager?.isPlaying?.value ?: false
+        val isVideoBgEnabled = videoManager?.backgroundAudioEnabled?.value ?: false
 
         val isAudioActive = isAudioPlaying || (song != null && !isVideoPlaying)
-        val isVideoActive = !isAudioActive && (isVideoPlaying || video != null)
+        val isVideoActive = !isAudioActive && (isVideoPlaying || video != null) && isVideoBgEnabled
 
         val title = if (isVideoActive) (video?.title ?: "Playing Video") else (song?.title ?: "Playing Music")
         val subtitle = if (isVideoActive) (video?.folderName ?: "Nova Video Player") else (song?.artist ?: "Nova Player")
