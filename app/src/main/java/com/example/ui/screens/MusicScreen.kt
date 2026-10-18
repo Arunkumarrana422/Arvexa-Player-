@@ -222,7 +222,8 @@ fun MusicScreen(
             onToggleFavorite = onToggleFavorite,
             onDeleteSong = onDeleteSong,
             onAddToPlaylist = onAddToPlaylist,
-            onBack = { selectedFolder = null }
+            onBack = { selectedFolder = null },
+            isMiniPlayerActive = isMiniPlayerActive
         )
         return
     }
@@ -237,7 +238,8 @@ fun MusicScreen(
             onToggleFavorite = onToggleFavorite,
             onDeleteSong = onDeleteSong,
             onAddToPlaylist = onAddToPlaylist,
-            onBack = { selectedAlbum = null }
+            onBack = { selectedAlbum = null },
+            isMiniPlayerActive = isMiniPlayerActive
         )
         return
     }
@@ -252,7 +254,8 @@ fun MusicScreen(
             onToggleFavorite = onToggleFavorite,
             onDeleteSong = onDeleteSong,
             onAddToPlaylist = onAddToPlaylist,
-            onBack = { selectedArtist = null }
+            onBack = { selectedArtist = null },
+            isMiniPlayerActive = isMiniPlayerActive
         )
         return
     }
@@ -271,7 +274,8 @@ fun MusicScreen(
             onDeletePlaylist = onDeletePlaylist,
             onAddSongsToPlaylist = onAddSongsToPlaylist,
             onBack = { selectedPlaylist = null },
-            onToggleBottomBarVisibility = onToggleBottomBarVisibility
+            onToggleBottomBarVisibility = onToggleBottomBarVisibility,
+            isMiniPlayerActive = isMiniPlayerActive
         )
         return
     }
@@ -735,6 +739,7 @@ fun MusicScreen(
 @Composable
 fun FolderDetailScreen(
     folder: AudioFolder,
+    isMiniPlayerActive: Boolean = false,
     currentPlayingSongId: String?,
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
@@ -788,7 +793,7 @@ fun FolderDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 120.dp),
+            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(folder.songs, key = { it.id }) { song ->
@@ -808,6 +813,7 @@ fun FolderDetailScreen(
 @Composable
 fun AlbumDetailScreen(
     album: AudioAlbum,
+    isMiniPlayerActive: Boolean = false,
     currentPlayingSongId: String?,
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
@@ -861,7 +867,7 @@ fun AlbumDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 120.dp),
+            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(album.songs, key = { it.id }) { song ->
@@ -881,6 +887,7 @@ fun AlbumDetailScreen(
 @Composable
 fun ArtistDetailScreen(
     artist: AudioArtist,
+    isMiniPlayerActive: Boolean = false,
     currentPlayingSongId: String?,
     isPlaying: Boolean,
     onPlaySong: (Song, List<Song>) -> Unit,
@@ -934,7 +941,7 @@ fun ArtistDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 120.dp),
+            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(artist.songs, key = { it.id }) { song ->
@@ -954,6 +961,7 @@ fun ArtistDetailScreen(
 @Composable
 fun PlaylistDetailScreen(
     playlist: AudioPlaylist,
+    isMiniPlayerActive: Boolean = false,
     allSongs: List<Song> = emptyList(),
     currentPlayingSongId: String?,
     isPlaying: Boolean,
@@ -1093,7 +1101,7 @@ fun PlaylistDetailScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 120.dp),
+                contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(playlist.songs, key = { it.id }) { song ->
