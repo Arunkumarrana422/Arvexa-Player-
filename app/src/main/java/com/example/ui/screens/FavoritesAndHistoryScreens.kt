@@ -49,7 +49,8 @@ fun FavoritesScreen(
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
     onShowVideoInfo: (Video) -> Unit,
-    onClearAllFavorites: () -> Unit
+    onClearAllFavorites: () -> Unit,
+    isMiniPlayerActive: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -92,7 +93,7 @@ fun FavoritesScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 100.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(favorites, key = { it.id }) { video ->
@@ -123,7 +124,8 @@ fun HistoryScreen(
     onClearAllHistory: (() -> Unit)? = null,
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
-    onShowVideoInfo: (Video) -> Unit
+    onShowVideoInfo: (Video) -> Unit,
+    isMiniPlayerActive: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -154,7 +156,7 @@ fun HistoryScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 100.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(history, key = { it.id }) { video ->

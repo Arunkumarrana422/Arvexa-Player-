@@ -84,13 +84,14 @@ fun HomeScreen(
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
     onShowVideoInfo: (Video) -> Unit,
-    onDeleteVideo: (String) -> Unit
+    onDeleteVideo: (String) -> Unit,
+    isMiniPlayerActive: Boolean = false
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .testTag("home_screen_content"),
-        contentPadding = PaddingValues(bottom = 110.dp)
+        contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 110.dp)
     ) {
         // QUICK ACTION BUTTONS
         item {

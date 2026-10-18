@@ -427,6 +427,8 @@ fun NovaPlayerApp(
     val isPlaying by viewModel.playerManager.isPlaying.collectAsState()
     val currentPosMs by viewModel.playerManager.currentPositionMs.collectAsState()
 
+    val isMiniPlayerActive = isAudioPlaying || (currentSongPlaying != null && !isPlaying) || currentVideoPlaying != null
+
     // Dialog & BottomSheet state
     var showCreatePlaylistDialog by remember { mutableStateOf(false) }
     var videoToAddToPlaylist by remember { mutableStateOf<Video?>(null) }
@@ -576,7 +578,8 @@ composable(Screen.Onboarding.route) {
                                 onToggleFavorite = { viewModel.toggleFavorite(it) },
                                 onAddToPlaylist = { videoToAddToPlaylist = it },
                                 onShowVideoInfo = { infoVideo = it },
-                                onDeleteVideo = { requestDeleteVideo(it) }
+                                onDeleteVideo = { requestDeleteVideo(it) },
+                                isMiniPlayerActive = isMiniPlayerActive
                             )
 
                             1 -> VideosScreen(
@@ -597,7 +600,8 @@ composable(Screen.Onboarding.route) {
                                 onToggleFavorite = { viewModel.toggleFavorite(it) },
                                 onAddToPlaylist = { videoToAddToPlaylist = it },
                                 onShowVideoInfo = { infoVideo = it },
-                                onDeleteVideo = { requestDeleteVideo(it) }
+                                onDeleteVideo = { requestDeleteVideo(it) },
+                                isMiniPlayerActive = isMiniPlayerActive
                             )
 
                             2 -> FoldersScreen(
@@ -617,7 +621,8 @@ composable(Screen.Onboarding.route) {
                                 onToggleFavorite = { viewModel.toggleFavorite(it) },
                                 onAddToPlaylist = { videoToAddToPlaylist = it },
                                 onShowVideoInfo = { infoVideo = it },
-                                onDeleteVideo = { requestDeleteVideo(it) }
+                                onDeleteVideo = { requestDeleteVideo(it) },
+                                isMiniPlayerActive = isMiniPlayerActive
                             )
 
                             3 -> PlaylistsScreen(
@@ -643,7 +648,8 @@ composable(Screen.Onboarding.route) {
                                 onToggleFavorite = { viewModel.toggleFavorite(it) },
                                 onAddToPlaylist = { videoToAddToPlaylist = it },
                                 onShowVideoInfo = { infoVideo = it },
-                                onToggleBottomBarVisibility = { viewModel.setBottomNavVisible(it) }
+                                onToggleBottomBarVisibility = { viewModel.setBottomNavVisible(it) },
+                                isMiniPlayerActive = isMiniPlayerActive
                             )
                         }
                     }
@@ -678,7 +684,8 @@ composable(Screen.Onboarding.route) {
                             viewModel.showToast("Added ${songs.size} songs")
                         },
                         onBack = { navController.popBackStack() },
-                        onToggleBottomBarVisibility = { viewModel.setBottomNavVisible(it) }
+                        onToggleBottomBarVisibility = { viewModel.setBottomNavVisible(it) },
+                        isMiniPlayerActive = isMiniPlayerActive
                     )
                 }
 
@@ -695,7 +702,8 @@ composable(Screen.Onboarding.route) {
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
                         onAddToPlaylist = { videoToAddToPlaylist = it },
                         onShowVideoInfo = { infoVideo = it },
-                        onClearAllFavorites = { viewModel.clearAllFavorites() }
+                        onClearAllFavorites = { viewModel.clearAllFavorites() },
+                        isMiniPlayerActive = isMiniPlayerActive
                     )
                 }
 
@@ -713,7 +721,8 @@ composable(Screen.Onboarding.route) {
                         onClearAllHistory = { viewModel.clearAllHistory() },
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
                         onAddToPlaylist = { videoToAddToPlaylist = it },
-                        onShowVideoInfo = { infoVideo = it }
+                        onShowVideoInfo = { infoVideo = it },
+                        isMiniPlayerActive = isMiniPlayerActive
                     )
                 }
 
@@ -737,7 +746,8 @@ composable(Screen.Onboarding.route) {
                         onToggleFavorite = { viewModel.toggleFavorite(it) },
                         onAddToPlaylist = { videoToAddToPlaylist = it },
                         onShowVideoInfo = { infoVideo = it },
-                        onDeleteVideo = { requestDeleteVideo(it) }
+                        onDeleteVideo = { requestDeleteVideo(it) },
+                        isMiniPlayerActive = isMiniPlayerActive
                     )
                 }
 

@@ -71,7 +71,8 @@ fun VideosScreen(
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
     onShowVideoInfo: (Video) -> Unit,
-    onDeleteVideo: (String) -> Unit
+    onDeleteVideo: (String) -> Unit,
+    isMiniPlayerActive: Boolean = false
 ) {
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
@@ -193,7 +194,7 @@ fun VideosScreen(
         } else if (viewMode == ViewMode.LIST) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 100.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(videos, key = { it.id }) { video ->
@@ -213,7 +214,7 @@ fun VideosScreen(
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 160.dp),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 100.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {

@@ -156,7 +156,8 @@ fun PlaylistsScreen(
     onToggleFavorite: (Video) -> Unit,
     onAddToPlaylist: (Video) -> Unit,
     onShowVideoInfo: (Video) -> Unit,
-    onToggleBottomBarVisibility: ((Boolean) -> Unit)? = null
+    onToggleBottomBarVisibility: ((Boolean) -> Unit)? = null,
+    isMiniPlayerActive: Boolean = false
 ) {
     val currentSelectedPlaylist = remember(selectedPlaylist, playlists) {
         selectedPlaylist?.let { sp -> playlists.find { it.id == sp.id } ?: sp }
@@ -291,7 +292,7 @@ fun PlaylistsScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 190.dp else 20.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(playlistVideos, key = { it.id }) { video ->
@@ -335,7 +336,7 @@ fun PlaylistsScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 100.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(playlists, key = { it.id }) { playlist ->

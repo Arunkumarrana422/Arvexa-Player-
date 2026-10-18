@@ -122,7 +122,8 @@ fun MusicScreen(
     onAddSongsToPlaylist: ((Long, List<Song>) -> Unit)? = null,
     onBack: (() -> Unit)? = null,
     onToggleBottomBarVisibility: ((Boolean) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isMiniPlayerActive: Boolean = false
 ) {
     val tabs = listOf("Tracks", "Artists", "Albums", "Folders", "Playlists", "Favorites")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -416,7 +417,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(filteredSongs, key = { it.id }) { song ->
@@ -439,7 +440,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(artists, key = { it.name }) { artist ->
@@ -499,7 +500,7 @@ fun MusicScreen(
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -567,7 +568,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(folders, key = { it.name }) { folder ->
@@ -642,7 +643,7 @@ fun MusicScreen(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 120.dp),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 items(playlists, key = { it.id }) { pl ->
@@ -709,7 +710,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(favoriteSongs, key = { it.id }) { song ->
