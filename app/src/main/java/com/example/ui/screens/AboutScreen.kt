@@ -226,7 +226,7 @@ fun AboutScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "Version 1.0.1 • Advanced Engine",
+                                        text = "Version 1.0.0 • Advanced Engine",
                                         color = if (isDark) NovaAccent else NovaPrimary,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -489,7 +489,6 @@ private fun AboutFeatureItem(
                 .padding(14.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Feature Icon with gradient background
             Box(
                 modifier = Modifier
                     .size(46.dp)

@@ -86,7 +86,8 @@ fun SettingsScreen(
     onRescanLibrary: () -> Unit,
     onClearWatchHistory: () -> Unit,
     onClearSearchHistory: () -> Unit,
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {}
 ) {
     var themeMenuExpanded by remember { mutableStateOf(false) }
     var seekMenuExpanded by remember { mutableStateOf(false) }
@@ -285,15 +286,24 @@ fun SettingsScreen(
                 }
             }
 
-            // ABOUT
+            // ABOUT & PRIVACY
             item {
                 SettingsSection(title = "ABOUT ARVEXA PLAYER") {
-                    SettingsClickableRow(
-                        icon = Icons.Default.Info,
-                        title = "About Arvexa Player",
-                        subtitle = "Version 1.0.1 • Created by Arun Kumar Rana",
-                        onClick = onNavigateToAbout
-                    )
+                    Column {
+                        SettingsClickableRow(
+                            icon = Icons.Default.Info,
+                            title = "About Arvexa Player",
+                            subtitle = "Version 1.0.0 • Created by Arun Kumar Rana",
+                            onClick = onNavigateToAbout
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        SettingsClickableRow(
+                            icon = Icons.Default.Security,
+                            title = "Privacy Policy",
+                            subtitle = "View app data usage & privacy commitment",
+                            onClick = onNavigateToPrivacyPolicy
+                        )
+                    }
                 }
             }
         }

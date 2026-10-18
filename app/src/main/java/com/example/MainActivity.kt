@@ -108,6 +108,7 @@ import com.example.ui.screens.OnboardingScreen
 import com.example.ui.screens.OnlineStreamScreen
 import com.example.ui.screens.PlayerScreen
 import com.example.ui.screens.PlaylistsScreen
+import com.example.ui.screens.PrivacyPolicyScreen
 import com.example.ui.screens.SearchScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.VideosScreen
@@ -770,12 +771,19 @@ composable(Screen.Onboarding.route) {
                         onRescanLibrary = { viewModel.scanLibrary() },
                         onClearWatchHistory = { viewModel.clearAllHistory() },
                         onClearSearchHistory = { viewModel.clearSearchHistory() },
-                        onNavigateToAbout = { navController.navigate(Screen.About.route) }
+                        onNavigateToAbout = { navController.navigate(Screen.About.route) },
+                        onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
                     )
                 }
 
                 composable(Screen.About.route) {
                     AboutScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.PrivacyPolicy.route) {
+                    PrivacyPolicyScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }
