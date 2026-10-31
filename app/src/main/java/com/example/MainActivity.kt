@@ -485,8 +485,7 @@ fun NovaPlayerApp(
     }
 
     val sharedPrefs = remember { context.getSharedPreferences("nova_prefs", Context.MODE_PRIVATE) }
-    val onboardingDone = remember { sharedPrefs.getBoolean("onboarding_completed", false) || userSettings.onboardingCompleted }
-    val startDestination = if (onboardingDone) Screen.MainTabs.route else Screen.Onboarding.route
+    val startDestination = Screen.MainTabs.route
 
     // Main 4 tabs Pager (Default start at Folders = index 2)
     val pagerState = rememberPagerState(initialPage = 2) { 4 }
@@ -529,8 +528,28 @@ fun NovaPlayerApp(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 if (headerHeightPx <= 0f) return Offset.Zero
                 val delta = available.y
-                val newOffset = (headerOffsetPx + delta).coerceIn(-headerHeightPx, 0f)
-                headerOffsetPx = newOffset
+                if (delta < 0f) { // Collapse header on scroll UP
+                    val newOffset = (headerOffsetPx + delta).coerceIn(-headerHeightPx, 0f)
+                    val consumedY = newOffset - headerOffsetPx
+                    headerOffsetPx = newOffset
+                    return Offset(0f, consumedY)
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (headerHeightPx <= 0f) return Offset.Zero
+                val delta = available.y
+                if (delta > 0f) { // Unhide header ONLY when list reaches top (over-scroll)
+                    val newOffset = (headerOffsetPx + delta).coerceIn(-headerHeightPx, 0f)
+                    val consumedY = newOffset - headerOffsetPx
+                    headerOffsetPx = newOffset
+                    return Offset(0f, consumedY)
+                }
                 return Offset.Zero
             }
 

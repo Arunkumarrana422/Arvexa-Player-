@@ -297,7 +297,7 @@ fun FoldersScreen(
             } else if (currentViewMode == ViewMode.LIST) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 190.dp else 20.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(sortedVideos, key = { it.id }) { video ->
@@ -317,7 +317,7 @@ fun FoldersScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 190.dp else 20.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -346,7 +346,7 @@ fun FoldersScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag("folders_screen"),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(folders, key = { it.name }) { folder ->

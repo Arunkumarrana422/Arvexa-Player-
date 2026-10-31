@@ -157,8 +157,28 @@ fun MusicScreen(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 if (musicHeaderHeightPx <= 0f) return Offset.Zero
                 val delta = available.y
-                val newOffset = (musicHeaderOffsetPx + delta).coerceIn(-musicHeaderHeightPx, 0f)
-                musicHeaderOffsetPx = newOffset
+                if (delta < 0f) { // Collapse header on scroll UP
+                    val newOffset = (musicHeaderOffsetPx + delta).coerceIn(-musicHeaderHeightPx, 0f)
+                    val consumedY = newOffset - musicHeaderOffsetPx
+                    musicHeaderOffsetPx = newOffset
+                    return Offset(0f, consumedY)
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (musicHeaderHeightPx <= 0f) return Offset.Zero
+                val delta = available.y
+                if (delta > 0f) { // Unhide header ONLY when list reaches top (over-scroll)
+                    val newOffset = (musicHeaderOffsetPx + delta).coerceIn(-musicHeaderHeightPx, 0f)
+                    val consumedY = newOffset - musicHeaderOffsetPx
+                    musicHeaderOffsetPx = newOffset
+                    return Offset(0f, consumedY)
+                }
                 return Offset.Zero
             }
 
@@ -496,7 +516,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(filteredSongs, key = { it.id }) { song ->
@@ -519,7 +539,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(artists, key = { it.name }) { artist ->
@@ -579,7 +599,7 @@ fun MusicScreen(
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -647,7 +667,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(folders, key = { it.name }) { folder ->
@@ -722,7 +742,7 @@ fun MusicScreen(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 items(playlists, key = { it.id }) { pl ->
@@ -789,7 +809,7 @@ fun MusicScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(favoriteSongs, key = { it.id }) { song ->
@@ -868,7 +888,7 @@ fun FolderDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(folder.songs, key = { it.id }) { song ->
@@ -942,7 +962,7 @@ fun AlbumDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(album.songs, key = { it.id }) { song ->
@@ -1016,7 +1036,7 @@ fun ArtistDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(artist.songs, key = { it.id }) { song ->
@@ -1176,7 +1196,7 @@ fun PlaylistDetailScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 190.dp else 120.dp),
+                contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(playlist.songs, key = { it.id }) { song ->

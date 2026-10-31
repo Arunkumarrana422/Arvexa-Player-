@@ -229,7 +229,7 @@ fun SearchScreen(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 190.dp else 32.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(searchResults, key = { it.id }) { video ->

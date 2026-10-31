@@ -292,7 +292,7 @@ fun PlaylistsScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 190.dp else 20.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(playlistVideos, key = { it.id }) { video ->
@@ -336,7 +336,7 @@ fun PlaylistsScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 190.dp else 100.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(playlists, key = { it.id }) { playlist ->

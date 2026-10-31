@@ -78,11 +78,7 @@ fun NovaPlayerTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val darkTheme = when (themePreference) {
-        ThemePreference.DARK -> true
-        ThemePreference.LIGHT -> false
-        ThemePreference.SYSTEM -> isSystemInDarkTheme()
-    }
+    val darkTheme = isSystemInDarkTheme()
 
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
