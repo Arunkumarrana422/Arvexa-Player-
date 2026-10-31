@@ -173,122 +173,17 @@ fun FoldersScreen(
                 }
             }
 
-            // FIXED Control Bar (Count + Sort Button + Grid/List Toggle + Refresh) — Pinned and does not scroll
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${sortedVideos.size} Videos",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 18.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Sort Dropdown Pill
-                    Box {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable { sortMenuExpanded = true }
-                                .padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Sort,
-                                contentDescription = "Sort",
-                                tint = NovaAccent,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = currentSort.label,
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 12.sp
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = sortMenuExpanded,
-                            onDismissRequest = { sortMenuExpanded = false }
-                        ) {
-                            SortOption.values().forEach { option ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = option.label,
-                                            fontWeight = if (option == currentSort) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (option == currentSort) NovaAccent else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    },
-                                    onClick = {
-                                        sortMenuExpanded = false
-                                        currentSort = option
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    // View Mode Toggle (Grid / List)
-                    IconButton(
-                        onClick = {
-                            currentViewMode = if (currentViewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST
-                        },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("folder_view_mode_toggle")
-                    ) {
-                        Icon(
-                            imageVector = if (currentViewMode == ViewMode.LIST) Icons.Default.GridView else Icons.Default.ViewList,
-                            contentDescription = "Toggle Grid/List",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    // Refresh Button
-                    if (isScanning) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(22.dp)
-                                .padding(2.dp),
-                            strokeWidth = 2.dp,
-                            color = NovaAccent
-                        )
-                    } else {
-                        IconButton(
-                            onClick = { onRefresh?.invoke() },
-                            modifier = Modifier
-                                .size(36.dp)
-                                .testTag("refresh_folder_videos_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Scan Media",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
             // Videos List / Grid
             if (sortedVideos.isEmpty()) {
+                FolderDetailControlBar(
+                    videoCount = sortedVideos.size,
+                    currentSort = currentSort,
+                    currentViewMode = currentViewMode,
+                    isScanning = isScanning,
+                    onSortChange = { currentSort = it },
+                    onViewModeChange = { currentViewMode = it },
+                    onRefresh = { onRefresh?.invoke() }
+                )
                 EmptyStateView(
                     icon = Icons.Default.Folder,
                     title = "Folder is Empty",
@@ -300,6 +195,17 @@ fun FoldersScreen(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    item(key = "folder_control_bar") {
+                        FolderDetailControlBar(
+                            videoCount = sortedVideos.size,
+                            currentSort = currentSort,
+                            currentViewMode = currentViewMode,
+                            isScanning = isScanning,
+                            onSortChange = { currentSort = it },
+                            onViewModeChange = { currentViewMode = it },
+                            onRefresh = { onRefresh?.invoke() }
+                        )
+                    }
                     items(sortedVideos, key = { it.id }) { video ->
                         VideoCard(
                             video = video,
@@ -321,6 +227,17 @@ fun FoldersScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    item(key = "folder_control_bar", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                        FolderDetailControlBar(
+                            videoCount = sortedVideos.size,
+                            currentSort = currentSort,
+                            currentViewMode = currentViewMode,
+                            isScanning = isScanning,
+                            onSortChange = { currentSort = it },
+                            onViewModeChange = { currentViewMode = it },
+                            onRefresh = { onRefresh?.invoke() }
+                        )
+                    }
                     items(sortedVideos, key = { it.id }) { video ->
                         VideoGridCard(
                             video = video,
@@ -364,4 +281,129 @@ fun FoldersScreen(
         }
     }
 }
+
+@Composable
+private fun FolderDetailControlBar(
+    videoCount: Int,
+    currentSort: SortOption,
+    currentViewMode: ViewMode,
+    isScanning: Boolean,
+    onSortChange: (SortOption) -> Unit,
+    onViewModeChange: (ViewMode) -> Unit,
+    onRefresh: () -> Unit
+) {
+    var sortMenuExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "$videoCount Videos",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 18.sp
+            ),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Sort Dropdown Pill
+            Box {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { sortMenuExpanded = true }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Sort,
+                        contentDescription = "Sort",
+                        tint = NovaAccent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = currentSort.label,
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 12.sp
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = sortMenuExpanded,
+                    onDismissRequest = { sortMenuExpanded = false }
+                ) {
+                    SortOption.values().forEach { option ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = option.label,
+                                    fontWeight = if (option == currentSort) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (option == currentSort) NovaAccent else MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            onClick = {
+                                sortMenuExpanded = false
+                                onSortChange(option)
+                            }
+                        )
+                    }
+                }
+            }
+
+            // View Mode Toggle (Grid / List)
+            IconButton(
+                onClick = {
+                    onViewModeChange(if (currentViewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
+                },
+                modifier = Modifier
+                    .size(36.dp)
+                    .testTag("folder_view_mode_toggle")
+            ) {
+                Icon(
+                    imageVector = if (currentViewMode == ViewMode.LIST) Icons.Default.GridView else Icons.Default.ViewList,
+                    contentDescription = "Toggle Grid/List",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            // Refresh Button
+            if (isScanning) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .padding(2.dp),
+                    strokeWidth = 2.dp,
+                    color = NovaAccent
+                )
+            } else {
+                IconButton(
+                    onClick = onRefresh,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("refresh_folder_videos_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Scan Media",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 

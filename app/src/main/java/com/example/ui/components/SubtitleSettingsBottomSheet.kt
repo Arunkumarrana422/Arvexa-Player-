@@ -64,6 +64,8 @@ import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
 import com.example.ui.theme.nightGlassBorder
 
+import androidx.compose.foundation.layout.statusBarsPadding
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubtitleSettingsBottomSheet(
@@ -81,7 +83,7 @@ fun SubtitleSettingsBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val isDark = true
+    val isDark = isNightMode()
 
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -89,21 +91,20 @@ fun SubtitleSettingsBottomSheet(
         uri?.let { onLoadExternalSubtitle(it) }
     }
 
-    MaterialTheme(colorScheme = DarkColorScheme) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .background(Color.Transparent)
-                .testTag("subtitle_settings_sheet")
-        ) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = null
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(Color.Transparent)
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .verticalScroll(rememberScrollState())
+                .testTag("subtitle_settings_sheet")
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -287,7 +288,6 @@ fun SubtitleSettingsBottomSheet(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
-}
 }
 
 @Composable

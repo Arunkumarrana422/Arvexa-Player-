@@ -65,6 +65,9 @@ import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.isNightMode
 import com.example.ui.theme.nightGlassBorder
 
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.isSystemInDarkTheme
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PlaybackSettingsBottomSheet(
@@ -74,14 +77,14 @@ fun PlaybackSettingsBottomSheet(
     audioTracks: List<AudioTrack>,
     selectedAudioTrack: AudioTrack?,
     sleepTimerMinutes: Int?,
-    backgroundAudioEnabled: Boolean,
+    backgroundAudioEnabled: Boolean = false,
     hwDecoderEnabled: Boolean,
     onSpeedChange: (Float) -> Unit,
     onAspectRatioChange: (AspectRatioMode) -> Unit,
     onDecoderModeChange: (DecoderMode) -> Unit,
     onSelectAudioTrack: (AudioTrack) -> Unit,
     onSleepTimerChange: (Int?) -> Unit,
-    onBackgroundAudioToggle: (Boolean) -> Unit,
+    onBackgroundAudioToggle: (Boolean) -> Unit = {},
     onHwDecoderToggle: (Boolean) -> Unit,
     onEnterPiP: () -> Unit,
     onDismiss: () -> Unit
@@ -89,23 +92,22 @@ fun PlaybackSettingsBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val speedPresets = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
-    val isDark = true
+    val isDark = isSystemInDarkTheme()
 
-    MaterialTheme(colorScheme = DarkColorScheme) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .background(Color.Transparent)
-                .testTag("playback_settings_sheet")
-        ) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = null
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(Color.Transparent)
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .verticalScroll(rememberScrollState())
+                .testTag("playback_settings_sheet")
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -115,10 +117,14 @@ fun PlaybackSettingsBottomSheet(
                 Text(
                     text = "Playback Controls & Audio",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
 
@@ -274,16 +280,6 @@ fun PlaybackSettingsBottomSheet(
 
             // Switches
             ToggleRow(
-                icon = Icons.Default.Headphones,
-                title = "Background Video Playback",
-                description = "Show video in Media Player & continue playing in background (Default: Off)",
-                checked = backgroundAudioEnabled,
-                onCheckedChange = onBackgroundAudioToggle
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ToggleRow(
                 icon = Icons.Default.Memory,
                 title = "Hardware Acceleration (HW+)",
                 description = "Use device GPU hardware video decoding for smoother 4K/60fps playback",
@@ -341,7 +337,6 @@ fun PlaybackSettingsBottomSheet(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
-}
 }
 
 @Composable
@@ -416,7 +411,7 @@ private fun OptionChip(
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = if (isSelected) NovaAccent else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 12.5.sp
         )
@@ -443,12 +438,12 @@ private fun ToggleRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xCCFFFFFF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp
             )
         }

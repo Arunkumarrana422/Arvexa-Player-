@@ -442,10 +442,30 @@ class AudioPlayerManager(private val context: Context) {
     }
 
     private var equalizer: android.media.audiofx.Equalizer? = null
+    private val _isEqualizerEnabled = MutableStateFlow(false)
+    val isEqualizerEnabled: StateFlow<Boolean> = _isEqualizerEnabled.asStateFlow()
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        _isEqualizerEnabled.value = enabled
+        try {
+            val audioSessionId = exoPlayer.audioSessionId
+            if (audioSessionId != android.media.audiofx.AudioEffect.ERROR_BAD_VALUE) {
+                if (equalizer == null && enabled) {
+                    equalizer = android.media.audiofx.Equalizer(0, audioSessionId)
+                }
+                equalizer?.enabled = enabled
+                if (enabled) {
+                    applyEqualizer(_selectedPreset.value)
+                }
+            }
+        } catch (_: Exception) {}
+    }
 
     fun setPreset(name: String) {
         _selectedPreset.value = name
-        applyEqualizer(name)
+        if (_isEqualizerEnabled.value) {
+            applyEqualizer(name)
+        }
     }
 
     private fun applyEqualizer(presetName: String) {
@@ -455,16 +475,16 @@ class AudioPlayerManager(private val context: Context) {
                 if (equalizer == null) {
                     equalizer = android.media.audiofx.Equalizer(0, audioSessionId)
                 }
-                equalizer?.enabled = true
+                equalizer?.enabled = _isEqualizerEnabled.value
                 val numBands = equalizer?.numberOfBands ?: 0
-                if (numBands > 0) {
+                if (numBands > 0 && _isEqualizerEnabled.value) {
                     val (b1, b2, b3, b4, b5) = when (presetName) {
                         "Bass Boost" -> arrayOf(800, 400, 0, -200, -200)
-                        "Vocal Booster" -> arrayOf(-200, 200, 600, 400, 0)
-                        "Rock & Metal" -> arrayOf(600, 200, -200, 400, 600)
-                        "Pop & Beats" -> arrayOf(400, 200, 200, 400, 400)
-                        "Electronic / EDM" -> arrayOf(800, 200, -200, 600, 800)
-                        "Acoustic / Classical" -> arrayOf(300, 200, 300, 400, 500)
+                        "Vocal Booster", "Vocal" -> arrayOf(-200, 200, 600, 400, 0)
+                        "Rock & Metal", "Rock" -> arrayOf(600, 200, -200, 400, 600)
+                        "Pop & Beats", "Pop" -> arrayOf(400, 200, 200, 400, 400)
+                        "Electronic / EDM", "Heavy Metal" -> arrayOf(800, 200, -200, 600, 800)
+                        "Acoustic / Classical", "Jazz" -> arrayOf(300, 200, 300, 400, 500)
                         "Treble Boost" -> arrayOf(-400, -200, 200, 600, 900)
                         else -> arrayOf(0, 0, 0, 0, 0)
                     }
