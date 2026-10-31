@@ -46,14 +46,11 @@ fun TopNavigationTabs(
     onItemSelected: (Int, Screen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-
-    val backgroundColor = if (isDark) Color(0xFF0F172A) else MaterialTheme.colorScheme.surface
-    val bottomBorderColor = if (isDark) Color(0xFF1E293B) else Color(0xFFE2E8F0)
+    val bottomBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
 
     Surface(
-        color = backgroundColor,
-        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.background,
+        shadowElevation = 0.dp,
         modifier = modifier.fillMaxWidth().testTag("top_navigation_tabs")
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {

@@ -68,7 +68,7 @@ fun NovaAppBar(
 
     Surface(
         color = MaterialTheme.colorScheme.background,
-        shadowElevation = 2.dp
+        shadowElevation = 0.dp
     ) {
         TopAppBar(
             title = {

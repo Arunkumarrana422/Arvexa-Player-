@@ -450,7 +450,22 @@ fun NovaPlayerApp(
     val isPlaying by viewModel.playerManager.isPlaying.collectAsState()
     val currentPosMs by viewModel.playerManager.currentPositionMs.collectAsState()
 
-    val isMiniPlayerActive = isAudioPlaying || (currentSongPlaying != null && !isPlaying) || currentVideoPlaying != null
+    val isPlayerScreen = currentRoute == Screen.Player.route || currentRoute == "player"
+    val isSettingsOrInfoScreen = currentRoute == Screen.Settings.route || currentRoute == Screen.About.route || currentRoute == Screen.PrivacyPolicy.route
+    val hideMiniPlayerOnRoutes = remember(currentRoute) {
+        setOf(
+            Screen.Settings.route,
+            Screen.About.route,
+            Screen.PrivacyPolicy.route,
+            Screen.Player.route,
+            "player",
+            "settings",
+            "about",
+            "privacy_policy"
+        )
+    }
+    val rawMiniPlayerActive = isAudioPlaying || (currentSongPlaying != null && !isPlaying) || currentVideoPlaying != null
+    val isMiniPlayerActive = rawMiniPlayerActive && !isPlayerScreen && !isSettingsOrInfoScreen && (currentRoute == null || currentRoute !in hideMiniPlayerOnRoutes)
 
     // Dialog & BottomSheet state
     var showCreatePlaylistDialog by remember { mutableStateOf(false) }
@@ -490,7 +505,6 @@ fun NovaPlayerApp(
     // Main 4 tabs Pager (Default start at Folders = index 2)
     val pagerState = rememberPagerState(initialPage = 2) { 4 }
 
-    val isPlayerScreen = currentRoute == Screen.Player.route
     val isMainTabs = currentRoute == Screen.MainTabs.route || currentRoute == null
     val isAtMainRoot = isMainTabs && selectedFolder == null && selectedPlaylist == null && isBottomNavVisible
     val showBottomBar = isAtMainRoot
@@ -945,7 +959,7 @@ composable(Screen.Onboarding.route) {
 
             // MiniPlayer Overlay with smooth slide in/out animation
             AnimatedVisibility(
-                visible = isMiniPlayerActive,
+                visible = isMiniPlayerActive && !isPlayerScreen && !isSettingsOrInfoScreen,
                 enter = slideInVertically(
                     initialOffsetY = { it },
                     animationSpec = spring(
