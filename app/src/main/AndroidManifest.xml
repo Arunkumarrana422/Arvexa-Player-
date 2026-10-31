@@ -29,7 +29,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyApplication"
+        android:theme="@style/Theme.ArvexaPlayer"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
@@ -37,7 +37,7 @@
             android:label="@string/app_name"
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
-            android:theme="@style/Theme.MyApplication">
+            android:theme="@style/Theme.ArvexaPlayer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

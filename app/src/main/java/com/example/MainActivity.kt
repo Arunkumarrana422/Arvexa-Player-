@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsets
@@ -71,7 +73,25 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Velocity
 import com.example.ui.theme.NovaAccent
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -89,12 +109,14 @@ import com.example.ui.components.AddToPlaylistDialog
 import com.example.ui.components.AddSongToPlaylistDialog
 import com.example.ui.components.CreatePlaylistDialog
 import com.example.ui.components.DeleteVideoDialog
+import com.example.ui.components.EqualizerBottomSheet
 import com.example.ui.components.FloatingBottomNavigationBar
 import com.example.ui.components.FullMusicPlayerBottomSheet
 import com.example.ui.components.IosMusicWidgetView
 import com.example.ui.components.MiniAudioPlayerBar
 import com.example.ui.components.MiniPlayerView
 import com.example.ui.components.NovaAppBar
+import com.example.ui.components.TopNavigationTabs
 import com.example.ui.components.VideoInfoBottomSheet
 import com.example.ui.navigation.BottomNavItems
 import com.example.ui.navigation.Screen
@@ -437,6 +459,7 @@ fun NovaPlayerApp(
     var songToDelete by remember { mutableStateOf<Song?>(null) }
     var infoVideo by remember { mutableStateOf<Video?>(null) }
     var videoToDelete by remember { mutableStateOf<Video?>(null) }
+    var showEqualizerSheet by remember { mutableStateOf(false) }
 
     // Double back to exit state
     var lastBackPressTime by remember { mutableLongStateOf(0L) }
@@ -497,6 +520,35 @@ fun NovaPlayerApp(
         }
     }
 
+    val density = LocalDensity.current
+    var headerHeightPx by remember { mutableFloatStateOf(0f) }
+    var headerOffsetPx by remember { mutableFloatStateOf(0f) }
+
+    val headerNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (headerHeightPx <= 0f) return Offset.Zero
+                val delta = available.y
+                val newOffset = (headerOffsetPx + delta).coerceIn(-headerHeightPx, 0f)
+                headerOffsetPx = newOffset
+                return Offset.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (headerHeightPx > 0f) {
+                    val target = if (headerOffsetPx < -headerHeightPx / 2f) -headerHeightPx else 0f
+                    Animatable(headerOffsetPx).animateTo(
+                        targetValue = target,
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    ) {
+                        headerOffsetPx = value
+                    }
+                }
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             if (showTopBar) {
@@ -507,13 +559,82 @@ fun NovaPlayerApp(
                     3 -> "Playlists"
                     else -> "Arvexa Player"
                 }
-                NovaAppBar(
-                    title = topTitle,
-                    isRefreshing = isScanning,
-                    onSearchClick = { navController.navigate(Screen.Search.route) },
-                    onRefreshClick = { viewModel.scanLibrary() },
-                    onSettingsClick = { navController.navigate(Screen.Settings.route) }
-                )
+                val currentNavIndex = if (currentRoute == Screen.Music.route) {
+                    BottomNavItems.indexOfFirst { it.route == Screen.Music.route }
+                } else if (currentRoute == Screen.MainTabs.route) {
+                    pagerState.currentPage
+                } else {
+                    -1
+                }
+
+                val visibleHeaderHeightDp = if (headerHeightPx > 0f) {
+                    with(density) { (headerHeightPx + headerOffsetPx).coerceAtLeast(0f).toDp() }
+                } else {
+                    null
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (visibleHeaderHeightDp != null) {
+                                    Modifier.height(visibleHeaderHeightDp)
+                                } else {
+                                    Modifier
+                                }
+                            )
+                            .clipToBounds()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onSizeChanged { size ->
+                                    if (size.height > 0 && headerHeightPx == 0f) {
+                                        headerHeightPx = size.height.toFloat()
+                                    }
+                                }
+                                .graphicsLayer {
+                                    translationY = headerOffsetPx
+                                }
+                        ) {
+                            NovaAppBar(
+                                title = topTitle,
+                                isRefreshing = isScanning,
+                                onSearchClick = { navController.navigate(Screen.Search.route) },
+                                onRefreshClick = { viewModel.scanLibrary() },
+                                onSettingsClick = { navController.navigate(Screen.Settings.route) }
+                            )
+                        }
+                    }
+                    TopNavigationTabs(
+                        items = BottomNavItems,
+                        selectedIndex = currentNavIndex,
+                        onItemSelected = { index, item ->
+                            if (item.route == Screen.Music.route) {
+                                navController.navigate(Screen.Music.route) {
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                if (item.route == Screen.Folders.route) {
+                                    viewModel.selectFolder(null)
+                                } else if (item.route == Screen.Playlists.route) {
+                                    viewModel.selectPlaylist(null)
+                                }
+                                if (currentRoute != Screen.MainTabs.route) {
+                                    navController.popBackStack(Screen.MainTabs.route, false)
+                                }
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
+                        }
+                    )
+                }
             }
         },
         contentWindowInsets = WindowInsets.statusBars,
@@ -522,6 +643,7 @@ fun NovaPlayerApp(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .nestedScroll(headerNestedScrollConnection)
                 .padding(if (isPlayerScreen) androidx.compose.foundation.layout.PaddingValues(0.dp) else innerPadding)
         ) {
             NavHost(
@@ -580,6 +702,7 @@ composable(Screen.Onboarding.route) {
                                 onAddToPlaylist = { videoToAddToPlaylist = it },
                                 onShowVideoInfo = { infoVideo = it },
                                 onDeleteVideo = { requestDeleteVideo(it) },
+                                onShowEqualizer = { showEqualizerSheet = true },
                                 isMiniPlayerActive = isMiniPlayerActive
                             )
 
@@ -772,7 +895,8 @@ composable(Screen.Onboarding.route) {
                         onClearWatchHistory = { viewModel.clearAllHistory() },
                         onClearSearchHistory = { viewModel.clearSearchHistory() },
                         onNavigateToAbout = { navController.navigate(Screen.About.route) },
-                        onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
+                        onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                        onShowEqualizer = { showEqualizerSheet = true }
                     )
                 }
 
@@ -800,9 +924,9 @@ composable(Screen.Onboarding.route) {
                 }
             }
 
-            // Transparent Floating Bottom Bar & MiniPlayer Overlay with smooth slide in/out animation
+            // MiniPlayer Overlay with smooth slide in/out animation
             AnimatedVisibility(
-                visible = showBottomBar && isBottomNavVisible,
+                visible = isMiniPlayerActive,
                 enter = slideInVertically(
                     initialOffsetY = { it },
                     animationSpec = spring(
@@ -838,38 +962,6 @@ composable(Screen.Onboarding.route) {
                             }
                         )
                     }
-
-                    val currentNavIndex = if (currentRoute == Screen.Music.route) {
-                        BottomNavItems.indexOfFirst { it.route == Screen.Music.route }
-                    } else if (currentRoute == Screen.MainTabs.route) {
-                        pagerState.currentPage
-                    } else {
-                        -1
-                    }
-
-                    FloatingBottomNavigationBar(
-                        items = BottomNavItems,
-                        selectedIndex = currentNavIndex,
-                        onItemSelected = { index, item ->
-                            if (item.route == Screen.Music.route) {
-                                navController.navigate(Screen.Music.route) {
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                if (item.route == Screen.Folders.route) {
-                                    viewModel.selectFolder(null)
-                                } else if (item.route == Screen.Playlists.route) {
-                                    viewModel.selectPlaylist(null)
-                                }
-                                if (currentRoute != Screen.MainTabs.route) {
-                                    navController.popBackStack(Screen.MainTabs.route, false)
-                                }
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            }
-                        }
-                    )
                 }
             }
         }
@@ -958,6 +1050,12 @@ composable(Screen.Onboarding.route) {
         FullMusicPlayerBottomSheet(
             audioPlayerManager = viewModel.audioPlayerManager,
             onDismiss = { viewModel.audioPlayerManager.closeFullPlayer() }
+        )
+    }
+
+    if (showEqualizerSheet) {
+        EqualizerBottomSheet(
+            onDismiss = { showEqualizerSheet = false }
         )
     }
 

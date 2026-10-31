@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Gesture
@@ -87,7 +88,8 @@ fun SettingsScreen(
     onClearWatchHistory: () -> Unit,
     onClearSearchHistory: () -> Unit,
     onNavigateToAbout: () -> Unit = {},
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onShowEqualizer: () -> Unit = {}
 ) {
     var themeMenuExpanded by remember { mutableStateOf(false) }
     var seekMenuExpanded by remember { mutableStateOf(false) }
@@ -126,6 +128,15 @@ fun SettingsScreen(
             // PLAYBACK CONTROLS & GESTURES
             item {
                 SettingsSection(title = "PLAYBACK & GESTURES") {
+                    SettingsClickableRow(
+                        icon = Icons.Default.Equalizer,
+                        title = "Audio Equalizer & Sound FX",
+                        subtitle = "5-Band EQ, Bass Boost & 3D Surround Effects",
+                        onClick = onShowEqualizer
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
                     SettingsClickableRow(
                         icon = Icons.Default.FastForward,
                         title = "Double Tap Seek Duration",

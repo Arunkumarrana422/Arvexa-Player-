@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
@@ -85,6 +86,7 @@ fun HomeScreen(
     onAddToPlaylist: (Video) -> Unit,
     onShowVideoInfo: (Video) -> Unit,
     onDeleteVideo: (String) -> Unit,
+    onShowEqualizer: () -> Unit = {},
     isMiniPlayerActive: Boolean = false
 ) {
     LazyColumn(
@@ -109,8 +111,15 @@ fun HomeScreen(
                     modifier = Modifier.weight(1f)
                 )
                 QuickActionButton(
+                    icon = Icons.Default.Equalizer,
+                    label = "Equalizer",
+                    gradient = listOf(Color(0xFF06B6D4), Color(0xFF3B82F6)),
+                    onClick = onShowEqualizer,
+                    modifier = Modifier.weight(1f)
+                )
+                QuickActionButton(
                     icon = Icons.Default.Folder,
-                    label = "Browse Folders",
+                    label = "Folders",
                     gradient = listOf(NovaSecondary, NovaAccent),
                     onClick = onNavigateToFolders,
                     modifier = Modifier.weight(1f)
@@ -120,13 +129,6 @@ fun HomeScreen(
                     label = "Favorites",
                     gradient = listOf(Color(0xFFE11D48), Color(0xFFF43F5E)),
                     onClick = onNavigateToFavorites,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionButton(
-                    icon = Icons.Default.History,
-                    label = "History",
-                    gradient = listOf(Color(0xFF8B5CF6), Color(0xFFA855F7)),
-                    onClick = onNavigateToHistory,
                     modifier = Modifier.weight(1f)
                 )
             }

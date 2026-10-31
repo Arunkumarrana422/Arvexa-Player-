@@ -93,6 +93,19 @@ import com.example.ui.components.EmptyStateView
 import com.example.ui.components.DeletePlaylistConfirmDialog
 import com.example.ui.components.AddSongsScreen
 import com.example.ui.components.NowPlayingEqualizer
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Velocity
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
@@ -134,6 +147,35 @@ fun MusicScreen(
     var isSearchActive by remember { mutableStateOf(false) }
     var currentSort by remember { mutableStateOf(MusicSort.TITLE_ASC) }
     var showSortMenu by remember { mutableStateOf(false) }
+
+    val density = LocalDensity.current
+    var musicHeaderHeightPx by remember { mutableFloatStateOf(0f) }
+    var musicHeaderOffsetPx by remember { mutableFloatStateOf(0f) }
+
+    val musicHeaderNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (musicHeaderHeightPx <= 0f) return Offset.Zero
+                val delta = available.y
+                val newOffset = (musicHeaderOffsetPx + delta).coerceIn(-musicHeaderHeightPx, 0f)
+                musicHeaderOffsetPx = newOffset
+                return Offset.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (musicHeaderHeightPx > 0f) {
+                    val target = if (musicHeaderOffsetPx < -musicHeaderHeightPx / 2f) -musicHeaderHeightPx else 0f
+                    Animatable(musicHeaderOffsetPx).animateTo(
+                        targetValue = target,
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    ) {
+                        musicHeaderOffsetPx = value
+                    }
+                }
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
 
     // Navigation sub-screens for folders, albums, artists, playlists
     var selectedFolder by remember { mutableStateOf<AudioFolder?>(null) }
@@ -280,93 +322,126 @@ fun MusicScreen(
         return
     }
 
+    val visibleMusicHeaderHeightDp = if (musicHeaderHeightPx > 0f) {
+        with(density) { (musicHeaderHeightPx + musicHeaderOffsetPx).coerceAtLeast(0f).toDp() }
+    } else {
+        null
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
+            .nestedScroll(musicHeaderNestedScrollConnection)
             .testTag("music_screen")
     ) {
         // Search & Controls Bar
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            if (isSearchActive) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search songs, artists, albums...", fontSize = 13.sp) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = NovaAccent,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            searchQuery = ""
-                            isSearchActive = false
-                        }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Close search")
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
+                .then(
+                    if (visibleMusicHeaderHeightDp != null) {
+                        Modifier.height(visibleMusicHeaderHeightDp)
+                    } else {
+                        Modifier
+                    }
                 )
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                .clipToBounds()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { size ->
+                        if (size.height > 0 && musicHeaderHeightPx == 0f) {
+                            musicHeaderHeightPx = size.height.toFloat()
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
                     }
-                    Text(
-                        text = "${filteredSongs.size} Songs",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { isSearchActive = true }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search Music", tint = MaterialTheme.colorScheme.onSurface)
+                    .graphicsLayer {
+                        translationY = musicHeaderOffsetPx
                     }
-
-                    Box {
-                        IconButton(onClick = { showSortMenu = true }) {
-                            Icon(Icons.Default.Sort, contentDescription = "Sort Music", tint = MaterialTheme.colorScheme.onSurface)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (isSearchActive) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("Search songs, artists, albums...", fontSize = 13.sp) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = NovaAccent,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            ),
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    searchQuery = ""
+                                    isSearchActive = false
+                                }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Close search")
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (onBack != null) {
+                                IconButton(onClick = onBack) {
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                                }
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            Text(
+                                text = "${filteredSongs.size} Songs",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                        DropdownMenu(
-                            expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false }
-                        ) {
-                            MusicSort.values().forEach { sort ->
-                                DropdownMenuItem(
-                                    text = { Text(sort.label) },
-                                    onClick = {
-                                        currentSort = sort
-                                        showSortMenu = false
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { isSearchActive = true }) {
+                                Icon(Icons.Default.Search, contentDescription = "Search Music", tint = MaterialTheme.colorScheme.onSurface)
+                            }
+
+                            Box {
+                                IconButton(onClick = { showSortMenu = true }) {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort Music", tint = MaterialTheme.colorScheme.onSurface)
+                                }
+                                DropdownMenu(
+                                    expanded = showSortMenu,
+                                    onDismissRequest = { showSortMenu = false }
+                                ) {
+                                    MusicSort.values().forEach { sort ->
+                                        DropdownMenuItem(
+                                            text = { Text(sort.label) },
+                                            onClick = {
+                                                currentSort = sort
+                                                showSortMenu = false
+                                            }
+                                        )
                                     }
-                                )
+                                }
+                            }
+
+                            Button(
+                                onClick = {
+                                    if (filteredSongs.isNotEmpty()) {
+                                        onPlaySong(filteredSongs.first(), filteredSongs.shuffled())
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Shuffle", fontSize = 12.sp)
                             }
                         }
-                    }
-
-                    Button(
-                        onClick = {
-                            if (filteredSongs.isNotEmpty()) {
-                                onPlaySong(filteredSongs.first(), filteredSongs.shuffled())
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Shuffle", fontSize = 12.sp)
                     }
                 }
             }
