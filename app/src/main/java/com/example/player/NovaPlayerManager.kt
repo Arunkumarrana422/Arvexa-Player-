@@ -59,7 +59,7 @@ class NovaPlayerManager(private val context: Context) {
     private fun acquireWakeLock() {
         try {
             if (wakeLock == null) {
-                wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NovaPlayer:VideoWakeLock")
+                wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ArvexaPlayer:VideoWakeLock")
             }
             if (wakeLock?.isHeld == false) {
                 wakeLock?.acquire(24 * 60 * 60 * 1000L)
@@ -246,7 +246,7 @@ class NovaPlayerManager(private val context: Context) {
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
 
-    val mediaSession = MediaSessionCompat(context, "NovaVideoSession").apply {
+    val mediaSession = MediaSessionCompat(context, "ArvexaVideoSession").apply {
         isActive = true
         setCallback(object : MediaSessionCompat.Callback() {
             override fun onPlay() { play() }

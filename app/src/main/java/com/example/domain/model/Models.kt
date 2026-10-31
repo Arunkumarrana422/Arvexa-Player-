@@ -212,7 +212,7 @@ enum class AspectRatioMode(val label: String) {
 
 enum class ThemePreference(val label: String) {
     SYSTEM("System Default"),
-    DARK("Deep Nova Dark"),
+    DARK("Deep Arvexa Dark"),
     LIGHT("Modern Light")
 }
 

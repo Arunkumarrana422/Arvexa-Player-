@@ -51,7 +51,7 @@ class AudioPlayerManager(private val context: Context) {
     private fun acquireWakeLock() {
         try {
             if (wakeLock == null) {
-                wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NovaPlayer:AudioWakeLock")
+                wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ArvexaPlayer:AudioWakeLock")
             }
             if (wakeLock?.isHeld == false) {
                 wakeLock?.acquire(24 * 60 * 60 * 1000L)
@@ -147,7 +147,7 @@ class AudioPlayerManager(private val context: Context) {
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
 
-    val mediaSession = MediaSessionCompat(context, "NovaAudioSession").apply {
+    val mediaSession = MediaSessionCompat(context, "ArvexaAudioSession").apply {
         isActive = true
         setCallback(object : MediaSessionCompat.Callback() {
             override fun onPlay() { play() }

@@ -22,7 +22,7 @@ import com.example.domain.model.Song
 class MediaPlaybackService : Service() {
 
     companion object {
-        const val CHANNEL_ID = "nova_media_playback_channel"
+        const val CHANNEL_ID = "arvexa_media_playback_channel"
         const val NOTIFICATION_ID = 1001
 
         const val ACTION_START = "com.example.player.ACTION_START"
@@ -147,7 +147,7 @@ class MediaPlaybackService : Service() {
         val isVideoActive = !isAudioActive && (isVideoPlaying || video != null) && isVideoBgEnabled
 
         val title = if (isVideoActive) (video?.title ?: "Playing Video") else (song?.title ?: "Playing Music")
-        val subtitle = if (isVideoActive) (video?.folderName ?: "Nova Video Player") else (song?.artist ?: "Nova Player")
+        val subtitle = if (isVideoActive) (video?.folderName ?: "Arvexa Video Player") else (song?.artist ?: "Arvexa Player")
         val isPlaying = if (isVideoActive) isVideoPlaying else isAudioPlaying
 
         // Open app intent
