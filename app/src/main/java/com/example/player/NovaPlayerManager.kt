@@ -98,7 +98,6 @@ class NovaPlayerManager(private val context: Context) {
         scope.launch {
             try {
                 SettingsRepository(context).settingsFlow.collect { settings ->
-                    _aspectRatioMode.value = settings.defaultAspectRatio
                     val wasEnabled = _backgroundAudioEnabled.value
                     _backgroundAudioEnabled.value = settings.backgroundAudioEnabled
                     if (!settings.backgroundAudioEnabled) {
@@ -326,11 +325,20 @@ class NovaPlayerManager(private val context: Context) {
         }
     }
 
+    private val videoAspectPrefs by lazy {
+        context.getSharedPreferences("video_aspect_ratios", Context.MODE_PRIVATE)
+    }
+
     fun playVideo(video: Video, playlist: List<Video> = emptyList(), startPositionMs: Long = 0L) {
         onVideoStarted?.invoke()
         _errorMessage.value = null
-        _aspectRatioMode.value = AspectRatioMode.FIT
         _currentVideo.value = video
+
+        val savedModeName = videoAspectPrefs.getString("aspect_${video.id}", null)
+        val savedMode = savedModeName?.let {
+            try { AspectRatioMode.valueOf(it) } catch (_: Exception) { null }
+        } ?: AspectRatioMode.FIT
+        _aspectRatioMode.value = savedMode
         val actualList = if (playlist.isNotEmpty()) playlist else listOf(video)
         _queue.value = actualList
         val idx = actualList.indexOfFirst { it.id == video.id }.coerceAtLeast(0)
@@ -587,11 +595,16 @@ class NovaPlayerManager(private val context: Context) {
         val modes = AspectRatioMode.values()
         val currentIdx = modes.indexOf(_aspectRatioMode.value)
         val nextMode = modes[(currentIdx + 1) % modes.size]
-        _aspectRatioMode.value = nextMode
+        setAspectRatio(nextMode)
     }
 
     fun setAspectRatio(mode: AspectRatioMode) {
         _aspectRatioMode.value = mode
+        _currentVideo.value?.let { video ->
+            try {
+                videoAspectPrefs.edit().putString("aspect_${video.id}", mode.name).apply()
+            } catch (_: Exception) {}
+        }
     }
 
     fun nextVideo() {
