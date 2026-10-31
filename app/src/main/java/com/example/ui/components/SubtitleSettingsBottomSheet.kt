@@ -83,7 +83,47 @@ fun SubtitleSettingsBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val isDark = isNightMode()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color(0xFF0F172A),
+        dragHandle = null
+    ) {
+        SubtitleSettingsPanelContent(
+            tracks = tracks,
+            selectedTrack = selectedTrack,
+            subtitleDelayMs = subtitleDelayMs,
+            fontSize = fontSize,
+            textColor = textColor,
+            bgColor = bgColor,
+            onSelectTrack = onSelectTrack,
+            onLoadExternalSubtitle = onLoadExternalSubtitle,
+            onAdjustDelay = onAdjustDelay,
+            onFontSizeChange = onFontSizeChange,
+            onColorChange = onColorChange,
+            onDismiss = onDismiss
+        )
+    }
+}
+
+@Composable
+fun SubtitleSettingsPanelContent(
+    tracks: List<SubtitleTrack>,
+    selectedTrack: SubtitleTrack?,
+    subtitleDelayMs: Long,
+    fontSize: Int,
+    textColor: String,
+    bgColor: String,
+    onSelectTrack: (SubtitleTrack?) -> Unit,
+    onLoadExternalSubtitle: (Uri) -> Unit,
+    onAdjustDelay: (Long) -> Unit,
+    onFontSizeChange: (Int) -> Unit,
+    onColorChange: (textColor: String, bgColor: String) -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isDark = true
 
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -91,202 +131,195 @@ fun SubtitleSettingsBottomSheet(
         uri?.let { onLoadExternalSubtitle(it) }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = null
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .verticalScroll(rememberScrollState())
+            .testTag("subtitle_settings_sheet")
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 8.dp)
-                .verticalScroll(rememberScrollState())
-                .testTag("subtitle_settings_sheet")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Subtitles,
-                        contentDescription = null,
-                        tint = NovaAccent
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Subtitle Settings",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Subtitle Tracks Section
-            Text(
-                text = "SUBTITLE TRACKS",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Off option
-            TrackRow(
-                title = "Subtitles Off",
-                subtitle = "Disable subtitle overlay",
-                isSelected = selectedTrack == null,
-                icon = Icons.Default.SubtitlesOff,
-                onClick = { onSelectTrack(null) }
-            )
-
-            tracks.forEach { track ->
-                TrackRow(
-                    title = track.label,
-                    subtitle = if (track.isExternal) "External File (.srt/.vtt)" else "Embedded Track (${track.language})",
-                    isSelected = selectedTrack?.id == track.id,
-                    icon = Icons.Default.Subtitles,
-                    onClick = { onSelectTrack(track) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Subtitles,
+                    contentDescription = null,
+                    tint = NovaAccent
                 )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = { filePicker.launch("*/*") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50),
-                border = if (isDark) nightGlassBorder(strokeWidth = 1.dp) ?: BorderStroke(1.dp, Color(0xFF2A374F)) else BorderStroke(1.dp, Color(0xFFCBD5E1))
-            ) {
-                Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp), tint = NovaAccent)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Load External Subtitle File (.srt / .vtt)", color = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = "Subtitle Settings",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color.White
+                )
             }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+            }
+        }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 14.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-            // Synchronization / Delay Adjustment
+        // Subtitle Tracks Section
+        Text(
+            text = "SUBTITLE TRACKS",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF94A3B8)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Off option
+        TrackRow(
+            title = "Subtitles Off",
+            subtitle = "Disable subtitle overlay",
+            isSelected = selectedTrack == null,
+            icon = Icons.Default.SubtitlesOff,
+            onClick = { onSelectTrack(null) }
+        )
+
+        tracks.forEach { track ->
+            TrackRow(
+                title = track.label,
+                subtitle = if (track.isExternal) "External File (.srt/.vtt)" else "Embedded Track (${track.language})",
+                isSelected = selectedTrack?.id == track.id,
+                icon = Icons.Default.Subtitles,
+                onClick = { onSelectTrack(track) }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = { filePicker.launch("*/*") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(50),
+            border = nightGlassBorder(strokeWidth = 1.dp) ?: BorderStroke(1.dp, Color(0xFF2A374F))
+        ) {
+            Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp), tint = NovaAccent)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Load External Subtitle File (.srt / .vtt)", color = Color.White)
+        }
+
+        HorizontalDivider(color = Color(0xFF1E293B), modifier = Modifier.padding(vertical = 14.dp))
+
+        // Synchronization / Delay Adjustment
+        Text(
+            text = "SUBTITLE SYNCHRONIZATION",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF94A3B8)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = "SUBTITLE SYNCHRONIZATION",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Current Offset: ${if (subtitleDelayMs >= 0) "+" else ""}${subtitleDelayMs} ms",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = NovaAccent
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                val btnBorder = nightGlassBorder(strokeWidth = 1.dp) ?: BorderStroke(1.dp, Color(0xFF2A374F))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .border(btnBorder, RoundedCornerShape(50))
+                        .background(Color(0xFF162032).copy(alpha = 0.6f))
+                        .clickable { onAdjustDelay(-100L) }
+                        .padding(horizontal = 14.dp, vertical = 7.dp)
+                ) {
+                    Text("-100ms", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Current Offset: ${if (subtitleDelayMs >= 0) "+" else ""}${subtitleDelayMs} ms",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = NovaAccent
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    val btnBorder = if (isDark) nightGlassBorder(strokeWidth = 1.dp) ?: BorderStroke(1.dp, Color(0xFF2A374F)) else BorderStroke(1.dp, Color(0xFFE2E8F0))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .border(btnBorder, RoundedCornerShape(50))
-                            .background(if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { onAdjustDelay(-100L) }
-                            .padding(horizontal = 14.dp, vertical = 7.dp)
-                    ) {
-                        Text("-100ms", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .border(btnBorder, RoundedCornerShape(50))
-                            .background(if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { onAdjustDelay(100L) }
-                            .padding(horizontal = 14.dp, vertical = 7.dp)
-                    ) {
-                        Text("+100ms", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .border(btnBorder, RoundedCornerShape(50))
+                        .background(Color(0xFF162032).copy(alpha = 0.6f))
+                        .clickable { onAdjustDelay(100L) }
+                        .padding(horizontal = 14.dp, vertical = 7.dp)
+                ) {
+                    Text("+100ms", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 14.dp))
-
-            // Font Size
-            Text(
-                text = "FONT SIZE (${fontSize}sp)",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            var sliderFontSize by remember(fontSize) { mutableFloatStateOf(fontSize.toFloat()) }
-            Slider(
-                value = sliderFontSize,
-                onValueChange = {
-                    sliderFontSize = it
-                    onFontSizeChange(it.toInt())
-                },
-                valueRange = 12f..32f,
-                steps = 10,
-                colors = SliderDefaults.colors(
-                    thumbColor = NovaAccent,
-                    activeTrackColor = NovaAccent
-                )
-            )
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 14.dp))
-
-            // Style / Color Schemes
-            Text(
-                text = "SUBTITLE COLOR PRESET",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                ColorPresetChip(
-                    name = "Classic White",
-                    textColor = "#FFFFFF",
-                    bgColor = "#80000000",
-                    isSelected = textColor == "#FFFFFF" && bgColor == "#80000000",
-                    onClick = { onColorChange("#FFFFFF", "#80000000") },
-                    modifier = Modifier.weight(1f)
-                )
-                ColorPresetChip(
-                    name = "Vibrant Yellow",
-                    textColor = "#FACC15",
-                    bgColor = "#80000000",
-                    isSelected = textColor == "#FACC15",
-                    onClick = { onColorChange("#FACC15", "#80000000") },
-                    modifier = Modifier.weight(1f)
-                )
-                ColorPresetChip(
-                    name = "Cyan Glow",
-                    textColor = "#22D3EE",
-                    bgColor = "#99000000",
-                    isSelected = textColor == "#22D3EE",
-                    onClick = { onColorChange("#22D3EE", "#99000000") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
         }
+
+        HorizontalDivider(color = Color(0xFF1E293B), modifier = Modifier.padding(vertical = 14.dp))
+
+        // Font Size
+        Text(
+            text = "FONT SIZE (${fontSize}sp)",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF94A3B8)
+        )
+
+        var sliderFontSize by remember(fontSize) { mutableFloatStateOf(fontSize.toFloat()) }
+        Slider(
+            value = sliderFontSize,
+            onValueChange = {
+                sliderFontSize = it
+                onFontSizeChange(it.toInt())
+            },
+            valueRange = 12f..32f,
+            steps = 10,
+            colors = SliderDefaults.colors(
+                thumbColor = NovaAccent,
+                activeTrackColor = NovaAccent
+            )
+        )
+
+        HorizontalDivider(color = Color(0xFF1E293B), modifier = Modifier.padding(vertical = 14.dp))
+
+        // Style / Color Schemes
+        Text(
+            text = "SUBTITLE COLOR PRESET",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF94A3B8)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            ColorPresetChip(
+                name = "Classic White",
+                textColor = "#FFFFFF",
+                bgColor = "#80000000",
+                isSelected = textColor == "#FFFFFF" && bgColor == "#80000000",
+                onClick = { onColorChange("#FFFFFF", "#80000000") },
+                modifier = Modifier.weight(1f)
+            )
+            ColorPresetChip(
+                name = "Vibrant Yellow",
+                textColor = "#FACC15",
+                bgColor = "#80000000",
+                isSelected = textColor == "#FACC15",
+                onClick = { onColorChange("#FACC15", "#80000000") },
+                modifier = Modifier.weight(1f)
+            )
+            ColorPresetChip(
+                name = "Cyan Glow",
+                textColor = "#22D3EE",
+                bgColor = "#99000000",
+                isSelected = textColor == "#22D3EE",
+                onClick = { onColorChange("#22D3EE", "#99000000") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
     }
 }
 
@@ -298,12 +331,10 @@ private fun TrackRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit
 ) {
-    val isDark = true
     val trackBorder = if (isSelected) {
-        if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
-        else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
+        nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
     } else {
-        BorderStroke(1.dp, if (isDark) Color(0xFF2A374F).copy(alpha = 0.6f) else Color(0xFFE2E8F0))
+        BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.5f))
     }
 
     Row(
@@ -314,22 +345,18 @@ private fun TrackRow(
             .border(trackBorder, RoundedCornerShape(14.dp))
             .background(
                 if (isSelected) {
-                    if (isDark) {
-                        Brush.verticalGradient(
-                            listOf(
-                                Color.White.copy(alpha = 0.08f),
-                                Color(0x2222D3EE),
-                                Color(0x350B1020)
-                            )
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.12f),
+                            Color(0x3322D3EE),
+                            Color(0x400B1020)
                         )
-                    } else {
-                        Brush.linearGradient(listOf(Color(0xFFE0F7FA), Color(0xFFE0F2FE)))
-                    }
+                    )
                 } else {
                     Brush.linearGradient(
                         listOf(
-                            if (isDark) Color(0xFF162032).copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            if (isDark) Color(0xFF162032).copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            Color(0x25162032),
+                            Color(0x25162032)
                         )
                     )
                 }
@@ -341,7 +368,7 @@ private fun TrackRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isSelected) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = if (isSelected) NovaAccent else Color(0xAAFFFFFF),
             modifier = Modifier.size(22.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -351,12 +378,12 @@ private fun TrackRow(
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                 ),
-                color = if (isSelected) NovaAccent else MaterialTheme.colorScheme.onSurface
+                color = if (isSelected) NovaAccent else Color.White
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color(0x99FFFFFF),
                 fontSize = 11.sp
             )
         }
@@ -380,12 +407,10 @@ private fun ColorPresetChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark = true
     val chipBorder = if (isSelected) {
-        if (isDark) nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
-        else BorderStroke(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.85f))
+        nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
     } else {
-        BorderStroke(1.dp, if (isDark) Color(0xFF2A374F).copy(alpha = 0.6f) else Color(0xFFCBD5E1).copy(alpha = 0.7f))
+        BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.5f))
     }
 
     Box(
@@ -394,22 +419,18 @@ private fun ColorPresetChip(
             .border(chipBorder, RoundedCornerShape(14.dp))
             .background(
                 if (isSelected) {
-                    if (isDark) {
-                        Brush.verticalGradient(
-                            listOf(
-                                Color.White.copy(alpha = 0.08f),
-                                Color(0x2222D3EE),
-                                Color(0x350B1020)
-                            )
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.12f),
+                            Color(0x3322D3EE),
+                            Color(0x400B1020)
                         )
-                    } else {
-                        Brush.linearGradient(listOf(Color(0xFFE0F7FA), Color(0xFFE0F2FE)))
-                    }
+                    )
                 } else {
                     Brush.linearGradient(
                         listOf(
-                            if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                            if (isDark) Color(0xFF162032).copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                            Color(0x25162032),
+                            Color(0x25162032)
                         )
                     )
                 }
@@ -429,7 +450,7 @@ private fun ColorPresetChip(
                 text = name,
                 fontSize = 10.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
         }
     }

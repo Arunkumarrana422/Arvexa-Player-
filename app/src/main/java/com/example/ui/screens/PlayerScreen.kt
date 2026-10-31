@@ -13,6 +13,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -28,6 +29,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -73,6 +75,8 @@ import androidx.media3.ui.PlayerView
 import com.example.data.repository.UserSettings
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.Video
+import com.example.ui.components.PlaybackSettingsBottomSheet
+import com.example.ui.components.PlaybackSettingsPanelContent
 import com.example.player.NovaPlayerManager
 import com.example.ui.components.ContinueWatchingBanner
 import com.example.ui.components.GestureHudState
@@ -756,7 +760,7 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.35f))
+                .background(Color.Black.copy(alpha = 0.10f))
                 .clickable(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
@@ -765,9 +769,11 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.48f)
+                    .fillMaxWidth(0.44f)
                     .align(Alignment.CenterEnd)
-                    .background(Color.Transparent)
+                    .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .background(Color(0x730A0F1D))
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures { change, dragAmount ->
                             if (dragAmount > 20f) {
@@ -775,9 +781,12 @@ fun PlayerScreen(
                             }
                         }
                     }
-                    .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) {}
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    ) {}
             ) {
-                SubtitleSettingsBottomSheet(
+                com.example.ui.components.SubtitleSettingsPanelContent(
                     tracks = subtitleTracks,
                     selectedTrack = subtitleTracks.firstOrNull { it.isSelected },
                     subtitleDelayMs = subtitleDelayMs,
@@ -816,7 +825,7 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.35f))
+                .background(Color.Black.copy(alpha = 0.10f))
                 .clickable(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
@@ -825,9 +834,11 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.48f)
+                    .fillMaxWidth(0.44f)
                     .align(Alignment.CenterEnd)
-                    .background(Color.Transparent)
+                    .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .background(Color(0x730A0F1D))
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures { change, dragAmount ->
                             if (dragAmount > 20f) {
@@ -835,9 +846,12 @@ fun PlayerScreen(
                             }
                         }
                     }
-                    .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) {}
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    ) {}
             ) {
-                PlaybackSettingsBottomSheet(
+                PlaybackSettingsPanelContent(
                     currentSpeed = playbackSpeed,
                     currentAspectRatio = aspectRatioMode,
                     decoderMode = decoderMode,

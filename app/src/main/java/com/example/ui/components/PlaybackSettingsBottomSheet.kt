@@ -59,7 +59,6 @@ import com.example.ui.theme.DarkColorScheme
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PlaybackSettingsBottomSheet(
     currentSpeed: Float,
@@ -80,27 +79,62 @@ fun PlaybackSettingsBottomSheet(
     onEnterPiP: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    MaterialTheme(colorScheme = DarkColorScheme) {
+        PlaybackSettingsPanelContent(
+            currentSpeed = currentSpeed,
+            currentAspectRatio = currentAspectRatio,
+            decoderMode = decoderMode,
+            audioTracks = audioTracks,
+            selectedAudioTrack = selectedAudioTrack,
+            sleepTimerMinutes = sleepTimerMinutes,
+            backgroundAudioEnabled = backgroundAudioEnabled,
+            hwDecoderEnabled = hwDecoderEnabled,
+            onSpeedChange = onSpeedChange,
+            onAspectRatioChange = onAspectRatioChange,
+            onDecoderModeChange = onDecoderModeChange,
+            onSelectAudioTrack = onSelectAudioTrack,
+            onSleepTimerChange = onSleepTimerChange,
+            onBackgroundAudioToggle = onBackgroundAudioToggle,
+            onHwDecoderToggle = onHwDecoderToggle,
+            onEnterPiP = onEnterPiP,
+            onDismiss = onDismiss
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun PlaybackSettingsPanelContent(
+    currentSpeed: Float,
+    currentAspectRatio: AspectRatioMode,
+    decoderMode: DecoderMode,
+    audioTracks: List<AudioTrack>,
+    selectedAudioTrack: AudioTrack?,
+    sleepTimerMinutes: Int?,
+    backgroundAudioEnabled: Boolean = false,
+    hwDecoderEnabled: Boolean,
+    onSpeedChange: (Float) -> Unit,
+    onAspectRatioChange: (AspectRatioMode) -> Unit,
+    onDecoderModeChange: (DecoderMode) -> Unit,
+    onSelectAudioTrack: (AudioTrack) -> Unit,
+    onSleepTimerChange: (Int?) -> Unit,
+    onBackgroundAudioToggle: (Boolean) -> Unit = {},
+    onHwDecoderToggle: (Boolean) -> Unit,
+    onEnterPiP: () -> Unit,
+    onDismiss: () -> Unit
+) {
     val speedPresets = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
-    val isDark = true
 
-    MaterialTheme(colorScheme = DarkColorScheme) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
-            containerColor = Color(0xFF0F172A),
-            dragHandle = null
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                    .verticalScroll(rememberScrollState())
-                    .testTag("playback_settings_sheet")
-            ) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .verticalScroll(rememberScrollState())
+            .testTag("playback_settings_sheet")
+    ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -317,8 +351,6 @@ fun PlaybackSettingsBottomSheet(
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))
-            }
-        }
     }
 }
 
@@ -361,16 +393,16 @@ private fun OptionChip(
                 if (isSelected) {
                     Brush.verticalGradient(
                         listOf(
-                            Color.White.copy(alpha = 0.10f),
-                            Color(0x2822D3EE),
-                            Color(0x350B1020)
+                            Color.White.copy(alpha = 0.12f),
+                            Color(0x4422D3EE),
+                            Color(0x450B1020)
                         )
                     )
                 } else {
                     Brush.linearGradient(
                         listOf(
-                            Color(0xFF162032).copy(alpha = 0.6f),
-                            Color(0xFF162032).copy(alpha = 0.6f)
+                            Color(0x25162032),
+                            Color(0x25162032)
                         )
                     )
                 }
