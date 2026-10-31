@@ -329,6 +329,7 @@ class NovaPlayerManager(private val context: Context) {
     fun playVideo(video: Video, playlist: List<Video> = emptyList(), startPositionMs: Long = 0L) {
         onVideoStarted?.invoke()
         _errorMessage.value = null
+        _aspectRatioMode.value = AspectRatioMode.FIT
         _currentVideo.value = video
         val actualList = if (playlist.isNotEmpty()) playlist else listOf(video)
         _queue.value = actualList
@@ -587,20 +588,10 @@ class NovaPlayerManager(private val context: Context) {
         val currentIdx = modes.indexOf(_aspectRatioMode.value)
         val nextMode = modes[(currentIdx + 1) % modes.size]
         _aspectRatioMode.value = nextMode
-        scope.launch {
-            try {
-                SettingsRepository(context).setDefaultAspectRatio(nextMode)
-            } catch (_: Exception) {}
-        }
     }
 
     fun setAspectRatio(mode: AspectRatioMode) {
         _aspectRatioMode.value = mode
-        scope.launch {
-            try {
-                SettingsRepository(context).setDefaultAspectRatio(mode)
-            } catch (_: Exception) {}
-        }
     }
 
     fun nextVideo() {
