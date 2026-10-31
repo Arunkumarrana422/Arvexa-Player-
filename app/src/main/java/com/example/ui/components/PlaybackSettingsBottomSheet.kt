@@ -214,69 +214,6 @@ fun PlaybackSettingsPanelContent(
                     }
                 }
 
-                if (audioTracks.isNotEmpty()) {
-                    HorizontalDivider(color = Color(0xFF1E293B), modifier = Modifier.padding(vertical = 12.dp))
-                    SectionHeader(icon = Icons.Default.Audiotrack, title = "AUDIO STREAM")
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    audioTracks.forEach { track ->
-                        val isSelected = selectedAudioTrack?.id == track.id || track.isSelected
-                        val audioTrackBorder = if (isSelected) {
-                            nightGlassBorder(strokeWidth = 1.5.dp, intensity = 1.35f) ?: BorderStroke(1.5.dp, NovaAccent)
-                        } else {
-                            BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.6f))
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .border(audioTrackBorder, RoundedCornerShape(14.dp))
-                                .background(
-                                    if (isSelected) {
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                Color.White.copy(alpha = 0.08f),
-                                                Color(0x2222D3EE),
-                                                Color(0x350B1020)
-                                            )
-                                        )
-                                    } else {
-                                        Brush.linearGradient(
-                                            listOf(
-                                                Color(0xFF162032).copy(alpha = 0.5f),
-                                                Color(0xFF162032).copy(alpha = 0.5f)
-                                            )
-                                        )
-                                    }
-                                )
-                                .clickable { onSelectAudioTrack(track) }
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = track.label,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    ),
-                                    color = if (isSelected) NovaAccent else Color.White
-                                )
-                                Text(
-                                    text = "Language: ${track.language}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0x99FFFFFF),
-                                    fontSize = 11.sp
-                                )
-                            }
-                            if (isSelected) {
-                                Icon(Icons.Default.Check, contentDescription = null, tint = NovaAccent)
-                            }
-                        }
-                    }
-                }
-
                 HorizontalDivider(color = Color(0xFF1E293B), modifier = Modifier.padding(vertical = 12.dp))
 
                 // Sleep Timer

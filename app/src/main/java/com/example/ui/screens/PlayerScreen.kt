@@ -128,6 +128,7 @@ fun PlayerScreen(
 
     var areControlsVisible by remember { mutableStateOf(true) }
     var hudState by remember { mutableStateOf<GestureHudState>(GestureHudState.None) }
+    var showAudioSheet by remember { mutableStateOf(false) }
     var showSubtitleSheet by remember { mutableStateOf(false) }
     var showPlaybackSheet by remember { mutableStateOf(false) }
     var isLandscape by remember { mutableStateOf(false) }
@@ -723,7 +724,7 @@ fun PlayerScreen(
             onPrevious = { playerManager.previousVideo() },
             onToggleLock = { playerManager.setLocked(!isLocked) },
             onCycleAspectRatio = { playerManager.cycleAspectRatio() },
-            onOpenAudioSelector = { showPlaybackSheet = true },
+            onOpenAudioSelector = { showAudioSheet = true },
             onOpenSubtitleSelector = { showSubtitleSheet = true },
             onOpenPlaybackSettings = { showPlaybackSheet = true },
             onToggleRepeat = { playerManager.toggleRepeat() },
@@ -739,6 +740,61 @@ fun PlayerScreen(
             },
             onEnterPiP = onEnterPiP
         )
+    }
+
+    // Audio Tracks Custom Right-to-Left Drawer
+    androidx.compose.animation.AnimatedVisibility(
+        visible = showAudioSheet,
+        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        modifier = Modifier.fillMaxSize().zIndex(100f)
+    ) {
+        androidx.compose.runtime.DisposableEffect(Unit) {
+            val window = activity?.window
+            val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            onDispose {
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.10f))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { showAudioSheet = false }
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.44f)
+                    .align(Alignment.CenterEnd)
+                    .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .background(Color(0x730A0F1D))
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showAudioSheet = false
+                            }
+                        }
+                    }
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    ) {}
+            ) {
+                com.example.ui.components.AudioTracksPanelContent(
+                    audioTracks = audioTracks,
+                    selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
+                    onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
+                    onDismiss = { showAudioSheet = false }
+                )
+            }
+        }
     }
 
     // Subtitle Settings Custom Right-to-Left Drawer with Dim Background and Status bar hidden
