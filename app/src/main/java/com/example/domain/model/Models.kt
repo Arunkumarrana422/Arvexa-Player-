@@ -175,14 +175,18 @@ data class SubtitleTrack(
     val uri: String = "",
     val isExternal: Boolean = false,
     val isSelected: Boolean = false,
-    val delayMs: Long = 0L
+    val delayMs: Long = 0L,
+    val groupIndex: Int = -1,
+    val trackIndex: Int = -1
 )
 
 data class AudioTrack(
     val id: String,
     val label: String,
     val language: String,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    val groupIndex: Int = -1,
+    val trackIndex: Int = -1
 )
 
 enum class SortOption(val label: String) {

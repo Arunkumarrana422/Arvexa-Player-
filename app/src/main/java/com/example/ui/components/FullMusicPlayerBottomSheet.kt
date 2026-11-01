@@ -702,67 +702,15 @@ fun FullMusicPlayerBottomSheet(
     if (showEqualizerSheet) {
         ModalBottomSheet(
             onDismissRequest = { showEqualizerSheet = false },
-            containerColor = if (isDark) Color(0xFF0F1523) else MaterialTheme.colorScheme.surface
+            containerColor = if (isDark) Color(0xFF0F1523) else MaterialTheme.colorScheme.surface,
+            contentColor = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface,
+            dragHandle = null
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
-                Text(
-                    text = "Audio Equalizer Presets",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+            Column(modifier = Modifier.statusBarsPadding()) {
+                EqualizerPanelContent(
+                    onDismiss = { showEqualizerSheet = false },
+                    isForVideo = false
                 )
-                Spacer(modifier = Modifier.height(14.dp))
-                val presets = audioPlayerManager.equalizerPresets
-                val currentPreset by audioPlayerManager.selectedPreset.collectAsState()
-
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    presets.forEach { preset ->
-                        val isSelected = preset.name == currentPreset
-                        val cardBorder = if (isSelected) {
-                            BorderStroke(1.5.dp, NovaAccent)
-                        } else {
-                            if (isDark) nightGlassBorder(strokeWidth = 1.dp, intensity = 1.2f) ?: BorderStroke(1.dp, Color(0xFF2A374F).copy(alpha = 0.6f))
-                            else BorderStroke(1.dp, Color(0xFFE2E8F0))
-                        }
-                        val cardBg = if (isSelected) {
-                            if (isDark) NovaAccent.copy(alpha = 0.25f) else Color(0xFFE0F7FA)
-                        } else {
-                            if (isDark) Color(0xFF162032).copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        }
-                        Card(
-                            onClick = {
-                                audioPlayerManager.setPreset(preset.name)
-                                showEqualizerSheet = false
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = cardBg),
-                            border = cardBorder,
-                            shape = RoundedCornerShape(14.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = preset.name,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                    ),
-                                    color = if (isSelected) NovaAccent else MaterialTheme.colorScheme.onSurface
-                                )
-                                if (isSelected) {
-                                    Icon(Icons.Default.GraphicEq, contentDescription = null, tint = NovaAccent)
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     }

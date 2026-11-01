@@ -134,7 +134,7 @@ class NovaPlayerManager(private val context: Context) {
             setEnableDecoderFallback(true)
             when (mode) {
                 DecoderMode.HW -> {
-                    setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+                    setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
                 }
                 DecoderMode.HW_PLUS, DecoderMode.SW -> {
                     setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
@@ -638,37 +638,72 @@ class NovaPlayerManager(private val context: Context) {
     }
 
     fun selectAudioTrack(track: AudioTrack) {
-        // If track is a multi-channel format like DDP / EAC3 / AC3 / DTS and mode is HW, auto-switch to HW+ for extension decoding support
-        if ((track.label.contains("DDP", true) || track.label.contains("AC3", true) || track.label.contains("EAC3", true) || track.label.contains("DTS", true)) && _decoderMode.value == DecoderMode.HW) {
-            setDecoderMode(DecoderMode.HW_PLUS)
+        val tracks = exoPlayer.currentTracks
+        var targetOverride: TrackSelectionOverride? = null
+
+        // 1. First attempt: match by stored indices if valid
+        if (track.groupIndex in 0 until tracks.groups.size && track.trackIndex >= 0) {
+            val group = tracks.groups[track.groupIndex]
+            if (group.type == C.TRACK_TYPE_AUDIO && track.trackIndex < group.length) {
+                targetOverride = TrackSelectionOverride(group.mediaTrackGroup, track.trackIndex)
+            }
         }
 
-        val tracks = exoPlayer.currentTracks
-        for (groupIndex in 0 until tracks.groups.size) {
-            val trackGroup = tracks.groups[groupIndex]
-            if (trackGroup.type == C.TRACK_TYPE_AUDIO) {
-                for (i in 0 until trackGroup.length) {
-                    val trackId = "audio_${groupIndex}_$i"
-                    val format = trackGroup.getTrackFormat(i)
-                    if (trackId == track.id || format.id == track.id || (format.language == track.language && track.id.contains("_$i"))) {
-                        val override = TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
-                        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
-                            .buildUpon()
-                            .setOverrideForType(override)
-                            .build()
-                        break
+        // 2. Second attempt: match by exact trackId or format.id
+        if (targetOverride == null) {
+            outer@ for (groupIndex in 0 until tracks.groups.size) {
+                val trackGroup = tracks.groups[groupIndex]
+                if (trackGroup.type == C.TRACK_TYPE_AUDIO) {
+                    for (i in 0 until trackGroup.length) {
+                        val currentTrackId = "audio_${groupIndex}_$i"
+                        val format = trackGroup.getTrackFormat(i)
+                        if (currentTrackId == track.id || (format.id != null && format.id == track.id)) {
+                            targetOverride = TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                            break@outer
+                        }
                     }
                 }
             }
         }
-        try {
+
+        if (targetOverride != null) {
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                .buildUpon()
+                .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                .setOverrideForType(targetOverride)
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                .build()
+        }
+
+        // Immediately update UI state so the clicked track shows checkmark instantly
+        _availableAudioTracks.value = _availableAudioTracks.value.map {
+            it.copy(isSelected = (it.id == track.id))
+        }
+
+        // Clear any previous audio codec error banner
+        _errorMessage.value = null
+
+        // If player stopped due to previous audio codec failure or error, recover playback
+        if (exoPlayer.playerError != null || exoPlayer.playbackState == Player.STATE_IDLE) {
             exoPlayer.prepare()
-            exoPlayer.play()
-        } catch (_: Exception) {}
-        updateAvailableTracks(exoPlayer.currentTracks)
+        }
+        exoPlayer.playWhenReady = true
+        if (!exoPlayer.isPlaying) {
+            try { exoPlayer.play() } catch (_: Exception) {}
+        }
+        _isPlaying.value = true
     }
 
     fun selectSubtitleTrack(subtitle: SubtitleTrack?) {
+        val updatedSubList = _availableSubtitleTracks.value.map { track ->
+            if (subtitle == null) {
+                track.copy(isSelected = false)
+            } else {
+                track.copy(isSelected = (track.id == subtitle.id))
+            }
+        }
+        _availableSubtitleTracks.value = updatedSubList
+
         if (subtitle == null) {
             // Disable subtitles
             trackSelector.setParameters(
@@ -678,6 +713,7 @@ class NovaPlayerManager(private val context: Context) {
             exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
                 .buildUpon()
                 .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
                 .build()
             _externalCues.value = emptyList()
             _activeSubtitleText.value = null
@@ -686,34 +722,57 @@ class NovaPlayerManager(private val context: Context) {
                 trackSelector.buildUponParameters()
                     .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
             )
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                .buildUpon()
+                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                .build()
         } else {
             trackSelector.setParameters(
                 trackSelector.buildUponParameters()
                     .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
             )
             val tracks = exoPlayer.currentTracks
-            for (groupIndex in 0 until tracks.groups.size) {
-                val trackGroup = tracks.groups[groupIndex]
-                if (trackGroup.type == C.TRACK_TYPE_TEXT) {
-                    for (i in 0 until trackGroup.length) {
-                        val trackId = "sub_${groupIndex}_$i"
-                        val format = trackGroup.getTrackFormat(i)
-                        if (trackId == subtitle.id || format.id == subtitle.id || (format.language == subtitle.language && subtitle.id.contains("_$i"))) {
-                            val override = TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
-                            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
-                                .buildUpon()
-                                .setOverrideForType(override)
-                                .build()
-                            break
+            var targetOverride: TrackSelectionOverride? = null
+
+            if (subtitle.groupIndex in 0 until tracks.groups.size && subtitle.trackIndex >= 0) {
+                val group = tracks.groups[subtitle.groupIndex]
+                if (group.type == C.TRACK_TYPE_TEXT && subtitle.trackIndex < group.length) {
+                    targetOverride = TrackSelectionOverride(group.mediaTrackGroup, subtitle.trackIndex)
+                }
+            }
+
+            if (targetOverride == null) {
+                outer@ for (groupIndex in 0 until tracks.groups.size) {
+                    val trackGroup = tracks.groups[groupIndex]
+                    if (trackGroup.type == C.TRACK_TYPE_TEXT) {
+                        for (i in 0 until trackGroup.length) {
+                            val trackId = "sub_${groupIndex}_$i"
+                            val format = trackGroup.getTrackFormat(i)
+                            if (trackId == subtitle.id || (format.id != null && format.id == subtitle.id)) {
+                                targetOverride = TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                                break@outer
+                            }
                         }
                     }
                 }
             }
+
+            if (targetOverride != null) {
+                exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                    .buildUpon()
+                    .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                    .setOverrideForType(targetOverride)
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                    .build()
+            }
+            _externalCues.value = emptyList()
         }
-        try {
-            exoPlayer.prepare()
-        } catch (_: Exception) {}
-        updateAvailableTracks(exoPlayer.currentTracks)
+        exoPlayer.playWhenReady = true
+        if (!exoPlayer.isPlaying) {
+            try { exoPlayer.play() } catch (_: Exception) {}
+        }
+        _isPlaying.value = true
     }
 
     suspend fun loadExternalSubtitle(uri: Uri) {
@@ -764,36 +823,71 @@ class NovaPlayerManager(private val context: Context) {
             if (group.type == C.TRACK_TYPE_AUDIO) {
                 for (i in 0 until group.length) {
                     val format = group.getTrackFormat(i)
-                    val label = format.label ?: format.language ?: "Audio Track ${audioList.size + 1}"
                     val trackId = "audio_${groupIndex}_$i"
+                    val isSelected = group.isTrackSelected(i)
+
+                    val langDisplay = try {
+                        if (!format.language.isNullOrEmpty() && format.language != "und") {
+                            java.util.Locale(format.language!!).getDisplayLanguage(java.util.Locale.ENGLISH)
+                        } else null
+                    } catch (_: Exception) { null }
+
+                    val baseName = format.label ?: langDisplay ?: "Audio Track ${audioList.size + 1}"
+                    val fullLabel = if (!format.sampleMimeType.isNullOrEmpty()) "$baseName (${format.sampleMimeType})" else baseName
+
                     audioList.add(
                         AudioTrack(
                             id = trackId,
-                            label = "$label (${format.sampleMimeType ?: "Audio"})",
+                            label = fullLabel,
                             language = format.language ?: "und",
-                            isSelected = group.isTrackSelected(i)
+                            isSelected = isSelected,
+                            groupIndex = groupIndex,
+                            trackIndex = i
                         )
                     )
                 }
             } else if (group.type == C.TRACK_TYPE_TEXT) {
                 for (i in 0 until group.length) {
                     val format = group.getTrackFormat(i)
-                    val label = format.label ?: format.language ?: "Subtitle ${subList.size + 1}"
                     val trackId = "sub_${groupIndex}_$i"
+                    val isSelected = group.isTrackSelected(i)
+
+                    val langDisplay = try {
+                        if (!format.language.isNullOrEmpty() && format.language != "und") {
+                            java.util.Locale(format.language!!).getDisplayLanguage(java.util.Locale.ENGLISH)
+                        } else null
+                    } catch (_: Exception) { null }
+
+                    val baseName = format.label ?: langDisplay ?: "Subtitle ${subList.size + 1}"
+
                     subList.add(
                         SubtitleTrack(
                             id = trackId,
                             language = format.language ?: "und",
-                            label = "$label (${format.language ?: "Text"})",
-                            isSelected = group.isTrackSelected(i)
+                            label = baseName,
+                            isSelected = isSelected,
+                            groupIndex = groupIndex,
+                            trackIndex = i
                         )
                     )
                 }
             }
         }
 
+        // Preserve user's selection if ExoPlayer is momentarily reporting no audio track selected
+        val currentSelectedAudioId = _availableAudioTracks.value.firstOrNull { it.isSelected }?.id
+        if (currentSelectedAudioId != null && audioList.none { it.isSelected }) {
+            val idx = audioList.indexOfFirst { it.id == currentSelectedAudioId }
+            if (idx != -1) {
+                audioList[idx] = audioList[idx].copy(isSelected = true)
+            }
+        }
+
         _availableAudioTracks.value = audioList
-        _availableSubtitleTracks.value = subList
+
+        // Preserve external subtitles
+        val externalSubs = _availableSubtitleTracks.value.filter { it.isExternal }
+        _availableSubtitleTracks.value = subList + externalSubs
     }
 
     private val playerListener = object : Player.Listener {
@@ -811,8 +905,17 @@ class NovaPlayerManager(private val context: Context) {
             }
         }
 
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            if (audioSessionId != C.AUDIO_SESSION_ID_UNSET && audioSessionId != 0) {
+                rebindAudioEffects(audioSessionId)
+            }
+        }
+
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
+            if (isPlaying && _isEqualizerEnabled.value && equalizer == null) {
+                rebindAudioEffects(exoPlayer.audioSessionId)
+            }
             updateVideoNotification()
         }
 
@@ -832,10 +935,6 @@ class NovaPlayerManager(private val context: Context) {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            if (error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) {
-                // Software fallback is active and playback will continue normally. Ignore error banner.
-                return
-            }
             val message = when (error.errorCode) {
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
@@ -856,10 +955,201 @@ class NovaPlayerManager(private val context: Context) {
         exoPlayer.play()
     }
 
+    private var equalizer: android.media.audiofx.Equalizer? = null
+    private var bassBoost: android.media.audiofx.BassBoost? = null
+    private var virtualizer: android.media.audiofx.Virtualizer? = null
+    private var activeAudioSessionId: Int = C.AUDIO_SESSION_ID_UNSET
+
+    private val _isEqualizerEnabled = MutableStateFlow(false)
+    val isEqualizerEnabled: StateFlow<Boolean> = _isEqualizerEnabled.asStateFlow()
+    private val _selectedPreset = MutableStateFlow("Normal")
+    val selectedPreset: StateFlow<String> = _selectedPreset.asStateFlow()
+
+    private val _bandLevels = MutableStateFlow(listOf(0.5f, 0.5f, 0.5f, 0.5f, 0.5f))
+    val bandLevels: StateFlow<List<Float>> = _bandLevels.asStateFlow()
+
+    private val _bassBoostLevel = MutableStateFlow(0.5f)
+    val bassBoostLevel: StateFlow<Float> = _bassBoostLevel.asStateFlow()
+
+    private val _virtualizerLevel = MutableStateFlow(0.5f)
+    val virtualizerLevel: StateFlow<Float> = _virtualizerLevel.asStateFlow()
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        _isEqualizerEnabled.value = enabled
+        try {
+            val audioSessionId = exoPlayer.audioSessionId
+            if (enabled) {
+                if (audioSessionId != android.media.audiofx.AudioEffect.ERROR_BAD_VALUE && audioSessionId != 0) {
+                    rebindAudioEffects(audioSessionId)
+                } else {
+                    rebindAudioEffects(0)
+                }
+            } else {
+                equalizer?.enabled = false
+                bassBoost?.enabled = false
+                virtualizer?.enabled = false
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun rebindAudioEffects(sessionId: Int) {
+        if (sessionId == activeAudioSessionId && equalizer != null && _isEqualizerEnabled.value) {
+            applyCustomEqualizer()
+            applyBassBoost(_bassBoostLevel.value)
+            applyVirtualizer(_virtualizerLevel.value)
+            return
+        }
+        
+        try {
+            equalizer?.release()
+            bassBoost?.release()
+            virtualizer?.release()
+        } catch (_: Exception) {}
+        equalizer = null
+        bassBoost = null
+        virtualizer = null
+        activeAudioSessionId = sessionId
+
+        if (_isEqualizerEnabled.value && sessionId != android.media.audiofx.AudioEffect.ERROR_BAD_VALUE) {
+            try {
+                equalizer = android.media.audiofx.Equalizer(0, sessionId).apply { enabled = true }
+                bassBoost = android.media.audiofx.BassBoost(0, sessionId).apply { enabled = _bassBoostLevel.value > 0f }
+                virtualizer = android.media.audiofx.Virtualizer(0, sessionId).apply { enabled = _virtualizerLevel.value > 0f }
+
+                applyCustomEqualizer()
+                applyBassBoost(_bassBoostLevel.value)
+                applyVirtualizer(_virtualizerLevel.value)
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun setPreset(name: String) {
+        _selectedPreset.value = name
+        when (name) {
+            "Normal", "Flat", "Balanced" -> { _bandLevels.value = listOf(0.5f, 0.5f, 0.5f, 0.5f, 0.5f); _bassBoostLevel.value = 0.0f; _virtualizerLevel.value = 0.0f }
+            "Pop", "Pop & Beats" -> { _bandLevels.value = listOf(0.58f, 0.65f, 0.52f, 0.64f, 0.72f); _bassBoostLevel.value = 0.30f; _virtualizerLevel.value = 0.20f }
+            "Rock", "Rock & Metal" -> { _bandLevels.value = listOf(0.74f, 0.62f, 0.46f, 0.68f, 0.78f); _bassBoostLevel.value = 0.40f; _virtualizerLevel.value = 0.25f }
+            "Jazz", "Acoustic / Classical" -> { _bandLevels.value = listOf(0.58f, 0.54f, 0.48f, 0.62f, 0.70f); _bassBoostLevel.value = 0.20f; _virtualizerLevel.value = 0.30f }
+            "Bass Boost", "Super Bass" -> { _bandLevels.value = listOf(0.85f, 0.72f, 0.50f, 0.48f, 0.52f); _bassBoostLevel.value = 0.60f; _virtualizerLevel.value = 0.15f }
+            "Vocal", "Vocal Booster" -> { _bandLevels.value = listOf(0.35f, 0.45f, 0.85f, 0.78f, 0.55f); _bassBoostLevel.value = 0.10f; _virtualizerLevel.value = 0.15f }
+            "Heavy Metal", "Electronic / EDM" -> { _bandLevels.value = listOf(0.82f, 0.70f, 0.45f, 0.65f, 0.82f); _bassBoostLevel.value = 0.50f; _virtualizerLevel.value = 0.35f }
+            "Treble Boost" -> { _bandLevels.value = listOf(0.32f, 0.40f, 0.55f, 0.78f, 0.90f); _bassBoostLevel.value = 0.0f; _virtualizerLevel.value = 0.10f }
+        }
+        if (_isEqualizerEnabled.value) {
+            applyCustomEqualizer()
+            applyBassBoost(_bassBoostLevel.value)
+            applyVirtualizer(_virtualizerLevel.value)
+        }
+    }
+
+    fun setBandLevel(bandIndex: Int, value: Float) {
+        _selectedPreset.value = "Custom"
+        val currentBands = _bandLevels.value.toMutableList()
+        if (bandIndex in 0..4) {
+            currentBands[bandIndex] = value
+            _bandLevels.value = currentBands
+        }
+        if (_isEqualizerEnabled.value) {
+            applyCustomEqualizer()
+        }
+    }
+
+    fun setBassBoost(value: Float) {
+        _bassBoostLevel.value = value
+        if (_isEqualizerEnabled.value) {
+            applyBassBoost(value)
+        }
+    }
+
+    fun setVirtualizer(value: Float) {
+        _virtualizerLevel.value = value
+        if (_isEqualizerEnabled.value) {
+            applyVirtualizer(value)
+        }
+    }
+
+    private fun interpolateBandLevel(bandLevels: List<Float>, normPos: Float): Float {
+        if (bandLevels.isEmpty()) return 0.5f
+        if (bandLevels.size == 1) return bandLevels[0]
+        val scaledIndex = normPos * (bandLevels.size - 1)
+        val lowerIdx = scaledIndex.toInt().coerceIn(0, bandLevels.size - 1)
+        val upperIdx = (lowerIdx + 1).coerceIn(0, bandLevels.size - 1)
+        val fraction = scaledIndex - lowerIdx
+        return bandLevels[lowerIdx] * (1f - fraction) + bandLevels[upperIdx] * fraction
+    }
+
+    private fun applyCustomEqualizer() {
+        try {
+            val audioSessionId = exoPlayer.audioSessionId
+            if (audioSessionId != android.media.audiofx.AudioEffect.ERROR_BAD_VALUE) {
+                if (equalizer == null && _isEqualizerEnabled.value) {
+                    rebindAudioEffects(audioSessionId)
+                }
+                equalizer?.enabled = _isEqualizerEnabled.value
+                val numBands = equalizer?.numberOfBands ?: 0
+                if (numBands > 0 && _isEqualizerEnabled.value) {
+                    val minLevel = equalizer?.bandLevelRange?.get(0) ?: -1500
+                    val maxLevel = equalizer?.bandLevelRange?.get(1) ?: 1500
+                    val bandLevels = _bandLevels.value
+
+                    // Smooth boost headroom (65% boost, 80% cut) to give warm acoustic response without clipping
+                    val maxBoost = (maxLevel * 0.65f)
+                    val maxCut = (minLevel * 0.80f)
+
+                    for (i in 0 until numBands) {
+                        val normPos = if (numBands > 1) i.toFloat() / (numBands - 1) else 0.5f
+                        val floatVal = interpolateBandLevel(bandLevels, normPos)
+                        val millibels = if (floatVal >= 0.5f) {
+                            (0 + maxBoost * ((floatVal - 0.5f) * 2f)).toInt().toShort()
+                        } else {
+                            (maxCut + (0 - maxCut) * (floatVal * 2f)).toInt().toShort()
+                        }
+                        equalizer?.setBandLevel(i.toShort(), millibels.coerceIn(minLevel, maxLevel))
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun applyBassBoost(value: Float) {
+        try {
+            val audioSessionId = exoPlayer.audioSessionId
+            if (audioSessionId != android.media.audiofx.AudioEffect.ERROR_BAD_VALUE) {
+                if (bassBoost == null && _isEqualizerEnabled.value) {
+                    rebindAudioEffects(audioSessionId)
+                }
+                bassBoost?.enabled = _isEqualizerEnabled.value && value > 0f
+                if (bassBoost?.strengthSupported == true) {
+                    // Safe strength range (max 650/1000) for deep rich punch without volume distortion
+                    val strength = (value * 650).toInt().toShort().coerceIn(0, 650)
+                    bassBoost?.setStrength(strength)
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun applyVirtualizer(value: Float) {
+        try {
+            val audioSessionId = exoPlayer.audioSessionId
+            if (audioSessionId != android.media.audiofx.AudioEffect.ERROR_BAD_VALUE) {
+                if (virtualizer == null && _isEqualizerEnabled.value) {
+                    rebindAudioEffects(audioSessionId)
+                }
+                virtualizer?.enabled = _isEqualizerEnabled.value && value > 0f
+                if (virtualizer?.strengthSupported == true) {
+                    val strength = (value * 750).toInt().toShort().coerceIn(0, 750)
+                    virtualizer?.setStrength(strength)
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
     fun release() {
         progressJob?.cancel()
         sleepTimerJob?.cancel()
         try {
+            equalizer?.release()
+            equalizer = null
             _exoPlayer?.removeListener(playerListener)
             _exoPlayer?.release()
         } catch (_: Exception) {}

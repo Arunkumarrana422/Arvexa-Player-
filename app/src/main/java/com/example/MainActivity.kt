@@ -1088,7 +1088,8 @@ composable(Screen.Onboarding.route) {
 
     if (showEqualizerSheet) {
         EqualizerBottomSheet(
-            onDismiss = { showEqualizerSheet = false }
+            onDismiss = { showEqualizerSheet = false },
+            isForVideo = false
         )
     }
 

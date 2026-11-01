@@ -129,15 +129,6 @@ fun SettingsScreen(
             item {
                 SettingsSection(title = "PLAYBACK & GESTURES") {
                     SettingsClickableRow(
-                        icon = Icons.Default.Equalizer,
-                        title = "Audio Equalizer & Sound FX",
-                        subtitle = "5-Band EQ, Bass Boost & 3D Surround Effects",
-                        onClick = onShowEqualizer
-                    )
-
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-
-                    SettingsClickableRow(
                         icon = Icons.Default.FastForward,
                         title = "Double Tap Seek Duration",
                         subtitle = "${settings.doubleTapSeekSeconds} seconds",

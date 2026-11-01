@@ -31,6 +31,9 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
+import com.example.ui.utils.shareFile
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -135,6 +138,7 @@ fun VideoCard(
     onRemoveFromPlaylist: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
 
     val isPartiallyWatched = video.isPartiallyWatched || (video.lastPositionMs > 5000L && video.progressFraction in 0.02f..0.95f)
@@ -369,6 +373,14 @@ fun VideoCard(
                         onClick = {
                             menuExpanded = false
                             onClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Share Video") },
+                        leadingIcon = { Icon(Icons.Default.Share, null, tint = NovaAccent) },
+                        onClick = {
+                            menuExpanded = false
+                            shareFile(context, video.path, "video/*")
                         }
                     )
                     DropdownMenuItem(

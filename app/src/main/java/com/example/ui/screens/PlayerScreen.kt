@@ -12,6 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -20,12 +22,16 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -79,6 +85,7 @@ import com.example.ui.components.PlaybackSettingsBottomSheet
 import com.example.ui.components.PlaybackSettingsPanelContent
 import com.example.player.NovaPlayerManager
 import com.example.ui.components.ContinueWatchingBanner
+import com.example.ui.components.EqualizerBottomSheet
 import com.example.ui.components.GestureHudState
 import com.example.ui.components.GestureOverlayIndicator
 import com.example.ui.components.PlaybackSettingsBottomSheet
@@ -124,6 +131,7 @@ fun PlayerScreen(
     val subtitleDelayMs by playerManager.subtitleDelayMs.collectAsState()
     val sleepTimerMinutes by playerManager.sleepTimerMinutes.collectAsState()
     val decoderMode by playerManager.decoderMode.collectAsState()
+    val isEqualizerEnabled by playerManager.isEqualizerEnabled.collectAsState()
     val errorMessage by playerManager.errorMessage.collectAsState()
 
     var areControlsVisible by remember { mutableStateOf(true) }
@@ -131,7 +139,9 @@ fun PlayerScreen(
     var showAudioSheet by remember { mutableStateOf(false) }
     var showSubtitleSheet by remember { mutableStateOf(false) }
     var showPlaybackSheet by remember { mutableStateOf(false) }
-    var isLandscape by remember { mutableStateOf(false) }
+    var showEqualizerSheet by remember { mutableStateOf(false) }
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     var seekDragDeltaMs by remember { mutableLongStateOf(0L) }
     var isSeekingGesture by remember { mutableStateOf(false) }
@@ -682,8 +692,6 @@ fun PlayerScreen(
 
 
         // Continue Watching Floating Banner (Photo 2 - Landscape only)
-        val configuration = LocalConfiguration.current
-        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         if (isLandscape) {
             ContinueWatchingBanner(
                 isVisible = showResumeBanner,
@@ -715,7 +723,8 @@ fun PlayerScreen(
             isRepeatOne = isRepeatOne,
             isShuffle = isShuffle,
             decoderMode = decoderMode,
-            hasSubtitles = subtitleTracks.isNotEmpty(),
+            hasSubtitles = subtitleTracks.any { it.isSelected },
+            isEqualizerEnabled = isEqualizerEnabled,
             onBack = onBack,
             onPlayPause = { playerManager.togglePlayPause() },
             onSeekTo = { playerManager.seekTo(it) },
@@ -727,6 +736,7 @@ fun PlayerScreen(
             onOpenAudioSelector = { showAudioSheet = true },
             onOpenSubtitleSelector = { showSubtitleSheet = true },
             onOpenPlaybackSettings = { showPlaybackSheet = true },
+            onOpenEqualizer = { showEqualizerSheet = true },
             onToggleRepeat = { playerManager.toggleRepeat() },
             onToggleShuffle = { playerManager.toggleShuffle() },
             onToggleOrientation = {
@@ -742,11 +752,11 @@ fun PlayerScreen(
         )
     }
 
-    // Audio Tracks Custom Right-to-Left Drawer
+    // Audio Tracks Custom Sheet
     androidx.compose.animation.AnimatedVisibility(
         visible = showAudioSheet,
-        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        enter = if (isLandscape) (slideInHorizontally(initialOffsetX = { it }) + fadeIn()) else (slideInVertically(initialOffsetY = { it }) + fadeIn()),
+        exit = if (isLandscape) (slideOutHorizontally(targetOffsetX = { it }) + fadeOut()) else (slideOutVertically(targetOffsetY = { it }) + fadeOut()),
         modifier = Modifier.fillMaxSize().zIndex(100f)
     ) {
         androidx.compose.runtime.DisposableEffect(Unit) {
@@ -761,14 +771,14 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.10f))
+                .background(Color.Black.copy(alpha = 0.30f))
                 .clickable(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) { showAudioSheet = false }
         ) {
-            Box(
-                modifier = Modifier
+            val panelModifier = if (isLandscape) {
+                Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(0.44f)
                     .align(Alignment.CenterEnd)
@@ -776,32 +786,64 @@ fun PlayerScreen(
                     .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
                     .background(Color(0x730A0F1D))
                     .pointerInput(Unit) {
-                        detectHorizontalDragGestures { change, dragAmount ->
+                        detectHorizontalDragGestures { _, dragAmount ->
                             if (dragAmount > 20f) {
                                 showAudioSheet = false
                             }
                         }
                     }
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    ) {}
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.48f)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(Color(0x8C0F172A))
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures { _, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showAudioSheet = false
+                            }
+                        }
+                    }
+            }
+
+            Box(
+                modifier = panelModifier.clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) {}
             ) {
-                com.example.ui.components.AudioTracksPanelContent(
-                    audioTracks = audioTracks,
-                    selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
-                    onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
-                    onDismiss = { showAudioSheet = false }
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (!isLandscape) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp, bottom = 4.dp)
+                                .width(38.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.45f))
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    com.example.ui.components.AudioTracksPanelContent(
+                        audioTracks = audioTracks,
+                        selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
+                        onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
+                        onDismiss = { showAudioSheet = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
 
-    // Subtitle Settings Custom Right-to-Left Drawer with Dim Background and Status bar hidden
+    // Subtitle Settings Custom Sheet
     androidx.compose.animation.AnimatedVisibility(
         visible = showSubtitleSheet,
-        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        enter = if (isLandscape) (slideInHorizontally(initialOffsetX = { it }) + fadeIn()) else (slideInVertically(initialOffsetY = { it }) + fadeIn()),
+        exit = if (isLandscape) (slideOutHorizontally(targetOffsetX = { it }) + fadeOut()) else (slideOutVertically(targetOffsetY = { it }) + fadeOut()),
         modifier = Modifier.fillMaxSize().zIndex(100f)
     ) {
         androidx.compose.runtime.DisposableEffect(Unit) {
@@ -816,14 +858,14 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.10f))
+                .background(Color.Black.copy(alpha = 0.30f))
                 .clickable(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) { showSubtitleSheet = false }
         ) {
-            Box(
-                modifier = Modifier
+            val panelModifier = if (isLandscape) {
+                Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(0.44f)
                     .align(Alignment.CenterEnd)
@@ -831,42 +873,74 @@ fun PlayerScreen(
                     .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
                     .background(Color(0x730A0F1D))
                     .pointerInput(Unit) {
-                        detectHorizontalDragGestures { change, dragAmount ->
+                        detectHorizontalDragGestures { _, dragAmount ->
                             if (dragAmount > 20f) {
                                 showSubtitleSheet = false
                             }
                         }
                     }
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    ) {}
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.48f)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(Color(0x8C0F172A))
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures { _, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showSubtitleSheet = false
+                            }
+                        }
+                    }
+            }
+
+            Box(
+                modifier = panelModifier.clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) {}
             ) {
-                com.example.ui.components.SubtitleSettingsPanelContent(
-                    tracks = subtitleTracks,
-                    selectedTrack = subtitleTracks.firstOrNull { it.isSelected },
-                    subtitleDelayMs = subtitleDelayMs,
-                    fontSize = settings.subtitleFontSize,
-                    textColor = settings.subtitleTextColor,
-                    bgColor = settings.subtitleBgColor,
-                    onSelectTrack = { playerManager.selectSubtitleTrack(it) },
-                    onLoadExternalSubtitle = { uri ->
-                        scope.launch { playerManager.loadExternalSubtitle(uri) }
-                    },
-                    onAdjustDelay = { delta -> playerManager.adjustSubtitleDelay(delta) },
-                    onFontSizeChange = { onFontSizeChange(it) },
-                    onColorChange = { text, bg -> onColorChange(text, bg) },
-                    onDismiss = { showSubtitleSheet = false }
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (!isLandscape) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp, bottom = 4.dp)
+                                .width(38.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.45f))
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    com.example.ui.components.SubtitleSettingsPanelContent(
+                        tracks = subtitleTracks,
+                        selectedTrack = subtitleTracks.firstOrNull { it.isSelected },
+                        subtitleDelayMs = subtitleDelayMs,
+                        fontSize = settings.subtitleFontSize,
+                        textColor = settings.subtitleTextColor,
+                        bgColor = settings.subtitleBgColor,
+                        onSelectTrack = { playerManager.selectSubtitleTrack(it) },
+                        onLoadExternalSubtitle = { uri ->
+                            scope.launch { playerManager.loadExternalSubtitle(uri) }
+                        },
+                        onAdjustDelay = { delta -> playerManager.adjustSubtitleDelay(delta) },
+                        onFontSizeChange = { onFontSizeChange(it) },
+                        onColorChange = { text, bg -> onColorChange(text, bg) },
+                        onDismiss = { showSubtitleSheet = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
 
-    // Playback Settings Custom Right-to-Left Drawer with Dim Background and Status bar hidden
+    // Playback Settings Custom Sheet
     androidx.compose.animation.AnimatedVisibility(
         visible = showPlaybackSheet,
-        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        enter = if (isLandscape) (slideInHorizontally(initialOffsetX = { it }) + fadeIn()) else (slideInVertically(initialOffsetY = { it }) + fadeIn()),
+        exit = if (isLandscape) (slideOutHorizontally(targetOffsetX = { it }) + fadeOut()) else (slideOutVertically(targetOffsetY = { it }) + fadeOut()),
         modifier = Modifier.fillMaxSize().zIndex(100f)
     ) {
         androidx.compose.runtime.DisposableEffect(Unit) {
@@ -881,14 +955,14 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.10f))
+                .background(Color.Black.copy(alpha = 0.30f))
                 .clickable(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) { showPlaybackSheet = false }
         ) {
-            Box(
-                modifier = Modifier
+            val panelModifier = if (isLandscape) {
+                Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(0.44f)
                     .align(Alignment.CenterEnd)
@@ -896,39 +970,155 @@ fun PlayerScreen(
                     .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
                     .background(Color(0x730A0F1D))
                     .pointerInput(Unit) {
-                        detectHorizontalDragGestures { change, dragAmount ->
+                        detectHorizontalDragGestures { _, dragAmount ->
                             if (dragAmount > 20f) {
                                 showPlaybackSheet = false
                             }
                         }
                     }
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    ) {}
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.48f)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(Color(0x8C0F172A))
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures { _, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showPlaybackSheet = false
+                            }
+                        }
+                    }
+            }
+
+            Box(
+                modifier = panelModifier.clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) {}
             ) {
-                PlaybackSettingsPanelContent(
-                    currentSpeed = playbackSpeed,
-                    currentAspectRatio = aspectRatioMode,
-                    decoderMode = decoderMode,
-                    audioTracks = audioTracks,
-                    selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
-                    sleepTimerMinutes = sleepTimerMinutes,
-                    backgroundAudioEnabled = settings.backgroundAudioEnabled,
-                    hwDecoderEnabled = settings.hardwareDecoderEnabled,
-                    onSpeedChange = { playerManager.setSpeed(it) },
-                    onAspectRatioChange = { playerManager.setAspectRatio(it) },
-                    onDecoderModeChange = { playerManager.setDecoderMode(it) },
-                    onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
-                    onSleepTimerChange = { playerManager.setSleepTimer(it) },
-                    onBackgroundAudioToggle = onBackgroundAudioToggle,
-                    onHwDecoderToggle = onHwDecoderToggle,
-                    onEnterPiP = {
-                        showPlaybackSheet = false
-                        onEnterPiP()
-                    },
-                    onDismiss = { showPlaybackSheet = false }
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (!isLandscape) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp, bottom = 4.dp)
+                                .width(38.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.45f))
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    PlaybackSettingsPanelContent(
+                        currentSpeed = playbackSpeed,
+                        currentAspectRatio = aspectRatioMode,
+                        decoderMode = decoderMode,
+                        audioTracks = audioTracks,
+                        selectedAudioTrack = audioTracks.firstOrNull { it.isSelected },
+                        sleepTimerMinutes = sleepTimerMinutes,
+                        backgroundAudioEnabled = settings.backgroundAudioEnabled,
+                        hwDecoderEnabled = settings.hardwareDecoderEnabled,
+                        onSpeedChange = { playerManager.setSpeed(it) },
+                        onAspectRatioChange = { playerManager.setAspectRatio(it) },
+                        onDecoderModeChange = { playerManager.setDecoderMode(it) },
+                        onSelectAudioTrack = { playerManager.selectAudioTrack(it) },
+                        onSleepTimerChange = { playerManager.setSleepTimer(it) },
+                        onBackgroundAudioToggle = onBackgroundAudioToggle,
+                        onHwDecoderToggle = onHwDecoderToggle,
+                        onEnterPiP = {
+                            showPlaybackSheet = false
+                            onEnterPiP()
+                        },
+                        onDismiss = { showPlaybackSheet = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+
+    // Equalizer Settings Custom Sheet (matching Playback Controls & Audio side/bottom sheet style)
+    androidx.compose.animation.AnimatedVisibility(
+        visible = showEqualizerSheet,
+        enter = if (isLandscape) (slideInHorizontally(initialOffsetX = { it }) + fadeIn()) else (slideInVertically(initialOffsetY = { it }) + fadeIn()),
+        exit = if (isLandscape) (slideOutHorizontally(targetOffsetX = { it }) + fadeOut()) else (slideOutVertically(targetOffsetY = { it }) + fadeOut()),
+        modifier = Modifier.fillMaxSize().zIndex(100f)
+    ) {
+        androidx.compose.runtime.DisposableEffect(Unit) {
+            val window = activity?.window
+            val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            onDispose {
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.30f))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { showEqualizerSheet = false }
+        ) {
+            val panelModifier = if (isLandscape) {
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.48f)
+                    .align(Alignment.CenterEnd)
+                    .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp))
+                    .background(Color(0x730A0F1D))
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures { _, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showEqualizerSheet = false
+                            }
+                        }
+                    }
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.58f)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(Color(0x8C0F172A))
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures { _, dragAmount ->
+                            if (dragAmount > 20f) {
+                                showEqualizerSheet = false
+                            }
+                        }
+                    }
+            }
+
+            Box(
+                modifier = panelModifier.clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) {}
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (!isLandscape) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp, bottom = 4.dp)
+                                .width(38.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.45f))
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    com.example.ui.components.EqualizerPanelContent(
+                        onDismiss = { showEqualizerSheet = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }

@@ -38,6 +38,8 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
@@ -1225,6 +1227,7 @@ fun SongItemCard(
     onDeleteSong: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
     val albumArtUri = remember(song.albumId) {
         ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
@@ -1358,6 +1361,15 @@ fun SongItemCard(
                         onClick = {
                             menuExpanded = false
                             onClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Share Song") },
+                        leadingIcon = { Icon(Icons.Default.Share, null, tint = NovaAccent) },
+                        onClick = {
+                            menuExpanded = false
+                            val pathOrUri = if (song.dataPath.isNotEmpty()) song.dataPath else song.uri
+                            com.example.ui.utils.shareFile(context, pathOrUri, "audio/*")
                         }
                     )
                     DropdownMenuItem(

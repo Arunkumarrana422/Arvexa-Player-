@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Audiotrack
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Lock
@@ -88,6 +89,7 @@ fun PlayerControlsOverlay(
     isShuffle: Boolean,
     decoderMode: DecoderMode,
     hasSubtitles: Boolean,
+    isEqualizerEnabled: Boolean = false,
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
     onSeekTo: (Long) -> Unit,
@@ -99,6 +101,7 @@ fun PlayerControlsOverlay(
     onOpenAudioSelector: () -> Unit,
     onOpenSubtitleSelector: () -> Unit,
     onOpenPlaybackSettings: () -> Unit,
+    onOpenEqualizer: () -> Unit = {},
     onToggleRepeat: () -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleOrientation: () -> Unit,
@@ -246,83 +249,87 @@ fun PlayerControlsOverlay(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 48.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .padding(start = 48.dp, top = 2.dp, bottom = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Audio Track Button
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0x44000000),
+                        shape = CircleShape,
+                        color = Color(0x55000000),
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(44.dp)
+                            .clip(CircleShape)
                             .clickable(onClick = onOpenAudioSelector)
                             .testTag("player_audio_btn")
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.Audiotrack, contentDescription = "Audio", tint = Color.White, modifier = Modifier.size(15.dp))
-                            Text("Audio", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Audiotrack, contentDescription = "Audio", tint = Color.White, modifier = Modifier.size(22.dp))
                         }
                     }
 
                     // Subtitles Button
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0x44000000),
+                        shape = CircleShape,
+                        color = Color(0x55000000),
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(44.dp)
+                            .clip(CircleShape)
                             .clickable(onClick = onOpenSubtitleSelector)
                             .testTag("player_subtitles_btn")
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.Subtitles, contentDescription = "Subtitles", tint = if (hasSubtitles) NovaAccent else Color.White, modifier = Modifier.size(15.dp))
-                            Text("Sub", color = if (hasSubtitles) NovaAccent else Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Subtitles, contentDescription = "Subtitles", tint = if (hasSubtitles) NovaAccent else Color.White, modifier = Modifier.size(22.dp))
                         }
                     }
 
                     // Aspect Ratio Button
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0x44000000),
+                        shape = CircleShape,
+                        color = Color(0x55000000),
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(44.dp)
+                            .clip(CircleShape)
                             .clickable(onClick = onCycleAspectRatio)
                             .testTag("player_aspect_ratio_btn")
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.AspectRatio, contentDescription = "Aspect Ratio", tint = Color.White, modifier = Modifier.size(15.dp))
-                            Text("Fit", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.AspectRatio, contentDescription = "Fit", tint = Color.White, modifier = Modifier.size(22.dp))
+                        }
+                    }
+
+                    // Equalizer Button (Placed between Fit and More)
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0x55000000),
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onOpenEqualizer)
+                            .testTag("player_equalizer_btn")
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Equalizer,
+                                contentDescription = "Equalizer",
+                                tint = if (isEqualizerEnabled) NovaAccent else Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
                         }
                     }
 
                     // More Settings Button
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0x44000000),
+                        shape = CircleShape,
+                        color = Color(0x55000000),
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(44.dp)
+                            .clip(CircleShape)
                             .clickable(onClick = onOpenPlaybackSettings)
                             .testTag("player_settings_btn")
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(15.dp))
-                            Text("More", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More Settings", tint = Color.White, modifier = Modifier.size(22.dp))
                         }
                     }
                 }

@@ -121,13 +121,14 @@ fun PlaybackSettingsPanelContent(
     onBackgroundAudioToggle: (Boolean) -> Unit = {},
     onHwDecoderToggle: (Boolean) -> Unit,
     onEnterPiP: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val speedPresets = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     val sleepTimerPresets = listOf(null to "Off", 15 to "15 min", 30 to "30 min", 45 to "45 min", 60 to "60 min")
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxHeight()
             .fillMaxWidth()
             .statusBarsPadding()

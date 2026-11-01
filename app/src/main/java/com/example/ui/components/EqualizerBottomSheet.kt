@@ -1,10 +1,8 @@
 package com.example.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,11 +36,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,192 +52,256 @@ import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun EqualizerBottomSheet(
-    onDismiss: () -> Unit
+fun EqualizerPanelContent(
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    isForVideo: Boolean = true
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val isDark = isSystemInDarkTheme()
-    
     val audioPlayerManager = remember { com.example.player.AudioPlayerManager.activeInstance }
-    var isEqEnabled by remember { mutableStateOf(audioPlayerManager?.isEqualizerEnabled?.value ?: false) }
-    var selectedPreset by remember { mutableStateOf(audioPlayerManager?.selectedPreset?.value ?: "Normal") }
-    var band60Hz by remember { mutableFloatStateOf(0.5f) }
-    var band230Hz by remember { mutableFloatStateOf(0.5f) }
-    var band910Hz by remember { mutableFloatStateOf(0.5f) }
-    var band3kHz by remember { mutableFloatStateOf(0.5f) }
-    var band14kHz by remember { mutableFloatStateOf(0.5f) }
-    var bassBoost by remember { mutableFloatStateOf(0.5f) }
-    var virtualizer by remember { mutableFloatStateOf(0.5f) }
+    val novaPlayerManager = remember { com.example.player.NovaPlayerManager.activeInstance }
+
+    val isEqEnabledState = if (isForVideo) {
+        novaPlayerManager?.isEqualizerEnabled?.collectAsState()
+    } else {
+        audioPlayerManager?.isEqualizerEnabled?.collectAsState()
+    }
+    val isEqEnabled = isEqEnabledState?.value ?: false
+
+    val selectedPresetState = if (isForVideo) {
+        novaPlayerManager?.selectedPreset?.collectAsState()
+    } else {
+        audioPlayerManager?.selectedPreset?.collectAsState()
+    }
+    val selectedPreset = selectedPresetState?.value ?: "Normal"
+
+    val bandLevelsState = if (isForVideo) {
+        novaPlayerManager?.bandLevels?.collectAsState()
+    } else {
+        audioPlayerManager?.bandLevels?.collectAsState()
+    }
+    val bandLevels = bandLevelsState?.value ?: listOf(0.5f, 0.5f, 0.5f, 0.5f, 0.5f)
+
+    val bassBoostState = if (isForVideo) {
+        novaPlayerManager?.bassBoostLevel?.collectAsState()
+    } else {
+        audioPlayerManager?.bassBoostLevel?.collectAsState()
+    }
+    val bassBoost = bassBoostState?.value ?: 0.5f
+
+    val virtualizerState = if (isForVideo) {
+        novaPlayerManager?.virtualizerLevel?.collectAsState()
+    } else {
+        audioPlayerManager?.virtualizerLevel?.collectAsState()
+    }
+    val virtualizer = virtualizerState?.value ?: 0.5f
 
     val presets = listOf("Normal", "Pop", "Rock", "Jazz", "Bass Boost", "Vocal", "Heavy Metal", "Flat")
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = null
+    // Theme color definitions
+    val titleTextColor = if (isForVideo) Color.White else MaterialTheme.colorScheme.onSurface
+    val subtitleTextColor = if (isForVideo) Color(0xB3FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant
+    val dividerColor = if (isForVideo) Color(0x26FFFFFF) else MaterialTheme.colorScheme.outlineVariant
+    val unselectedChipBg = if (isForVideo) Color(0x22FFFFFF) else MaterialTheme.colorScheme.surfaceVariant
+    val unselectedChipBorder = if (isForVideo) Color(0x33FFFFFF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    val unselectedChipText = if (isForVideo) Color.White else MaterialTheme.colorScheme.onSurface
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState())
+            .testTag("equalizer_panel_content")
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-                .verticalScroll(rememberScrollState())
-                .testTag("equalizer_bottom_sheet")
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .background(Brush.linearGradient(listOf(NovaPrimary, NovaSecondary)), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Equalizer, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = "Pro Equalizer & Sound FX",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Arvexa Audio Enhancement Engine",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 11.sp
-                        )
-                    }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(Brush.linearGradient(listOf(NovaPrimary, NovaSecondary)), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Equalizer, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                 }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Switch(
-                        checked = isEqEnabled,
-                        onCheckedChange = {
-                            isEqEnabled = it
-                            audioPlayerManager?.setEqualizerEnabled(it)
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = NovaAccent,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = "Equalizer & Sound FX",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = titleTextColor
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    Text(
+                        text = "Audio Enhancement Engine",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = subtitleTextColor,
+                        fontSize = 11.sp
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Presets
-            Text(
-                text = "PRESETS",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = NovaAccent
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                presets.forEach { preset ->
-                    val isSelected = selectedPreset == preset
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .border(
-                                width = if (isSelected) 1.5.dp else 1.dp,
-                                color = if (isSelected) NovaAccent else MaterialTheme.colorScheme.outlineVariant,
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .background(
-                                if (isSelected) NovaAccent.copy(alpha = 0.2f)
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            .clickable {
-                                selectedPreset = preset
-                                audioPlayerManager?.setPreset(preset)
-                                when (preset) {
-                                    "Normal" -> { band60Hz = 0.5f; band230Hz = 0.5f; band910Hz = 0.5f; band3kHz = 0.5f; band14kHz = 0.5f }
-                                    "Pop" -> { band60Hz = 0.4f; band230Hz = 0.6f; band910Hz = 0.7f; band3kHz = 0.6f; band14kHz = 0.4f }
-                                    "Rock" -> { band60Hz = 0.8f; band230Hz = 0.6f; band910Hz = 0.4f; band3kHz = 0.7f; band14kHz = 0.8f }
-                                    "Jazz" -> { band60Hz = 0.6f; band230Hz = 0.5f; band910Hz = 0.4f; band3kHz = 0.6f; band14kHz = 0.7f }
-                                    "Bass Boost" -> { band60Hz = 0.95f; band230Hz = 0.8f; band910Hz = 0.5f; band3kHz = 0.5f; band14kHz = 0.5f; bassBoost = 0.9f }
-                                    "Vocal" -> { band60Hz = 0.3f; band230Hz = 0.5f; band910Hz = 0.9f; band3kHz = 0.8f; band14kHz = 0.4f }
-                                    "Heavy Metal" -> { band60Hz = 0.85f; band230Hz = 0.7f; band910Hz = 0.3f; band3kHz = 0.8f; band14kHz = 0.9f }
-                                    "Flat" -> { band60Hz = 0.5f; band230Hz = 0.5f; band910Hz = 0.5f; band3kHz = 0.5f; band14kHz = 0.5f }
-                                }
-                            }
-                            .padding(horizontal = 14.dp, vertical = 7.dp)
-                    ) {
-                        Text(
-                            text = preset,
-                            color = if (isSelected) NovaAccent else MaterialTheme.colorScheme.onSurface,
-                            fontSize = 12.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                        )
+            Switch(
+                checked = isEqEnabled,
+                onCheckedChange = { enabled ->
+                    if (isForVideo) {
+                        novaPlayerManager?.setEqualizerEnabled(enabled)
+                    } else {
+                        audioPlayerManager?.setEqualizerEnabled(enabled)
                     }
-                }
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
-
-            // 5-Band Sliders
-            Text(
-                text = "5-BAND EQUALIZER",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = NovaAccent
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = NovaAccent,
+                    uncheckedTrackColor = if (isForVideo) Color(0x33FFFFFF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    uncheckedThumbColor = if (isForVideo) Color(0x88FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
             )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            EqBandSlider("60 Hz (Sub Bass)", band60Hz, isEqEnabled) { band60Hz = it; selectedPreset = "Custom" }
-            EqBandSlider("230 Hz (Bass)", band230Hz, isEqEnabled) { band230Hz = it; selectedPreset = "Custom" }
-            EqBandSlider("910 Hz (Midrange)", band910Hz, isEqEnabled) { band910Hz = it; selectedPreset = "Custom" }
-            EqBandSlider("3 kHz (Upper Mid)", band3kHz, isEqEnabled) { band3kHz = it; selectedPreset = "Custom" }
-            EqBandSlider("14 kHz (Treble)", band14kHz, isEqEnabled) { band14kHz = it; selectedPreset = "Custom" }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
-
-            // Sound Effects: Bass Boost & 3D Virtualizer
-            Text(
-                text = "SOUND ENHANCEMENTS",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = NovaAccent
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            EqBandSlider("Bass Boost", bassBoost, isEqEnabled) { bassBoost = it }
-            EqBandSlider("3D Surround Virtualizer", virtualizer, isEqEnabled) { virtualizer = it }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Presets
+        Text(
+            text = "PRESETS",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = NovaAccent
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            presets.forEach { preset ->
+                val isSelected = selectedPreset == preset
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .border(
+                            width = if (isSelected) 1.5.dp else 1.dp,
+                            color = if (isSelected) NovaAccent else unselectedChipBorder,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .background(
+                            if (isSelected) NovaAccent.copy(alpha = 0.25f)
+                            else unselectedChipBg
+                        )
+                        .clickable {
+                            if (isForVideo) {
+                                novaPlayerManager?.setPreset(preset)
+                            } else {
+                                audioPlayerManager?.setPreset(preset)
+                            }
+                        }
+                        .padding(horizontal = 14.dp, vertical = 7.dp)
+                ) {
+                    Text(
+                        text = preset,
+                        color = if (isSelected) NovaAccent else unselectedChipText,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 16.dp))
+
+        // 5-Band Sliders
+        Text(
+            text = "5-BAND EQUALIZER",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = NovaAccent
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        val bandNames = listOf(
+            "60 Hz (Sub Bass)",
+            "230 Hz (Bass)",
+            "910 Hz (Midrange)",
+            "3 kHz (Upper Mid)",
+            "14 kHz (Treble)"
+        )
+
+        bandNames.forEachIndexed { index, name ->
+            val value = bandLevels.getOrElse(index) { 0.5f }
+            EqBandSlider(
+                label = name,
+                value = value,
+                enabled = isEqEnabled,
+                isForVideo = isForVideo,
+                onValueChange = { newVal ->
+                    if (isForVideo) {
+                        novaPlayerManager?.setBandLevel(index, newVal)
+                    } else {
+                        audioPlayerManager?.setBandLevel(index, newVal)
+                    }
+                }
+            )
+        }
+
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 16.dp))
+
+        // Sound Effects: Bass Boost & 3D Virtualizer
+        Text(
+            text = "SOUND ENHANCEMENTS",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = NovaAccent
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        EqBandSlider(
+            label = "Bass Boost",
+            value = bassBoost,
+            enabled = isEqEnabled,
+            isForVideo = isForVideo,
+            onValueChange = { newVal ->
+                if (isForVideo) {
+                    novaPlayerManager?.setBassBoost(newVal)
+                } else {
+                    audioPlayerManager?.setBassBoost(newVal)
+                }
+            }
+        )
+
+        EqBandSlider(
+            label = "3D Surround Virtualizer",
+            value = virtualizer,
+            enabled = isEqEnabled,
+            isForVideo = isForVideo,
+            onValueChange = { newVal ->
+                if (isForVideo) {
+                    novaPlayerManager?.setVirtualizer(newVal)
+                } else {
+                    audioPlayerManager?.setVirtualizer(newVal)
+                }
+            }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EqBandSlider(
     label: String,
     value: Float,
     enabled: Boolean,
+    isForVideo: Boolean,
     onValueChange: (Float) -> Unit
 ) {
+    val enabledTextColor = if (isForVideo) Color.White else MaterialTheme.colorScheme.onSurface
+    val disabledTextColor = if (isForVideo) Color(0x66FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    val inactiveTrackColor = if (isForVideo) Color(0x33FFFFFF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    val thumbBorderColor = if (isForVideo) Color.White else MaterialTheme.colorScheme.surface
+
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -250,12 +309,12 @@ private fun EqBandSlider(
         ) {
             Text(
                 text = label,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                color = if (enabled) enabledTextColor else disabledTextColor,
                 fontSize = 12.sp
             )
             Text(
                 text = "${(value * 100).toInt()}%",
-                color = if (enabled) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                color = if (enabled) NovaAccent else disabledTextColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -267,9 +326,60 @@ private fun EqBandSlider(
             colors = SliderDefaults.colors(
                 thumbColor = NovaAccent,
                 activeTrackColor = NovaAccent,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                inactiveTrackColor = inactiveTrackColor,
+                disabledThumbColor = disabledTextColor,
+                disabledActiveTrackColor = inactiveTrackColor.copy(alpha = 0.5f),
+                disabledInactiveTrackColor = inactiveTrackColor.copy(alpha = 0.2f)
+            ),
+            thumb = {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .background(
+                            color = if (enabled) NovaAccent else disabledTextColor,
+                            shape = CircleShape
+                        )
+                        .border(
+                            width = 2.dp,
+                            color = thumbBorderColor,
+                            shape = CircleShape
+                        )
+                )
+            },
+            track = { sliderState ->
+                SliderDefaults.Track(
+                    sliderState = sliderState,
+                    modifier = Modifier.height(3.dp),
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = NovaAccent,
+                        inactiveTrackColor = inactiveTrackColor
+                    )
+                )
+            }
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EqualizerBottomSheet(
+    onDismiss: () -> Unit,
+    isForVideo: Boolean = true
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = if (isForVideo) Color(0x8C0F172A) else MaterialTheme.colorScheme.surface,
+        contentColor = if (isForVideo) Color.White else MaterialTheme.colorScheme.onSurface,
+        dragHandle = null
+    ) {
+        Column(modifier = Modifier.statusBarsPadding()) {
+            EqualizerPanelContent(
+                onDismiss = onDismiss,
+                isForVideo = isForVideo
+            )
+        }
+    }
+}

@@ -111,10 +111,10 @@ fun HomeScreen(
                     modifier = Modifier.weight(1f)
                 )
                 QuickActionButton(
-                    icon = Icons.Default.Equalizer,
-                    label = "Equalizer",
+                    icon = Icons.Default.History,
+                    label = "Recent",
                     gradient = listOf(Color(0xFF06B6D4), Color(0xFF3B82F6)),
-                    onClick = onShowEqualizer,
+                    onClick = onNavigateToHistory,
                     modifier = Modifier.weight(1f)
                 )
                 QuickActionButton(
