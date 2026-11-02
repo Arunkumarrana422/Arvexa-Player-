@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FilterList
@@ -34,7 +35,10 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -95,6 +99,10 @@ fun SettingsScreen(
     var seekMenuExpanded by remember { mutableStateOf(false) }
     var speedMenuExpanded by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    val screenContext = androidx.compose.ui.platform.LocalContext.current
+    val updateManager = remember { com.example.ui.utils.AppUpdateManager.getInstance(screenContext) }
+    val updateState by updateManager.updateState.collectAsState()
+    val isCheckingUpdate = updateState is com.example.ui.utils.UpdateState.Checking
 
     Column(
         modifier = Modifier
@@ -231,7 +239,7 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         icon = Icons.Default.PlayCircle,
                         title = "Background Video Playback",
-                        subtitle = "Show video in Media Player & continue playing in background (Default: Off)",
+                        subtitle = "Show video in Media Player & continue playing in background",
                         checked = settings.backgroundAudioEnabled,
                         onCheckedChange = onBackgroundAudioToggle
                     )
@@ -244,7 +252,7 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         icon = Icons.Default.FilterList,
                         title = "Show Videos Smaller Than 1 MB",
-                        subtitle = "Include very small video files, clips & status media (< 1 MB). (Default: Off)",
+                        subtitle = "Include very small video files, clips & status media (< 1 MB)",
                         checked = settings.includeSmallVideos,
                         onCheckedChange = onIncludeSmallVideosToggle
                     )
@@ -293,10 +301,28 @@ fun SettingsScreen(
                 SettingsSection(title = "ABOUT ARVEXA PLAYER") {
                     Column {
                         SettingsClickableRow(
+                            icon = Icons.Default.SystemUpdate,
+                            title = "Check for Updates",
+                            subtitle = if (isCheckingUpdate) "Checking latest version..." else "Current: v${com.example.BuildConfig.VERSION_NAME} • Tap to check",
+                            onClick = {
+                                updateManager.checkForUpdate(isManual = true)
+                            }
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        SettingsClickableRow(
                             icon = Icons.Default.Info,
                             title = "About Arvexa Player",
-                            subtitle = "Version 1.0.0 • Created by Arun Kumar Rana",
+                            subtitle = "Created by Arun Kumar Rana",
                             onClick = onNavigateToAbout
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        SettingsClickableRow(
+                            icon = Icons.Default.Email,
+                            title = "Contact & Feedback",
+                            subtitle = "Send suggestions or report bugs to ranaarunrana7079@gmail.com",
+                            onClick = {
+                                com.example.ui.utils.FeedbackUtils.sendFeedbackEmail(screenContext)
+                            }
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         SettingsClickableRow(

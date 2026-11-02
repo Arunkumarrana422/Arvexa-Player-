@@ -117,8 +117,10 @@ import com.example.ui.components.MiniAudioPlayerBar
 import com.example.ui.components.MiniPlayerView
 import com.example.ui.components.NovaAppBar
 import com.example.ui.components.TopNavigationTabs
+import com.example.ui.components.AppUpdateDialog
 import com.example.ui.components.VideoInfoBottomSheet
 import com.example.ui.navigation.BottomNavItems
+import com.example.ui.utils.AppUpdateManager
 import com.example.ui.navigation.Screen
 import com.example.ui.screens.AboutScreen
 import com.example.ui.screens.FavoritesScreen
@@ -400,6 +402,13 @@ fun NovaPlayerApp(
     onEnterPiP: () -> Unit
 ) {
     val context = LocalContext.current
+    val updateManager = remember { AppUpdateManager.getInstance(context) }
+    val updateState by updateManager.updateState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        updateManager.checkForUpdate(isManual = false)
+    }
+
     val userSettings by viewModel.userSettings.collectAsState()
     val currentVideoPlayingForPip by viewModel.playerManager.currentVideo.collectAsState()
     val isPlayingForPip by viewModel.playerManager.isPlaying.collectAsState()
@@ -1134,4 +1143,11 @@ composable(Screen.Onboarding.route) {
             }
         }
     }
+
+    AppUpdateDialog(
+        updateState = updateState,
+        onUpdateClick = { info -> updateManager.startDownload(info) },
+        onInstallClick = { file -> updateManager.installApk(file) },
+        onDismiss = { updateManager.dismissUpdate() }
+    )
 }

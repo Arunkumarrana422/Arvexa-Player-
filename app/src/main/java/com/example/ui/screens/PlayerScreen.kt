@@ -228,33 +228,44 @@ fun PlayerScreen(
         onDispose {}
     }
 
-    // Immersive Fullscreen Mode & Brightness Management (hide status bar in video player)
+    // Immersive Fullscreen Mode & Brightness Management (Hides both Navigation Bar & Status Bar)
     DisposableEffect(Unit) {
         val window = activity?.window
         if (window != null) {
+            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                window.attributes.layoutInDisplayCutoutMode =
+                    android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            insetsController.hide(WindowInsetsCompat.Type.systemBars())
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
-        onDispose {}
-    }
-
-    DisposableEffect(Unit) {
-        val window = activity?.window
-        window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         playerManager.applyPlayerBrightness(activity)
 
         onDispose {
             val win = activity?.window
             if (win != null) {
+                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(win, true)
                 val insetsController = WindowCompat.getInsetsController(win, win.decorView)
+                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
                 insetsController.show(WindowInsetsCompat.Type.systemBars())
                 win.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 playerManager.restoreSystemBrightness(activity)
             }
             playerManager.flushProgress()
+        }
+    }
+
+    // Re-hide system bars whenever controls disappear
+    LaunchedEffect(areControlsVisible) {
+        val window = activity?.window ?: return@LaunchedEffect
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (!areControlsVisible) {
+            insetsController.hide(WindowInsetsCompat.Type.systemBars())
         }
     }
 
@@ -671,21 +682,11 @@ fun PlayerScreen(
             modifier = Modifier.align(Alignment.TopCenter).padding(top = 36.dp)
         )
 
-        // Error Banner
-        if (errorMessage != null) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(24.dp)
-            ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = errorMessage ?: "Playback Error",
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+        // Playback Error Toast handling (no blocking red card)
+        val screenContext = androidx.compose.ui.platform.LocalContext.current
+        LaunchedEffect(errorMessage) {
+            errorMessage?.let { msg ->
+                android.widget.Toast.makeText(screenContext, msg, android.widget.Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -762,9 +763,9 @@ fun PlayerScreen(
         androidx.compose.runtime.DisposableEffect(Unit) {
             val window = activity?.window
             val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
-            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             onDispose {
-                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             }
         }
 
@@ -849,9 +850,9 @@ fun PlayerScreen(
         androidx.compose.runtime.DisposableEffect(Unit) {
             val window = activity?.window
             val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
-            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             onDispose {
-                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             }
         }
 
@@ -946,9 +947,9 @@ fun PlayerScreen(
         androidx.compose.runtime.DisposableEffect(Unit) {
             val window = activity?.window
             val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
-            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             onDispose {
-                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             }
         }
 
@@ -1049,9 +1050,9 @@ fun PlayerScreen(
         androidx.compose.runtime.DisposableEffect(Unit) {
             val window = activity?.window
             val insetsController = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
-            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             onDispose {
-                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             }
         }
 

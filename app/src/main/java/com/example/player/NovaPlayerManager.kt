@@ -132,15 +132,17 @@ class NovaPlayerManager(private val context: Context) {
     private fun buildExoPlayer(mode: DecoderMode): ExoPlayer {
         val renderersFactory = DefaultRenderersFactory(context).apply {
             setEnableDecoderFallback(true)
-            when (mode) {
-                DecoderMode.HW -> {
-                    setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
-                }
-                DecoderMode.HW_PLUS, DecoderMode.SW -> {
-                    setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-                }
-            }
+            setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
         }
+
+        val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                15000,
+                50000,
+                2500,
+                5000
+            )
+            .build()
 
         val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
@@ -149,6 +151,7 @@ class NovaPlayerManager(private val context: Context) {
 
         return ExoPlayer.Builder(context, renderersFactory)
             .setTrackSelector(trackSelector)
+            .setLoadControl(loadControl)
             .setAudioAttributes(audioAttributes, true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .setHandleAudioBecomingNoisy(true)
@@ -238,6 +241,7 @@ class NovaPlayerManager(private val context: Context) {
     private val _sleepTimerMinutes = MutableStateFlow<Int?>(null)
     val sleepTimerMinutes: StateFlow<Int?> = _sleepTimerMinutes.asStateFlow()
 
+    private var isAudioFallbackAttempted = false
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
@@ -333,6 +337,17 @@ class NovaPlayerManager(private val context: Context) {
         onVideoStarted?.invoke()
         _errorMessage.value = null
         _currentVideo.value = video
+        isAudioFallbackAttempted = false
+        try {
+            trackSelector.setParameters(
+                trackSelector.buildUponParameters()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+            )
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                .buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                .build()
+        } catch (_: Exception) {}
 
         val savedModeName = videoAspectPrefs.getString("aspect_${video.id}", null)
         val savedMode = savedModeName?.let {
@@ -666,7 +681,14 @@ class NovaPlayerManager(private val context: Context) {
             }
         }
 
+        isAudioFallbackAttempted = false
         if (targetOverride != null) {
+            try {
+                trackSelector.setParameters(
+                    trackSelector.buildUponParameters()
+                        .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                )
+            } catch (_: Exception) {}
             exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
                 .buildUpon()
                 .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
@@ -934,18 +956,102 @@ class NovaPlayerManager(private val context: Context) {
             }
         }
 
+        private fun isAudioError(error: PlaybackException): Boolean {
+            val fullText = buildString {
+                append(error.message ?: "")
+                append(" ")
+                append(error.localizedMessage ?: "")
+                append(" ")
+                error.cause?.let { cause ->
+                    append(cause.javaClass.name)
+                    append(" ")
+                    append(cause.message ?: "")
+                }
+            }.lowercase()
+
+            if (fullText.contains("audio") ||
+                fullText.contains("audiotrack") ||
+                fullText.contains("audiosink") ||
+                fullText.contains("mediacodecaudiorenderer") ||
+                fullText.contains("eac3") ||
+                fullText.contains("ac-3") ||
+                fullText.contains("ac3") ||
+                fullText.contains("dts") ||
+                fullText.contains("truehd") ||
+                fullText.contains("m4a") ||
+                fullText.contains("aac")
+            ) {
+                return true
+            }
+
+            return when (error.errorCode) {
+                PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED,
+                PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED -> true
+                PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+                PlaybackException.ERROR_CODE_DECODING_FAILED -> {
+                    fullText.contains("audio") || fullText.contains("index=1")
+                }
+                else -> false
+            }
+        }
+
         override fun onPlayerError(error: PlaybackException) {
+            _isBuffering.value = false
+
+            if (isAudioError(error) && !isAudioFallbackAttempted) {
+                isAudioFallbackAttempted = true
+                val currentPos = exoPlayer.currentPosition.coerceAtLeast(0L)
+
+                // Disable audio so video continues playing smoothly without audio
+                try {
+                    trackSelector.setParameters(
+                        trackSelector.buildUponParameters()
+                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                    )
+                } catch (_: Exception) {}
+
+                exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                    .buildUpon()
+                    .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                    .build()
+
+                _errorMessage.value = null
+
+                // Show toast message as requested: "Not supported" / "Audio not supported"
+                scope.launch(Dispatchers.Main) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Audio not supported. Playing video without audio.",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                // Prepare and resume video playback
+                exoPlayer.prepare()
+                if (currentPos > 0) {
+                    exoPlayer.seekTo(currentPos)
+                }
+                exoPlayer.playWhenReady = true
+                try { exoPlayer.play() } catch (_: Exception) {}
+                _isPlaying.value = true
+                return
+            }
+
+            // Non-audio errors: show Toast instead of blocking red card
             val message = when (error.errorCode) {
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
-                    "Network error: Unable to connect to streaming server. Check your connection."
+                    "Network error: Unable to connect to server."
                 PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
                 PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ->
-                    "Unsupported or corrupted video stream format."
-                else -> error.localizedMessage ?: "Playback error occurred: ${error.errorCodeName}"
+                    "Unsupported or corrupted video file."
+                else -> error.localizedMessage ?: "Playback error: ${error.errorCodeName}"
             }
-            _errorMessage.value = message
-            _isBuffering.value = false
+            scope.launch(Dispatchers.Main) {
+                android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+            }
+            _errorMessage.value = null
         }
     }
 
