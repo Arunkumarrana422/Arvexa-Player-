@@ -378,29 +378,19 @@ private fun FolderDetailControlBar(
                 )
             }
 
-            // Refresh Button
-            if (isScanning) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .padding(2.dp),
-                    strokeWidth = 2.dp,
-                    color = NovaAccent
+            // Refresh Button (Silent)
+            IconButton(
+                onClick = onRefresh,
+                modifier = Modifier
+                    .size(36.dp)
+                    .testTag("refresh_folder_videos_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Scan Media",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
                 )
-            } else {
-                IconButton(
-                    onClick = onRefresh,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .testTag("refresh_folder_videos_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Scan Media",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
         }
     }

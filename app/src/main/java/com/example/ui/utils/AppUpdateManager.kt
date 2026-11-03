@@ -177,7 +177,7 @@ class AppUpdateManager(private val context: Context) {
                 _updateState.value = UpdateState.Idle
                 if (isManual) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Could not check updates: ${e.localizedMessage ?: "Network error"}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

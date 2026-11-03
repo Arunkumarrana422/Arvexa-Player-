@@ -120,8 +120,7 @@ fun NovaAppBar(
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refresh Library",
-                        tint = if (isRefreshing) NovaAccent else MaterialTheme.colorScheme.onBackground,
-                        modifier = if (isRefreshing) Modifier.rotate(spinRotation) else Modifier
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 IconButton(
