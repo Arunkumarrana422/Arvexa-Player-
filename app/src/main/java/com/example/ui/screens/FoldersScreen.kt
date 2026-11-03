@@ -378,20 +378,6 @@ private fun FolderDetailControlBar(
                 )
             }
 
-            // Refresh Button (Silent)
-            IconButton(
-                onClick = onRefresh,
-                modifier = Modifier
-                    .size(36.dp)
-                    .testTag("refresh_folder_videos_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Scan Media",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
         }
     }
 }

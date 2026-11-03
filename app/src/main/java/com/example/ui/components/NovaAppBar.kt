@@ -52,20 +52,8 @@ fun NovaAppBar(
     title: String = "Arvexa Player",
     isRefreshing: Boolean = false,
     onSearchClick: () -> Unit = {},
-    onRefreshClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "refresh_spin")
-    val spinRotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 800, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "spin_angle"
-    )
-
     Surface(
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 0.dp
@@ -110,16 +98,6 @@ fun NovaAppBar(
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-                IconButton(
-                    onClick = onRefreshClick,
-                    modifier = Modifier.testTag("appbar_refresh_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh Library",
                         tint = MaterialTheme.colorScheme.onBackground
                     )
                 }

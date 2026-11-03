@@ -648,7 +648,6 @@ fun NovaPlayerApp(
                                 title = topTitle,
                                 isRefreshing = isScanning,
                                 onSearchClick = { navController.navigate(Screen.Search.route) },
-                                onRefreshClick = { viewModel.scanLibrary() },
                                 onSettingsClick = { navController.navigate(Screen.Settings.route) }
                             )
                         }
