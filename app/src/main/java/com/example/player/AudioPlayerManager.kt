@@ -452,6 +452,9 @@ class AudioPlayerManager(private val context: Context) {
     private val _bandLevels = MutableStateFlow(listOf(0.5f, 0.5f, 0.5f, 0.5f, 0.5f))
     val bandLevels: StateFlow<List<Float>> = _bandLevels.asStateFlow()
 
+    private val _customBandLevels = MutableStateFlow(listOf(0.5f, 0.5f, 0.5f, 0.5f, 0.5f))
+    val customBandLevels: StateFlow<List<Float>> = _customBandLevels.asStateFlow()
+
     private val _bassBoostLevel = MutableStateFlow(0.5f)
     val bassBoostLevel: StateFlow<Float> = _bassBoostLevel.asStateFlow()
 
@@ -510,6 +513,9 @@ class AudioPlayerManager(private val context: Context) {
     fun setPreset(name: String) {
         _selectedPreset.value = name
         when (name) {
+            "Custom" -> {
+                _bandLevels.value = _customBandLevels.value
+            }
             "Normal", "Flat", "Balanced" -> { _bandLevels.value = listOf(0.5f, 0.5f, 0.5f, 0.5f, 0.5f); _bassBoostLevel.value = 0.0f; _virtualizerLevel.value = 0.0f }
             "Pop", "Pop & Beats" -> { _bandLevels.value = listOf(0.58f, 0.65f, 0.52f, 0.64f, 0.72f); _bassBoostLevel.value = 0.30f; _virtualizerLevel.value = 0.20f }
             "Rock", "Rock & Metal" -> { _bandLevels.value = listOf(0.74f, 0.62f, 0.46f, 0.68f, 0.78f); _bassBoostLevel.value = 0.40f; _virtualizerLevel.value = 0.25f }
@@ -532,6 +538,7 @@ class AudioPlayerManager(private val context: Context) {
         if (bandIndex in 0..4) {
             currentBands[bandIndex] = value
             _bandLevels.value = currentBands
+            _customBandLevels.value = currentBands
         }
         if (_isEqualizerEnabled.value) {
             applyCustomEqualizer()

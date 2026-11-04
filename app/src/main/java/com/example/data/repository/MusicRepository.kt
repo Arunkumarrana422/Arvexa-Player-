@@ -295,12 +295,19 @@ class MusicRepository(private val context: Context) {
                         )
                     } catch (_: Exception) {}
                 }
-                if (song.uri.isNotBlank()) {
-                    try {
+                try {
+                    if (song.uri.isNotBlank()) {
                         val uri = Uri.parse(song.uri)
                         context.contentResolver.delete(uri, null, null)
-                    } catch (_: Exception) {}
-                }
+                    }
+                    if (song.dataPath.isNotBlank()) {
+                        context.contentResolver.delete(
+                            android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                            "${android.provider.MediaStore.Audio.Media.DATA} = ?",
+                            arrayOf(song.dataPath)
+                        )
+                    }
+                } catch (_: Exception) {}
             } catch (e: Exception) {
                 e.printStackTrace()
             }

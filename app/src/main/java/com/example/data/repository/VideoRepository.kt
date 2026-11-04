@@ -214,12 +214,19 @@ class VideoRepository(private val context: Context) {
                         )
                     } catch (_: Exception) {}
                 }
-                if (video.uri.isNotBlank()) {
-                    try {
+                try {
+                    if (video.uri.isNotBlank()) {
                         val uri = Uri.parse(video.uri)
                         context.contentResolver.delete(uri, null, null)
-                    } catch (_: Exception) {}
-                }
+                    }
+                    if (video.path.isNotBlank()) {
+                        context.contentResolver.delete(
+                            android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                            "${android.provider.MediaStore.Video.Media.DATA} = ?",
+                            arrayOf(video.path)
+                        )
+                    }
+                } catch (_: Exception) {}
             } catch (e: Exception) {
                 e.printStackTrace()
             }

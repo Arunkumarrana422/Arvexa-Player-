@@ -117,10 +117,11 @@ import com.example.ui.components.MiniAudioPlayerBar
 import com.example.ui.components.MiniPlayerView
 import com.example.ui.components.NovaAppBar
 import com.example.ui.components.TopNavigationTabs
-import com.example.ui.components.AppUpdateDialog
+import com.example.ui.components.AppUpdateFullScreen
 import com.example.ui.components.VideoInfoBottomSheet
 import com.example.ui.navigation.BottomNavItems
 import com.example.ui.utils.AppUpdateManager
+import com.example.ui.utils.UpdateState
 import com.example.ui.navigation.Screen
 import com.example.ui.screens.AboutScreen
 import com.example.ui.screens.FavoritesScreen
@@ -404,6 +405,8 @@ fun NovaPlayerApp(
     val context = LocalContext.current
     val updateManager = remember { AppUpdateManager.getInstance(context) }
     val updateState by updateManager.updateState.collectAsState()
+    val availableUpdate by updateManager.availableUpdate.collectAsState()
+    val showUpdateScreen by updateManager.showUpdateScreen.collectAsState()
 
     LaunchedEffect(Unit) {
         updateManager.checkForUpdate(isManual = false)
@@ -647,6 +650,8 @@ fun NovaPlayerApp(
                             NovaAppBar(
                                 title = topTitle,
                                 isRefreshing = isScanning,
+                                isUpdateAvailable = (availableUpdate != null),
+                                onUpdateClick = { updateManager.openUpdateScreen() },
                                 onSearchClick = { navController.navigate(Screen.Search.route) },
                                 onSettingsClick = { navController.navigate(Screen.Settings.route) }
                             )
@@ -1057,11 +1062,26 @@ composable(Screen.Onboarding.route) {
             song = song,
             onDismiss = { songToDelete = null },
             onConfirm = { deleteFromFileSystem ->
-                viewModel.deleteSong(song, deleteFromFileSystem)
-                songToDelete = null
-                viewModel.showToast(
-                    if (deleteFromFileSystem) "Song permanently deleted from storage" else "Song removed from library"
-                )
+                if (deleteFromFileSystem && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !android.os.Environment.isExternalStorageManager()) {
+                    viewModel.showToast("Please allow All Files Access to delete from storage")
+                    try {
+                        val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                            data = Uri.parse("package:${context.packageName}")
+                        }
+                        context.startActivity(intent)
+                    } catch (_: Exception) {
+                        try {
+                            val intent = Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                            context.startActivity(intent)
+                        } catch (_: Exception) {}
+                    }
+                } else {
+                    viewModel.deleteSong(song, deleteFromFileSystem)
+                    songToDelete = null
+                    viewModel.showToast(
+                        if (deleteFromFileSystem) "Song permanently deleted from storage" else "Song removed from library"
+                    )
+                }
             }
         )
     }
@@ -1071,11 +1091,26 @@ composable(Screen.Onboarding.route) {
             video = video,
             onDismiss = { videoToDelete = null },
             onConfirm = { deleteFromFileSystem ->
-                viewModel.deleteVideo(video, deleteFromFileSystem)
-                videoToDelete = null
-                viewModel.showToast(
-                    if (deleteFromFileSystem) "Video permanently deleted from storage" else "Video removed from library"
-                )
+                if (deleteFromFileSystem && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !android.os.Environment.isExternalStorageManager()) {
+                    viewModel.showToast("Please allow All Files Access to delete from storage")
+                    try {
+                        val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                            data = Uri.parse("package:${context.packageName}")
+                        }
+                        context.startActivity(intent)
+                    } catch (_: Exception) {
+                        try {
+                            val intent = Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                            context.startActivity(intent)
+                        } catch (_: Exception) {}
+                    }
+                } else {
+                    viewModel.deleteVideo(video, deleteFromFileSystem)
+                    videoToDelete = null
+                    viewModel.showToast(
+                        if (deleteFromFileSystem) "Video permanently deleted from storage" else "Video removed from library"
+                    )
+                }
             }
         )
     }
@@ -1143,10 +1178,17 @@ composable(Screen.Onboarding.route) {
         }
     }
 
-    AppUpdateDialog(
-        updateState = updateState,
-        onUpdateClick = { info -> updateManager.startDownload(info) },
-        onInstallClick = { file -> updateManager.installApk(file) },
-        onDismiss = { updateManager.dismissUpdate() }
-    )
+    AnimatedVisibility(
+        visible = showUpdateScreen && (availableUpdate != null || updateState !is UpdateState.Idle),
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+    ) {
+        AppUpdateFullScreen(
+            updateState = updateState,
+            fallbackInfo = availableUpdate,
+            onUpdateClick = { info -> updateManager.startDownload(info) },
+            onInstallClick = { file -> updateManager.installApk(file) },
+            onDismiss = { updateManager.closeUpdateScreen() }
+        )
+    }
 }

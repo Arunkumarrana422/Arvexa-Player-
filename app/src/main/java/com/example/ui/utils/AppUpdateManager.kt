@@ -55,6 +55,12 @@ class AppUpdateManager(private val context: Context) {
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val updateState: StateFlow<UpdateState> = _updateState.asStateFlow()
 
+    private val _availableUpdate = MutableStateFlow<UpdateInfo?>(null)
+    val availableUpdate: StateFlow<UpdateInfo?> = _availableUpdate.asStateFlow()
+
+    private val _showUpdateScreen = MutableStateFlow<Boolean>(false)
+    val showUpdateScreen: StateFlow<Boolean> = _showUpdateScreen.asStateFlow()
+
     private var downloadJob: Job? = null
 
     companion object {
@@ -161,8 +167,13 @@ class AppUpdateManager(private val context: Context) {
                             downloadUrl = apkUrl,
                             fileSizeFormatted = sizeText
                         )
+                        _availableUpdate.value = info
                         _updateState.value = UpdateState.Available(info)
+                        if (isManual) {
+                            _showUpdateScreen.value = true
+                        }
                     } else {
+                        _availableUpdate.value = null
                         _updateState.value = UpdateState.UpToDate
                         if (isManual) {
                             withContext(Dispatchers.Main) {
@@ -315,8 +326,21 @@ class AppUpdateManager(private val context: Context) {
         }
     }
 
+    fun openUpdateScreen() {
+        val info = _availableUpdate.value
+        if (info != null && (_updateState.value is UpdateState.Idle || _updateState.value is UpdateState.UpToDate)) {
+            _updateState.value = UpdateState.Available(info)
+        }
+        _showUpdateScreen.value = true
+    }
+
+    fun closeUpdateScreen() {
+        _showUpdateScreen.value = false
+    }
+
     fun dismissUpdate() {
         downloadJob?.cancel()
+        _showUpdateScreen.value = false
         _updateState.value = UpdateState.Idle
     }
 }

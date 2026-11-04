@@ -305,7 +305,11 @@ fun SettingsScreen(
                             title = "Check for Updates",
                             subtitle = if (isCheckingUpdate) "Checking latest version..." else "Current: v${com.example.BuildConfig.VERSION_NAME} • Tap to check",
                             onClick = {
-                                updateManager.checkForUpdate(isManual = true)
+                                if (updateManager.availableUpdate.value != null) {
+                                    updateManager.openUpdateScreen()
+                                } else {
+                                    updateManager.checkForUpdate(isManual = true)
+                                }
                             }
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)

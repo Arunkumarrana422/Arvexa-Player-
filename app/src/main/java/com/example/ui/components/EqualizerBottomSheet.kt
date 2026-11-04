@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -97,7 +98,8 @@ fun EqualizerPanelContent(
     }
     val virtualizer = virtualizerState?.value ?: 0.5f
 
-    val presets = listOf("Normal", "Pop", "Rock", "Jazz", "Bass Boost", "Vocal", "Heavy Metal", "Flat")
+    // "Custom" is placed first before "Normal"
+    val presets = listOf("Custom", "Normal", "Pop", "Rock", "Jazz", "Bass Boost", "Vocal", "Heavy Metal", "Flat")
 
     // Theme color definitions
     val titleTextColor = if (isForVideo) Color.White else MaterialTheme.colorScheme.onSurface
@@ -159,51 +161,64 @@ fun EqualizerPanelContent(
                     checkedTrackColor = NovaAccent,
                     uncheckedTrackColor = if (isForVideo) Color(0x33FFFFFF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     uncheckedThumbColor = if (isForVideo) Color(0x88FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
+                ),
+                modifier = Modifier.testTag("equalizer_master_switch")
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Presets
+        // Presets Section (Disabled when Equalizer is OFF)
         Text(
             text = "PRESETS",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = NovaAccent
+            color = if (isEqEnabled) NovaAccent else NovaAccent.copy(alpha = 0.4f)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer { alpha = if (isEqEnabled) 1f else 0.4f }
         ) {
             presets.forEach { preset ->
-                val isSelected = selectedPreset == preset
+                val isSelected = selectedPreset == preset && isEqEnabled
+                val chipBorder = if (!isEqEnabled) unselectedChipBorder.copy(alpha = 0.2f)
+                                 else if (isSelected) NovaAccent
+                                 else unselectedChipBorder
+                val chipBg = if (!isEqEnabled) unselectedChipBg.copy(alpha = 0.3f)
+                             else if (isSelected) NovaAccent.copy(alpha = 0.25f)
+                             else unselectedChipBg
+                val chipTextColor = if (!isEqEnabled) unselectedChipText.copy(alpha = 0.4f)
+                                    else if (isSelected) NovaAccent
+                                    else unselectedChipText
+
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .border(
                             width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) NovaAccent else unselectedChipBorder,
+                            color = chipBorder,
                             shape = RoundedCornerShape(20.dp)
                         )
-                        .background(
-                            if (isSelected) NovaAccent.copy(alpha = 0.25f)
-                            else unselectedChipBg
-                        )
-                        .clickable {
-                            if (isForVideo) {
-                                novaPlayerManager?.setPreset(preset)
-                            } else {
-                                audioPlayerManager?.setPreset(preset)
+                        .background(chipBg)
+                        .clickable(enabled = isEqEnabled) {
+                            if (isEqEnabled) {
+                                if (isForVideo) {
+                                    novaPlayerManager?.setPreset(preset)
+                                } else {
+                                    audioPlayerManager?.setPreset(preset)
+                                }
                             }
                         }
                         .padding(horizontal = 14.dp, vertical = 7.dp)
+                        .testTag("eq_preset_$preset")
                 ) {
                     Text(
                         text = preset,
-                        color = if (isSelected) NovaAccent else unselectedChipText,
+                        color = chipTextColor,
                         fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                     )
@@ -213,11 +228,11 @@ fun EqualizerPanelContent(
 
         HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 16.dp))
 
-        // 5-Band Sliders
+        // 5-Band Sliders (Disabled when Equalizer is OFF)
         Text(
             text = "5-BAND EQUALIZER",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = NovaAccent
+            color = if (isEqEnabled) NovaAccent else NovaAccent.copy(alpha = 0.4f)
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -237,10 +252,12 @@ fun EqualizerPanelContent(
                 enabled = isEqEnabled,
                 isForVideo = isForVideo,
                 onValueChange = { newVal ->
-                    if (isForVideo) {
-                        novaPlayerManager?.setBandLevel(index, newVal)
-                    } else {
-                        audioPlayerManager?.setBandLevel(index, newVal)
+                    if (isEqEnabled) {
+                        if (isForVideo) {
+                            novaPlayerManager?.setBandLevel(index, newVal)
+                        } else {
+                            audioPlayerManager?.setBandLevel(index, newVal)
+                        }
                     }
                 }
             )
@@ -248,11 +265,11 @@ fun EqualizerPanelContent(
 
         HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 16.dp))
 
-        // Sound Effects: Bass Boost & 3D Virtualizer
+        // Sound Effects: Bass Boost & 3D Virtualizer (Disabled when Equalizer is OFF)
         Text(
             text = "SOUND ENHANCEMENTS",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = NovaAccent
+            color = if (isEqEnabled) NovaAccent else NovaAccent.copy(alpha = 0.4f)
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -262,10 +279,12 @@ fun EqualizerPanelContent(
             enabled = isEqEnabled,
             isForVideo = isForVideo,
             onValueChange = { newVal ->
-                if (isForVideo) {
-                    novaPlayerManager?.setBassBoost(newVal)
-                } else {
-                    audioPlayerManager?.setBassBoost(newVal)
+                if (isEqEnabled) {
+                    if (isForVideo) {
+                        novaPlayerManager?.setBassBoost(newVal)
+                    } else {
+                        audioPlayerManager?.setBassBoost(newVal)
+                    }
                 }
             }
         )
@@ -276,10 +295,12 @@ fun EqualizerPanelContent(
             enabled = isEqEnabled,
             isForVideo = isForVideo,
             onValueChange = { newVal ->
-                if (isForVideo) {
-                    novaPlayerManager?.setVirtualizer(newVal)
-                } else {
-                    audioPlayerManager?.setVirtualizer(newVal)
+                if (isEqEnabled) {
+                    if (isForVideo) {
+                        novaPlayerManager?.setVirtualizer(newVal)
+                    } else {
+                        audioPlayerManager?.setVirtualizer(newVal)
+                    }
                 }
             }
         )
@@ -302,7 +323,12 @@ private fun EqBandSlider(
     val inactiveTrackColor = if (isForVideo) Color(0x33FFFFFF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
     val thumbBorderColor = if (isForVideo) Color.White else MaterialTheme.colorScheme.surface
 
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

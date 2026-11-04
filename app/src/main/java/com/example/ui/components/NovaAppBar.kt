@@ -46,11 +46,18 @@ import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.ui.graphics.graphicsLayer
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NovaAppBar(
     title: String = "Arvexa Player",
     isRefreshing: Boolean = false,
+    isUpdateAvailable: Boolean = false,
+    onUpdateClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
 ) {
@@ -91,6 +98,32 @@ fun NovaAppBar(
                 }
             },
             actions = {
+                // Glowing Red Update Icon (Clean icon only, no outer circle/border)
+                if (isUpdateAvailable) {
+                    val infiniteTransition = rememberInfiniteTransition(label = "update_glow_anim")
+                    val iconAlpha by infiniteTransition.animateFloat(
+                        initialValue = 0.55f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 800, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "glow_alpha"
+                    )
+
+                    IconButton(
+                        onClick = onUpdateClick,
+                        modifier = Modifier.testTag("appbar_update_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SystemUpdate,
+                            contentDescription = "New Update Available",
+                            tint = Color(0xFFEF4444).copy(alpha = iconAlpha),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
                 IconButton(
                     onClick = onSearchClick,
                     modifier = Modifier.testTag("appbar_search_button")

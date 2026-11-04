@@ -158,6 +158,8 @@ fun FullMusicPlayerBottomSheet(
     var showSpeedSheet by remember { mutableStateOf(false) }
     var showSleepTimerSheet by remember { mutableStateOf(false) }
 
+    val isEqualizerEnabled by audioPlayerManager.isEqualizerEnabled.collectAsState()
+
     var isUserScrubbing by remember { mutableStateOf(false) }
     var scrubPositionMs by remember { mutableFloatStateOf(0f) }
 
@@ -554,13 +556,19 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Equalizer Capsule
+                val eqCapsuleBg = if (isEqualizerEnabled) NovaAccent.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                val eqCapsuleBorder = if (isEqualizerEnabled) BorderStroke(1.dp, NovaAccent.copy(alpha = 0.7f)) else nightGlassBorder()
+                val eqTextColor = if (isEqualizerEnabled) NovaAccent else MaterialTheme.colorScheme.onSurface
+                val eqIconTint = if (isEqualizerEnabled) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant
+
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    border = nightGlassBorder(),
+                    color = eqCapsuleBg,
+                    border = eqCapsuleBorder,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .clickable { showEqualizerSheet = true }
+                        .testTag("full_player_equalizer_btn")
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
@@ -569,15 +577,15 @@ fun FullMusicPlayerBottomSheet(
                         Icon(
                             imageVector = Icons.Default.GraphicEq,
                             contentDescription = null,
-                            tint = NovaAccent,
+                            tint = eqIconTint,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Equalizer",
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = eqTextColor,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = if (isEqualizerEnabled) FontWeight.Bold else FontWeight.SemiBold
                         )
                     }
                 }
