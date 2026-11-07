@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.domain.model.AppThemeColor
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.SortOption
 import com.example.domain.model.ThemePreference
@@ -20,6 +21,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 data class UserSettings(
     val theme: ThemePreference = ThemePreference.DARK,
+    val appThemeColor: AppThemeColor = AppThemeColor.DEFAULT,
     val sortOption: SortOption = SortOption.DATE_DESC,
     val viewMode: ViewMode = ViewMode.LIST,
     val defaultSpeed: Float = 1.0f,
@@ -46,6 +48,7 @@ data class UserSettings(
 class SettingsRepository(private val context: Context) {
     companion object {
         private val KEY_THEME = stringPreferencesKey("theme_preference")
+        private val KEY_THEME_COLOR = stringPreferencesKey("app_theme_color")
         private val KEY_SORT = stringPreferencesKey("sort_option")
         private val KEY_VIEW_MODE = stringPreferencesKey("view_mode")
         private val KEY_DEFAULT_SPEED = floatPreferencesKey("default_speed")
@@ -75,6 +78,11 @@ class SettingsRepository(private val context: Context) {
                 ThemePreference.valueOf(prefs[KEY_THEME] ?: ThemePreference.DARK.name)
             } catch (e: Exception) {
                 ThemePreference.DARK
+            },
+            appThemeColor = try {
+                AppThemeColor.fromId(prefs[KEY_THEME_COLOR])
+            } catch (e: Exception) {
+                AppThemeColor.DEFAULT
             },
             sortOption = try {
                 SortOption.valueOf(prefs[KEY_SORT] ?: SortOption.DATE_DESC.name)
@@ -114,6 +122,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTheme(theme: ThemePreference) {
         context.dataStore.edit { it[KEY_THEME] = theme.name }
+    }
+
+    suspend fun setAppThemeColor(color: AppThemeColor) {
+        context.dataStore.edit { it[KEY_THEME_COLOR] = color.id }
     }
 
     suspend fun setSortOption(sort: SortOption) {

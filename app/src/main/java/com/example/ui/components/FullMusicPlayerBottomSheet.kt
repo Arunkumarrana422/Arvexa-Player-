@@ -282,7 +282,7 @@ fun FullMusicPlayerBottomSheet(
                             },
                         shape = RoundedCornerShape(24.dp),
                         border = nightGlassBorder(intensity = 1.3f),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Box(

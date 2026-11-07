@@ -3,6 +3,7 @@ package com.example.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,23 +12,25 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.domain.model.AppThemeColor
 import com.example.domain.model.ThemePreference
 
-val DarkColorScheme = darkColorScheme(
-    primary = NovaPrimary,
+fun createDarkColorScheme(palette: AppThemeColor): ColorScheme = darkColorScheme(
+    primary = palette.primary,
     onPrimary = Color.White,
-    primaryContainer = NovaSecondary,
+    primaryContainer = palette.secondary,
     onPrimaryContainer = Color.White,
-    secondary = NovaAccent,
+    secondary = palette.accent,
     onSecondary = NovaDarkBackground,
     secondaryContainer = NovaDarkCard,
-    onSecondaryContainer = NovaAccent,
-    tertiary = NovaAccent,
-    onTertiary = Color.Black,
+    onSecondaryContainer = palette.accent,
+    tertiary = palette.accent,
+    onTertiary = if (palette.accent.luminance() > 0.5f) Color.Black else Color.White,
     background = NovaDarkBackground,
     onBackground = NovaTextPrimary,
     surface = NovaDarkSurface,
@@ -38,17 +41,17 @@ val DarkColorScheme = darkColorScheme(
     onError = Color.White
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = NovaPrimary,
+fun createLightColorScheme(palette: AppThemeColor): ColorScheme = lightColorScheme(
+    primary = palette.primary,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE0E7FF),
-    onPrimaryContainer = NovaPrimary,
-    secondary = NovaSecondary,
+    primaryContainer = palette.accent.copy(alpha = 0.2f),
+    onPrimaryContainer = palette.primary,
+    secondary = palette.secondary,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFDBEAFE),
-    onSecondaryContainer = NovaSecondary,
-    tertiary = NovaAccent,
-    onTertiary = Color.Black,
+    secondaryContainer = palette.accent.copy(alpha = 0.15f),
+    onSecondaryContainer = palette.secondary,
+    tertiary = palette.accent,
+    onTertiary = if (palette.accent.luminance() > 0.5f) Color.Black else Color.White,
     background = NovaLightBackground,
     onBackground = NovaLightTextPrimary,
     surface = NovaLightSurface,
@@ -59,14 +62,19 @@ private val LightColorScheme = lightColorScheme(
     onError = Color.White
 )
 
+val DarkColorScheme get() = createDarkColorScheme(ThemeColorManager.currentThemeColor)
+val LightColorScheme get() = createLightColorScheme(ThemeColorManager.currentThemeColor)
+
 @Composable
 fun ArvexaPlayerTheme(
     themePreference: ThemePreference = ThemePreference.DARK,
+    appThemeColor: AppThemeColor = AppThemeColor.DEFAULT,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     NovaPlayerTheme(
         themePreference = themePreference,
+        appThemeColor = appThemeColor,
         dynamicColor = dynamicColor,
         content = content
     )
@@ -75,9 +83,12 @@ fun ArvexaPlayerTheme(
 @Composable
 fun NovaPlayerTheme(
     themePreference: ThemePreference = ThemePreference.DARK,
+    appThemeColor: AppThemeColor = AppThemeColor.DEFAULT,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    ThemeColorManager.setAppThemeColor(appThemeColor)
+
     val darkTheme = isSystemInDarkTheme()
 
     val colorScheme = when {
@@ -85,8 +96,8 @@ fun NovaPlayerTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> createDarkColorScheme(appThemeColor)
+        else -> createLightColorScheme(appThemeColor)
     }
 
     val view = LocalView.current

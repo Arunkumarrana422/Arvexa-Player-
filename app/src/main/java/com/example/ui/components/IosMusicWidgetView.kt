@@ -66,7 +66,7 @@ fun IosMusicWidgetView(
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF141922)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier

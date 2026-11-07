@@ -863,7 +863,7 @@ fun AddSongsScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 2.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isDark) Color(0xFF162032) else MaterialTheme.colorScheme.surfaceVariant
                         ),
@@ -1109,7 +1109,7 @@ fun AddVideosScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 2.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isDark) Color(0xFF162032) else MaterialTheme.colorScheme.surfaceVariant
                         ),

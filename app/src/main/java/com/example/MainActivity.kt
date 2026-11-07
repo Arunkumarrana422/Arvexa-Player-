@@ -98,6 +98,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.domain.model.AppThemeColor
 import com.example.domain.model.Playlist
 import com.example.domain.model.Song
 import com.example.domain.model.ThemePreference
@@ -169,7 +170,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val userSettings by viewModel.userSettings.collectAsState()
 
-            NovaPlayerTheme(themePreference = userSettings.theme) {
+            NovaPlayerTheme(
+                themePreference = userSettings.theme,
+                appThemeColor = userSettings.appThemeColor
+            ) {
                 NovaPlayerApp(
                     viewModel = viewModel,
                     onEnterPiP = { enterPiPMode() }
@@ -926,6 +930,7 @@ composable(Screen.Onboarding.route) {
                         settings = userSettings,
                         onBack = { navController.popBackStack() },
                         onThemeChange = { viewModel.setTheme(it) },
+                        onThemeColorChange = { viewModel.setAppThemeColor(it) },
                         onDefaultSpeedChange = { viewModel.setDefaultSpeed(it) },
                         onDoubleTapSeekChange = { viewModel.setDoubleTapSeek(it) },
                         onDoubleTapPlayPauseToggle = { viewModel.setDoubleTapPlayPause(it) },

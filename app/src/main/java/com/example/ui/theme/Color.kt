@@ -1,11 +1,28 @@
 package com.example.ui.theme
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import com.example.domain.model.AppThemeColor
 
-// Primary Branding
-val NovaPrimary = Color(0xFF4F46E5)
-val NovaSecondary = Color(0xFF2563EB)
-val NovaAccent = Color(0xFF22D3EE)
+object ThemeColorManager {
+    var currentThemeColor by mutableStateOf(AppThemeColor.DEFAULT)
+        private set
+
+    fun setAppThemeColor(themeColor: AppThemeColor) {
+        currentThemeColor = themeColor
+    }
+
+    val currentAccent: Color get() = currentThemeColor.accent
+    val currentPrimary: Color get() = currentThemeColor.primary
+    val currentSecondary: Color get() = currentThemeColor.secondary
+}
+
+// Primary Branding - dynamically backed by ThemeColorManager
+val NovaPrimary: Color get() = ThemeColorManager.currentPrimary
+val NovaSecondary: Color get() = ThemeColorManager.currentSecondary
+val NovaAccent: Color get() = ThemeColorManager.currentAccent
 
 // Dark Theme Surfaces
 val NovaDarkBackground = Color(0xFF0B1020)

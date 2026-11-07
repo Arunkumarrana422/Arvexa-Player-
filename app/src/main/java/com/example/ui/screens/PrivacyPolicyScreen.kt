@@ -96,7 +96,7 @@ fun PrivacyPolicyScreen(
                     colors = CardDefaults.cardColors(
                         containerColor = if (isDark) Color(0xFF131B2E).copy(alpha = 0.9f) else MaterialTheme.colorScheme.surface
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 4.dp else 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier

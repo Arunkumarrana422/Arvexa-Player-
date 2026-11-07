@@ -8,6 +8,7 @@ import com.example.data.repository.MusicRepository
 import com.example.data.repository.SettingsRepository
 import com.example.data.repository.UserSettings
 import com.example.data.repository.VideoRepository
+import com.example.domain.model.AppThemeColor
 import com.example.domain.model.AspectRatioMode
 import com.example.domain.model.AudioPlaylist
 import com.example.domain.model.Playlist
@@ -423,6 +424,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Settings actions
     fun setTheme(theme: ThemePreference) = viewModelScope.launch { settingsRepository.setTheme(theme) }
+    fun setAppThemeColor(color: AppThemeColor) = viewModelScope.launch { settingsRepository.setAppThemeColor(color) }
     fun setSortOption(sort: SortOption) = viewModelScope.launch { settingsRepository.setSortOption(sort) }
     fun setViewMode(mode: ViewMode) = viewModelScope.launch { settingsRepository.setViewMode(mode) }
     fun setDefaultSpeed(speed: Float) = viewModelScope.launch { settingsRepository.setDefaultSpeed(speed) }

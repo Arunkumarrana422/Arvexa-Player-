@@ -159,7 +159,7 @@ fun VideoCard(
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 6.dp else 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 1.5.dp else 1.dp)
     ) {
         Row(
             modifier = Modifier
@@ -320,7 +320,9 @@ fun VideoCard(
                             color = Color(0xFFFF2A4B),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 0.5.sp
+                            letterSpacing = 0.5.sp,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -458,7 +460,7 @@ fun VideoGridCard(
         shape = RoundedCornerShape(12.dp),
         border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 6.dp else 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 1.5.dp else 1.dp)
     ) {
         Column {
             Box(
@@ -568,9 +570,8 @@ fun VideoGridCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        modifier = Modifier.weight(1f, fill = false),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = video.folderName,
@@ -578,22 +579,29 @@ fun VideoGridCard(
                             color = if (isPartiallyWatched) HalfWatchedColor else NovaAccent,
                             fontSize = 10.sp,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
                         )
                         if (video.isNew) {
+                            Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = "• NEW",
                                 color = Color(0xFFFF2A4B),
                                 fontSize = 9.5.sp,
-                                fontWeight = FontWeight.ExtraBold
+                                fontWeight = FontWeight.ExtraBold,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = video.sizeFormatted,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }

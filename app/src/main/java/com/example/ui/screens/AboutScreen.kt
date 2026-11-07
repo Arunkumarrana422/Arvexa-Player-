@@ -136,7 +136,7 @@ fun AboutScreen(
                             MaterialTheme.colorScheme.surface
                         }
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 4.dp else 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -392,7 +392,7 @@ fun AboutScreen(
                             MaterialTheme.colorScheme.surface
                         }
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 3.dp else 1.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier

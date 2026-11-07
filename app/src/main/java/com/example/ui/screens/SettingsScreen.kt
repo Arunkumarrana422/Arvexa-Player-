@@ -1,7 +1,18 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,6 +40,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayCircle
@@ -59,13 +72,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.repository.UserSettings
+import com.example.domain.model.AppThemeColor
 import com.example.domain.model.ThemePreference
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
@@ -77,6 +95,7 @@ fun SettingsScreen(
     settings: UserSettings,
     onBack: () -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
+    onThemeColorChange: (AppThemeColor) -> Unit = {},
     onDefaultSpeedChange: (Float) -> Unit,
     onDoubleTapSeekChange: (Int) -> Unit,
     onDoubleTapPlayPauseToggle: (Boolean) -> Unit = {},
@@ -95,7 +114,7 @@ fun SettingsScreen(
     onNavigateToPrivacyPolicy: () -> Unit = {},
     onShowEqualizer: () -> Unit = {}
 ) {
-    var themeMenuExpanded by remember { mutableStateOf(false) }
+    var colorPaletteExpanded by remember { mutableStateOf(false) }
     var seekMenuExpanded by remember { mutableStateOf(false) }
     var speedMenuExpanded by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -132,6 +151,134 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
+
+            // APP THEME COLOR (EXPANDABLE)
+            item {
+                SettingsSection(title = "THEME COLOR") {
+
+                    // Color Palette Selector with 10 Colors from Photo + Default (Expandable)
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Clickable Header Row to toggle expand/collapse
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { colorPaletteExpanded = !colorPaletteExpanded }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Palette,
+                                contentDescription = null,
+                                tint = NovaAccent,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "App Theme Color",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(settings.appThemeColor.accent, CircleShape)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Current: ${settings.appThemeColor.displayName}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            val arrowRotation by animateFloatAsState(
+                                targetValue = if (colorPaletteExpanded) 180f else 0f,
+                                animationSpec = tween(durationMillis = 250),
+                                label = "color_palette_arrow"
+                            )
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = if (colorPaletteExpanded) "Collapse" else "Expand",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.graphicsLayer { rotationZ = arrowRotation }
+                            )
+                        }
+
+                        // Smoothly animated expandable body
+                        AnimatedVisibility(
+                            visible = colorPaletteExpanded,
+                            enter = expandVertically(animationSpec = tween(250)) + fadeIn(animationSpec = tween(200)),
+                            exit = shrinkVertically(animationSpec = tween(250)) + fadeOut(animationSpec = tween(200))
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 14.dp)
+                            ) {
+                                val allColors = AppThemeColor.entries
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    allColors.chunked(2).forEach { rowColors ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            rowColors.forEach { colorOption ->
+                                                val isSelected = settings.appThemeColor == colorOption
+                                                val swatchColor = Color(colorOption.colorValue)
+                                                Row(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(
+                                                            if (isSelected) swatchColor.copy(alpha = 0.14f) else Color.Transparent
+                                                        )
+                                                        .clickable { onThemeColorChange(colorOption) }
+                                                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                                                        .testTag("theme_color_${colorOption.id}"),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(22.dp)
+                                                            .background(swatchColor, CircleShape),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        if (isSelected) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Check,
+                                                                contentDescription = null,
+                                                                tint = if (colorOption.accent.luminance() > 0.5f) Color.Black else Color.White,
+                                                                modifier = Modifier.size(14.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                    Spacer(modifier = Modifier.width(10.dp))
+                                                    Text(
+                                                        text = colorOption.displayName.replace("Default (Arvexa Cyan)", "Default"),
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                                        ),
+                                                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+                                            }
+                                            if (rowColors.size == 1) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // PLAYBACK CONTROLS & GESTURES
             item {
@@ -358,6 +505,7 @@ private fun SettingsSection(
             shape = RoundedCornerShape(12.dp),
             border = nightGlassBorder(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(vertical = 4.dp)) {
