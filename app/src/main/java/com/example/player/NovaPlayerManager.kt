@@ -97,6 +97,11 @@ class NovaPlayerManager(private val context: Context) {
     init {
         scope.launch {
             try {
+                val initialSettings = SettingsRepository(context).settingsFlow.first()
+                _brightnessFraction.value = initialSettings.videoBrightness
+            } catch (_: Exception) {}
+
+            try {
                 SettingsRepository(context).settingsFlow.collect { settings ->
                     val wasEnabled = _backgroundAudioEnabled.value
                     _backgroundAudioEnabled.value = settings.backgroundAudioEnabled

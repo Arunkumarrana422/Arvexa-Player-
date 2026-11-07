@@ -651,10 +651,31 @@ fun NovaPlayerApp(
                                     translationY = headerOffsetPx
                                 }
                         ) {
+                            val currentTab = pagerState.currentPage
+                            val activeViewMode = if (currentTab == 2) userSettings.folderViewMode else userSettings.viewMode
+                            val activeSortOption = if (currentTab == 2) userSettings.folderSortOption else userSettings.sortOption
+
                             NovaAppBar(
                                 title = topTitle,
                                 isRefreshing = isScanning,
                                 isUpdateAvailable = (availableUpdate != null),
+                                currentViewMode = activeViewMode,
+                                currentSortOption = activeSortOption,
+                                showViewSortButton = (currentTab in 0..2),
+                                onViewModeChange = { mode ->
+                                    if (currentTab == 2) {
+                                        viewModel.setFolderViewMode(mode)
+                                    } else {
+                                        viewModel.setViewMode(mode)
+                                    }
+                                },
+                                onSortOptionChange = { sort ->
+                                    if (currentTab == 2) {
+                                        viewModel.setFolderSortOption(sort)
+                                    } else {
+                                        viewModel.setSortOption(sort)
+                                    }
+                                },
                                 onUpdateClick = { updateManager.openUpdateScreen() },
                                 onSearchClick = { navController.navigate(Screen.Search.route) },
                                 onSettingsClick = { navController.navigate(Screen.Settings.route) }
@@ -781,6 +802,10 @@ composable(Screen.Onboarding.route) {
                             2 -> FoldersScreen(
                                 folders = folders,
                                 selectedFolder = selectedFolder,
+                                viewMode = userSettings.folderViewMode,
+                                sortOption = userSettings.folderSortOption,
+                                onViewModeChange = { viewModel.setFolderViewMode(it) },
+                                onSortChange = { viewModel.setFolderSortOption(it) },
                                 currentPlayingVideoId = currentVideoPlaying?.id,
                                 isPlaying = isPlaying,
                                 currentPosMs = currentPosMs,

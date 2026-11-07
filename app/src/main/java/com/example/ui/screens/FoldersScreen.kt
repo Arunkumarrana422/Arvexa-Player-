@@ -1,26 +1,13 @@
 package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,29 +20,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -67,16 +42,19 @@ import com.example.domain.model.VideoFolder
 import com.example.domain.model.ViewMode
 import com.example.ui.components.EmptyStateView
 import com.example.ui.components.FolderCard
+import com.example.ui.components.FolderGridCard
 import com.example.ui.components.VideoCard
 import com.example.ui.components.VideoGridCard
 import com.example.ui.theme.NovaAccent
-import com.example.ui.theme.NovaPrimary
-import com.example.ui.theme.NovaSecondary
 
 @Composable
 fun FoldersScreen(
     folders: List<VideoFolder>,
     selectedFolder: VideoFolder?,
+    viewMode: ViewMode = ViewMode.LIST,
+    sortOption: SortOption = SortOption.DATE_DESC,
+    onViewModeChange: (ViewMode) -> Unit = {},
+    onSortChange: (SortOption) -> Unit = {},
     currentPlayingVideoId: String? = null,
     isPlaying: Boolean = false,
     currentPosMs: Long = 0L,
@@ -96,17 +74,13 @@ fun FoldersScreen(
         selectedFolder?.let { sf -> folders.find { it.name == sf.name } ?: sf }
     }
 
-    var sortMenuExpanded by remember { mutableStateOf(false) }
-    var currentSort by remember { mutableStateOf(SortOption.DATE_DESC) }
-    var currentViewMode by remember { mutableStateOf(ViewMode.LIST) }
-
     if (currentSelectedFolder != null) {
         BackHandler {
             onSelectFolder(null)
         }
 
-        val sortedVideos = remember(currentSelectedFolder.videos, currentSort) {
-            when (currentSort) {
+        val sortedVideos = remember(currentSelectedFolder.videos, sortOption) {
+            when (sortOption) {
                 SortOption.DATE_DESC -> currentSelectedFolder.videos.sortedByDescending { it.dateAdded }
                 SortOption.DATE_ASC -> currentSelectedFolder.videos.sortedBy { it.dateAdded }
                 SortOption.NAME_ASC -> currentSelectedFolder.videos.sortedBy { it.title.lowercase() }
@@ -175,37 +149,17 @@ fun FoldersScreen(
 
             // Videos List / Grid
             if (sortedVideos.isEmpty()) {
-                FolderDetailControlBar(
-                    videoCount = sortedVideos.size,
-                    currentSort = currentSort,
-                    currentViewMode = currentViewMode,
-                    isScanning = isScanning,
-                    onSortChange = { currentSort = it },
-                    onViewModeChange = { currentViewMode = it },
-                    onRefresh = { onRefresh?.invoke() }
-                )
                 EmptyStateView(
                     icon = Icons.Default.Folder,
                     title = "Folder is Empty",
                     description = "No videos found in '${currentSelectedFolder.name}'."
                 )
-            } else if (currentViewMode == ViewMode.LIST) {
+            } else if (viewMode == ViewMode.LIST) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    item(key = "folder_control_bar") {
-                        FolderDetailControlBar(
-                            videoCount = sortedVideos.size,
-                            currentSort = currentSort,
-                            currentViewMode = currentViewMode,
-                            isScanning = isScanning,
-                            onSortChange = { currentSort = it },
-                            onViewModeChange = { currentViewMode = it },
-                            onRefresh = { onRefresh?.invoke() }
-                        )
-                    }
                     items(sortedVideos, key = { it.id }) { video ->
                         VideoCard(
                             video = video,
@@ -223,21 +177,10 @@ fun FoldersScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    item(key = "folder_control_bar", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                        FolderDetailControlBar(
-                            videoCount = sortedVideos.size,
-                            currentSort = currentSort,
-                            currentViewMode = currentViewMode,
-                            isScanning = isScanning,
-                            onSortChange = { currentSort = it },
-                            onViewModeChange = { currentViewMode = it },
-                            onRefresh = { onRefresh?.invoke() }
-                        )
-                    }
                     items(sortedVideos, key = { it.id }) { video ->
                         VideoGridCard(
                             video = video,
@@ -251,20 +194,20 @@ fun FoldersScreen(
             }
         }
     } else {
-        // Folder Overview List
+        // Folder Overview List / Grid
         if (folders.isEmpty()) {
             EmptyStateView(
                 icon = Icons.Default.Folder,
                 title = "No Video Folders",
                 description = "Your device has no media folders discovered yet."
             )
-        } else {
+        } else if (viewMode == ViewMode.LIST) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag("folders_screen"),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(folders, key = { it.name }) { folder ->
                     val isFolderPlaying = isPlaying && folder.videos.any { it.id == currentPlayingVideoId }
@@ -278,108 +221,26 @@ fun FoldersScreen(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun FolderDetailControlBar(
-    videoCount: Int,
-    currentSort: SortOption,
-    currentViewMode: ViewMode,
-    isScanning: Boolean,
-    onSortChange: (SortOption) -> Unit,
-    onViewModeChange: (ViewMode) -> Unit,
-    onRefresh: () -> Unit
-) {
-    var sortMenuExpanded by remember { mutableStateOf(false) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "$videoCount Videos",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 18.sp
-            ),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            // Sort Dropdown Pill
-            Box {
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { sortMenuExpanded = true }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Sort,
-                        contentDescription = "Sort",
-                        tint = NovaAccent,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = currentSort.label,
-                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 12.sp
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = sortMenuExpanded,
-                    onDismissRequest = { sortMenuExpanded = false }
-                ) {
-                    SortOption.values().forEach { option ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = option.label,
-                                    fontWeight = if (option == currentSort) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (option == currentSort) NovaAccent else MaterialTheme.colorScheme.onSurface
-                                )
-                            },
-                            onClick = {
-                                sortMenuExpanded = false
-                                onSortChange(option)
-                            }
-                        )
-                    }
-                }
-            }
-
-            // View Mode Toggle (Grid / List)
-            IconButton(
-                onClick = {
-                    onViewModeChange(if (currentViewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                },
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
                 modifier = Modifier
-                    .size(36.dp)
-                    .testTag("folder_view_mode_toggle")
+                    .fillMaxSize()
+                    .testTag("folders_screen"),
+                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(
-                    imageVector = if (currentViewMode == ViewMode.LIST) Icons.Default.GridView else Icons.Default.ViewList,
-                    contentDescription = "Toggle Grid/List",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
+                items(folders, key = { it.name }) { folder ->
+                    val isFolderPlaying = isPlaying && folder.videos.any { it.id == currentPlayingVideoId }
+                    FolderGridCard(
+                        folder = folder,
+                        onClick = { onSelectFolder(folder) },
+                        isCurrentlyPlaying = isFolderPlaying,
+                        playingVideoTitle = if (isFolderPlaying) currentPlayingVideo?.title else null
+                    )
+                }
             }
-
         }
     }
 }
-
-

@@ -427,6 +427,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setAppThemeColor(color: AppThemeColor) = viewModelScope.launch { settingsRepository.setAppThemeColor(color) }
     fun setSortOption(sort: SortOption) = viewModelScope.launch { settingsRepository.setSortOption(sort) }
     fun setViewMode(mode: ViewMode) = viewModelScope.launch { settingsRepository.setViewMode(mode) }
+    fun setFolderViewMode(mode: ViewMode) = viewModelScope.launch { settingsRepository.setFolderViewMode(mode) }
+    fun setFolderSortOption(sort: SortOption) = viewModelScope.launch { settingsRepository.setFolderSortOption(sort) }
     fun setDefaultSpeed(speed: Float) = viewModelScope.launch { settingsRepository.setDefaultSpeed(speed) }
     fun setDoubleTapSeek(sec: Int) = viewModelScope.launch { settingsRepository.setDoubleTapSeekSeconds(sec) }
     fun setDoubleTapPlayPause(enabled: Boolean) = viewModelScope.launch { settingsRepository.setDoubleTapPlayPause(enabled) }

@@ -54,6 +54,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,7 +65,7 @@ import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 
-val HalfWatchedColor = Color(0xFF38BDF8) // Soft Light Blue for halfway watched videos
+val HalfWatchedColor: Color get() = NovaAccent // Dynamically uses selected theme color
 
 @Composable
 fun NowPlayingEqualizer(
@@ -126,6 +128,27 @@ fun NowPlayingEqualizer(
 }
 
 @Composable
+fun NewTagBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(Color(0xFFE53935), RoundedCornerShape(3.5.dp))
+            .padding(horizontal = 4.5.dp, vertical = 1.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "New",
+            color = Color.White,
+            style = TextStyle(
+                fontSize = 9.sp,
+                lineHeight = 11.sp,
+                fontWeight = FontWeight.Normal,
+                platformStyle = PlatformTextStyle(includeFontPadding = false)
+            )
+        )
+    }
+}
+
+@Composable
 fun VideoCard(
     video: Video,
     onClick: () -> Unit,
@@ -145,7 +168,7 @@ fun VideoCard(
 
     val titleColor = when {
         isCurrentlyPlaying -> NovaAccent
-        isPartiallyWatched -> HalfWatchedColor
+        isPartiallyWatched -> NovaAccent
         else -> MaterialTheme.colorScheme.onSurface
     }
 
@@ -248,6 +271,15 @@ fun VideoCard(
                     }
                 }
 
+                // New badge top-left
+                if (video.isNew) {
+                    NewTagBadge(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                    )
+                }
+
                 // Playback progress bar at bottom of thumbnail
                 val activePos = if (isCurrentlyPlaying) currentPosMs else video.lastPositionMs
                 val activeDuration = if (isCurrentlyPlaying && video.durationMs > 0) video.durationMs else video.durationMs
@@ -301,31 +333,14 @@ fun VideoCard(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = video.folderName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isPartiallyWatched) HalfWatchedColor else NovaAccent,
-                        fontSize = 11.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (video.isNew) {
-                        Text(
-                            text = "• NEW",
-                            color = Color(0xFFFF2A4B),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 0.5.sp,
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    }
-                }
+                Text(
+                    text = video.folderName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = NovaAccent,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 if (isCurrentlyPlaying) {
                     Spacer(modifier = Modifier.height(3.dp))
@@ -342,7 +357,7 @@ fun VideoCard(
                     Text(
                         text = "Resume at ${Video.formatDuration(video.lastPositionMs)} (${(video.progressFraction * 100).toInt()}%)",
                         style = MaterialTheme.typography.bodySmall,
-                        color = HalfWatchedColor.copy(alpha = 0.9f),
+                        color = NovaAccent.copy(alpha = 0.9f),
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -448,7 +463,7 @@ fun VideoGridCard(
 
     val titleColor = when {
         isCurrentlyPlaying -> NovaAccent
-        isPartiallyWatched -> HalfWatchedColor
+        isPartiallyWatched -> NovaAccent
         else -> MaterialTheme.colorScheme.onSurface
     }
 
@@ -540,6 +555,15 @@ fun VideoGridCard(
                     }
                 }
 
+                // New badge top-left
+                if (video.isNew) {
+                    NewTagBadge(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                    )
+                }
+
                 val activePos = if (isCurrentlyPlaying && currentPosMs > 0L) currentPosMs else video.lastPositionMs
                 val activeFraction = if (video.durationMs > 0) (activePos.toFloat() / video.durationMs.toFloat()).coerceIn(0f, 1f) else video.progressFraction
                 if (activePos > 0 || isCurrentlyPlaying) {
@@ -569,31 +593,15 @@ fun VideoGridCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = video.folderName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isPartiallyWatched) HalfWatchedColor else NovaAccent,
-                            fontSize = 10.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                        if (video.isNew) {
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "• NEW",
-                                color = Color(0xFFFF2A4B),
-                                fontSize = 9.5.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                        }
-                    }
+                    Text(
+                        text = video.folderName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NovaAccent,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = video.sizeFormatted,

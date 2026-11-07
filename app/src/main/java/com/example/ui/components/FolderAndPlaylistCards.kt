@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -148,6 +149,103 @@ fun FolderCard(
                 tint = if (isCurrentlyPlaying) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.size(16.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun FolderGridCard(
+    folder: VideoFolder,
+    onClick: () -> Unit,
+    isCurrentlyPlaying: Boolean = false,
+    playingVideoTitle: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("folder_grid_card_${folder.name}"),
+        shape = RoundedCornerShape(12.dp),
+        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 1.5.dp else 1.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .background(
+                            Brush.linearGradient(
+                                if (isCurrentlyPlaying) listOf(NovaPrimary, NovaAccent) else listOf(NovaSecondary, NovaAccent)
+                            ),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isCurrentlyPlaying) {
+                        NowPlayingEqualizer(modifier = Modifier.size(24.dp), barColor = Color.White)
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = folder.name,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (isCurrentlyPlaying) FontWeight.Bold else FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    ),
+                    color = if (isCurrentlyPlaying) NovaAccent else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                Text(
+                    text = "${folder.videoCount} videos",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = NovaAccent,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            if (folder.hasNewVideos) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .background(
+                            color = Color(0xFFFF2A4B),
+                            shape = RoundedCornerShape(bottomEnd = 8.dp)
+                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "NEW",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
         }
     }
 }

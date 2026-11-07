@@ -24,6 +24,8 @@ data class UserSettings(
     val appThemeColor: AppThemeColor = AppThemeColor.DEFAULT,
     val sortOption: SortOption = SortOption.DATE_DESC,
     val viewMode: ViewMode = ViewMode.LIST,
+    val folderViewMode: ViewMode = ViewMode.LIST,
+    val folderSortOption: SortOption = SortOption.DATE_DESC,
     val defaultSpeed: Float = 1.0f,
     val doubleTapSeekSeconds: Int = 10,
     val doubleTapPlayPauseEnabled: Boolean = true,
@@ -51,6 +53,8 @@ class SettingsRepository(private val context: Context) {
         private val KEY_THEME_COLOR = stringPreferencesKey("app_theme_color")
         private val KEY_SORT = stringPreferencesKey("sort_option")
         private val KEY_VIEW_MODE = stringPreferencesKey("view_mode")
+        private val KEY_FOLDER_VIEW_MODE = stringPreferencesKey("folder_view_mode")
+        private val KEY_FOLDER_SORT = stringPreferencesKey("folder_sort_option")
         private val KEY_DEFAULT_SPEED = floatPreferencesKey("default_speed")
         private val KEY_DOUBLE_TAP_SEEK = intPreferencesKey("double_tap_seek")
         private val KEY_DOUBLE_TAP_PLAY_PAUSE = booleanPreferencesKey("double_tap_play_pause")
@@ -94,6 +98,16 @@ class SettingsRepository(private val context: Context) {
             } catch (e: Exception) {
                 ViewMode.LIST
             },
+            folderViewMode = try {
+                ViewMode.valueOf(prefs[KEY_FOLDER_VIEW_MODE] ?: ViewMode.LIST.name)
+            } catch (e: Exception) {
+                ViewMode.LIST
+            },
+            folderSortOption = try {
+                SortOption.valueOf(prefs[KEY_FOLDER_SORT] ?: SortOption.DATE_DESC.name)
+            } catch (e: Exception) {
+                SortOption.DATE_DESC
+            },
             defaultSpeed = prefs[KEY_DEFAULT_SPEED] ?: 1.0f,
             doubleTapSeekSeconds = prefs[KEY_DOUBLE_TAP_SEEK] ?: 10,
             doubleTapPlayPauseEnabled = prefs[KEY_DOUBLE_TAP_PLAY_PAUSE] ?: true,
@@ -129,11 +143,31 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setSortOption(sort: SortOption) {
-        context.dataStore.edit { it[KEY_SORT] = sort.name }
+        context.dataStore.edit { 
+            it[KEY_SORT] = sort.name 
+            it[KEY_FOLDER_SORT] = sort.name
+        }
     }
 
     suspend fun setViewMode(mode: ViewMode) {
-        context.dataStore.edit { it[KEY_VIEW_MODE] = mode.name }
+        context.dataStore.edit { 
+            it[KEY_VIEW_MODE] = mode.name 
+            it[KEY_FOLDER_VIEW_MODE] = mode.name
+        }
+    }
+
+    suspend fun setFolderViewMode(mode: ViewMode) {
+        context.dataStore.edit { 
+            it[KEY_FOLDER_VIEW_MODE] = mode.name 
+            it[KEY_VIEW_MODE] = mode.name
+        }
+    }
+
+    suspend fun setFolderSortOption(sort: SortOption) {
+        context.dataStore.edit { 
+            it[KEY_FOLDER_SORT] = sort.name 
+            it[KEY_SORT] = sort.name
+        }
     }
 
     suspend fun setDefaultSpeed(speed: Float) {

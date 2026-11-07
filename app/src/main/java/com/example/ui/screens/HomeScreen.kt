@@ -325,7 +325,7 @@ private fun ContinueWatchingCard(
     onClick: () -> Unit
 ) {
     val isPartiallyWatched = video.isPartiallyWatched || (video.lastPositionMs > 5000L && video.progressFraction in 0.02f..0.95f)
-    val halfWatchedColor = Color(0xFF38BDF8) // Soft Light Blue
+    val halfWatchedColor = NovaAccent
     val titleColor = when {
         isCurrentlyPlaying -> NovaAccent
         isPartiallyWatched -> halfWatchedColor

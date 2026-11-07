@@ -88,7 +88,7 @@ fun ContinueWatchingBanner(
 
                 Text(
                     text = "START OVER",
-                    color = Color(0xFF38BDF8),
+                    color = NovaAccent,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
