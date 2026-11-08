@@ -622,6 +622,12 @@ fun NovaPlayerApp(
                     null
                 }
 
+                val headerProgress = if (headerHeightPx > 0f) {
+                    ((headerHeightPx + headerOffsetPx) / headerHeightPx).coerceIn(0f, 1f)
+                } else {
+                    1f
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -648,7 +654,10 @@ fun NovaPlayerApp(
                                     }
                                 }
                                 .graphicsLayer {
-                                    translationY = headerOffsetPx
+                                    alpha = headerProgress
+                                    scaleY = headerProgress
+                                    scaleX = 0.85f + (0.15f * headerProgress)
+                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.5f)
                                 }
                         ) {
                             val currentTab = pagerState.currentPage

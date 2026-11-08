@@ -89,6 +89,14 @@ fun HomeScreen(
     onShowEqualizer: () -> Unit = {},
     isMiniPlayerActive: Boolean = false
 ) {
+    val latestPlayedVideoId = androidx.compose.runtime.remember(recentVideos, continueWatching, currentPlayingVideoId) {
+        if (currentPlayingVideoId != null) {
+            currentPlayingVideoId
+        } else {
+            (recentVideos + continueWatching).filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -153,6 +161,7 @@ fun HomeScreen(
                         ContinueWatchingCard(
                             video = video,
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                            isLatestPlayed = (video.id == latestPlayedVideoId),
                             currentPosMs = currentPosMs,
                             onClick = { onPlayVideo(video, continueWatching) }
                         )
@@ -178,6 +187,7 @@ fun HomeScreen(
                         video = video,
                         onClick = { onPlayVideo(video, recentVideos) },
                         isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                        isLatestPlayed = (video.id == latestPlayedVideoId),
                         currentPosMs = currentPosMs,
                         onToggleFavorite = { onToggleFavorite(video) },
                         onAddToPlaylist = { onAddToPlaylist(video) },
@@ -321,6 +331,7 @@ private fun SectionHeader(
 private fun ContinueWatchingCard(
     video: Video,
     isCurrentlyPlaying: Boolean = false,
+    isLatestPlayed: Boolean = false,
     currentPosMs: Long = 0L,
     onClick: () -> Unit
 ) {
@@ -328,7 +339,7 @@ private fun ContinueWatchingCard(
     val halfWatchedColor = NovaAccent
     val titleColor = when {
         isCurrentlyPlaying -> NovaAccent
-        isPartiallyWatched -> halfWatchedColor
+        isLatestPlayed -> NovaAccent
         else -> MaterialTheme.colorScheme.onSurface
     }
 

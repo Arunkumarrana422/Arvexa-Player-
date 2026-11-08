@@ -350,6 +350,12 @@ fun MusicScreen(
         null
     }
 
+    val musicHeaderProgress = if (musicHeaderHeightPx > 0f) {
+        ((musicHeaderHeightPx + musicHeaderOffsetPx) / musicHeaderHeightPx).coerceIn(0f, 1f)
+    } else {
+        1f
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -378,7 +384,10 @@ fun MusicScreen(
                         }
                     }
                     .graphicsLayer {
-                        translationY = musicHeaderOffsetPx
+                        alpha = musicHeaderProgress
+                        scaleY = musicHeaderProgress
+                        scaleX = 0.85f + (0.15f * musicHeaderProgress)
+                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.5f)
                     }
             ) {
                 Row(

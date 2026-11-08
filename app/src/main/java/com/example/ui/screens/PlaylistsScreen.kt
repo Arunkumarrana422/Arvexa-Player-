@@ -290,6 +290,13 @@ fun PlaylistsScreen(
                     description = "Add videos to '${currentSelectedPlaylist.name}' from your video library or folders."
                 )
             } else {
+                val latestPlayedVideoId = remember(playlistVideos, currentPlayingVideoId) {
+                    if (currentPlayingVideoId != null) {
+                        currentPlayingVideoId
+                    } else {
+                        playlistVideos.filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+                    }
+                }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
@@ -300,6 +307,7 @@ fun PlaylistsScreen(
                             video = video,
                             onClick = { onPlayVideo(video, playlistVideos) },
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                            isLatestPlayed = (video.id == latestPlayedVideoId),
                             currentPosMs = currentPosMs,
                             onToggleFavorite = { onToggleFavorite(video) },
                             onAddToPlaylist = { onAddToPlaylist(video) },

@@ -220,6 +220,13 @@ fun SearchScreen(
                     description = "We couldn't find any videos matching '$query'."
                 )
             } else {
+                val latestPlayedVideoId = androidx.compose.runtime.remember(searchResults, currentPlayingVideoId) {
+                    if (currentPlayingVideoId != null) {
+                        currentPlayingVideoId
+                    } else {
+                        searchResults.filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+                    }
+                }
                 Text(
                     text = "Found ${searchResults.size} matches for '$query'",
                     style = MaterialTheme.typography.bodySmall,
@@ -240,6 +247,7 @@ fun SearchScreen(
                                 onPlayVideo(video, searchResults)
                             },
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                            isLatestPlayed = (video.id == latestPlayedVideoId),
                             currentPosMs = currentPosMs,
                             onToggleFavorite = { onToggleFavorite(video) },
                             onAddToPlaylist = { onAddToPlaylist(video) },

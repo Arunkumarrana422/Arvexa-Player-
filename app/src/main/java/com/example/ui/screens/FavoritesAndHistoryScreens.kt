@@ -91,6 +91,13 @@ fun FavoritesScreen(
                 description = "Tap the heart icon on any video to add it to your quick-access favorites."
             )
         } else {
+            val latestPlayedVideoId = androidx.compose.runtime.remember(favorites, currentPlayingVideoId) {
+                if (currentPlayingVideoId != null) {
+                    currentPlayingVideoId
+                } else {
+                    favorites.filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+                }
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
@@ -101,6 +108,7 @@ fun FavoritesScreen(
                         video = video,
                         onClick = { onPlayVideo(video, favorites) },
                         isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                        isLatestPlayed = (video.id == latestPlayedVideoId),
                         currentPosMs = currentPosMs,
                         onToggleFavorite = { onToggleFavorite(video) },
                         onAddToPlaylist = { onAddToPlaylist(video) },
@@ -154,6 +162,13 @@ fun HistoryScreen(
                 description = "Videos you watch will appear here with your saved playback progress."
             )
         } else {
+            val latestPlayedVideoId = androidx.compose.runtime.remember(history, currentPlayingVideoId) {
+                if (currentPlayingVideoId != null) {
+                    currentPlayingVideoId
+                } else {
+                    history.filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+                }
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
@@ -164,6 +179,7 @@ fun HistoryScreen(
                         video = video,
                         onClick = { onPlayVideo(video, history) },
                         isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                        isLatestPlayed = (video.id == latestPlayedVideoId),
                         currentPosMs = currentPosMs,
                         onToggleFavorite = { onToggleFavorite(video) },
                         onAddToPlaylist = { onAddToPlaylist(video) },

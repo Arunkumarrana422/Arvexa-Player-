@@ -153,6 +153,7 @@ fun VideoCard(
     video: Video,
     onClick: () -> Unit,
     isCurrentlyPlaying: Boolean = false,
+    isLatestPlayed: Boolean = false,
     currentPosMs: Long = 0L,
     onToggleFavorite: () -> Unit = {},
     onAddToPlaylist: () -> Unit = {},
@@ -168,7 +169,7 @@ fun VideoCard(
 
     val titleColor = when {
         isCurrentlyPlaying -> NovaAccent
-        isPartiallyWatched -> NovaAccent
+        isLatestPlayed -> NovaAccent
         else -> MaterialTheme.colorScheme.onSurface
     }
 
@@ -455,6 +456,7 @@ fun VideoGridCard(
     video: Video,
     onClick: () -> Unit,
     isCurrentlyPlaying: Boolean = false,
+    isLatestPlayed: Boolean = false,
     currentPosMs: Long = 0L,
     onToggleFavorite: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -463,7 +465,7 @@ fun VideoGridCard(
 
     val titleColor = when {
         isCurrentlyPlaying -> NovaAccent
-        isPartiallyWatched -> NovaAccent
+        isLatestPlayed -> NovaAccent
         else -> MaterialTheme.colorScheme.onSurface
     }
 

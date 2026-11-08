@@ -132,11 +132,11 @@ fun NovaPlayerSeekBar(
                     )
                 }
 
-                // 3. Active Progress Track (Bright Neon Cyan)
+                // 3. Active Progress Track
                 val progressWidth = (width * displayProgressFraction).coerceIn(0f, width)
                 if (progressWidth > 0f) {
                     drawRoundRect(
-                        color = Color(0xFF00E5FF),
+                        color = NovaAccent,
                         topLeft = Offset(0f, trackTop),
                         size = Size(progressWidth, trackHeight),
                         cornerRadius = CornerRadius(trackCornerRadius, trackCornerRadius)
@@ -146,18 +146,18 @@ fun NovaPlayerSeekBar(
                 // 4. Subtle buffer indicator dot on unplayed section if applicable
                 if (bufferedFraction > displayProgressFraction && bufferedFraction < 0.99f) {
                     drawCircle(
-                        color = Color(0xFF00E5FF).copy(alpha = 0.7f),
+                        color = NovaAccent.copy(alpha = 0.7f),
                         radius = 2.dp.toPx(),
                         center = Offset(width * bufferedFraction, height / 2f)
                     )
                 }
 
-                // 5. Thumb: Circular Thumb Cursor (Matching user request)
+                // 5. Thumb: Circular Thumb Cursor
                 val thumbRadius = 7.dp.toPx()
                 val thumbCenter = Offset(progressWidth.coerceIn(thumbRadius, width - thumbRadius), height / 2f)
 
                 drawCircle(
-                    color = Color(0xFF00E5FF),
+                    color = NovaAccent,
                     radius = thumbRadius,
                     center = thumbCenter
                 )

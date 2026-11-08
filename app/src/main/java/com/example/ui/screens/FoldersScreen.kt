@@ -91,6 +91,14 @@ fun FoldersScreen(
             }
         }
 
+        val latestPlayedVideoId = remember(sortedVideos, currentPlayingVideoId) {
+            if (currentPlayingVideoId != null) {
+                currentPlayingVideoId
+            } else {
+                sortedVideos.filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+            }
+        }
+
         // Folder Detail View
         Column(
             modifier = Modifier
@@ -165,6 +173,7 @@ fun FoldersScreen(
                             video = video,
                             onClick = { onPlayVideo(video, sortedVideos) },
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                            isLatestPlayed = (video.id == latestPlayedVideoId),
                             currentPosMs = currentPosMs,
                             onToggleFavorite = { onToggleFavorite(video) },
                             onAddToPlaylist = { onAddToPlaylist(video) },
@@ -186,6 +195,7 @@ fun FoldersScreen(
                             video = video,
                             onClick = { onPlayVideo(video, sortedVideos) },
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                            isLatestPlayed = (video.id == latestPlayedVideoId),
                             currentPosMs = currentPosMs,
                             onToggleFavorite = { onToggleFavorite(video) }
                         )

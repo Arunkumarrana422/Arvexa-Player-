@@ -38,6 +38,14 @@ fun VideosScreen(
     onDeleteVideo: (String) -> Unit,
     isMiniPlayerActive: Boolean = false
 ) {
+    val latestPlayedVideoId = androidx.compose.runtime.remember(videos, currentPlayingVideoId) {
+        if (currentPlayingVideoId != null) {
+            currentPlayingVideoId
+        } else {
+            videos.filter { it.lastPlayedTimestamp > 0L }.maxByOrNull { it.lastPlayedTimestamp }?.id
+        }
+    }
+
     androidx.compose.foundation.layout.Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,6 +69,7 @@ fun VideosScreen(
                         video = video,
                         onClick = { onPlayVideo(video, videos) },
                         isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                        isLatestPlayed = (video.id == latestPlayedVideoId),
                         currentPosMs = currentPosMs,
                         onToggleFavorite = { onToggleFavorite(video) },
                         onAddToPlaylist = { onAddToPlaylist(video) },
@@ -82,6 +91,7 @@ fun VideosScreen(
                         video = video,
                         onClick = { onPlayVideo(video, videos) },
                         isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                        isLatestPlayed = (video.id == latestPlayedVideoId),
                         currentPosMs = currentPosMs,
                         onToggleFavorite = { onToggleFavorite(video) }
                     )

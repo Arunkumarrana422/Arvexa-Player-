@@ -17,8 +17,8 @@ android {
     applicationId = "com.my.arvexaplayer"
     minSdk = 24
     targetSdk = 36
-    versionCode = 21
-    versionName = "1.2.0"
+    versionCode = 25
+    versionName = "1.2.4"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -162,7 +163,9 @@ fun EqualizerPanelContent(
                     uncheckedTrackColor = if (isForVideo) Color(0x33FFFFFF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     uncheckedThumbColor = if (isForVideo) Color(0x88FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 ),
-                modifier = Modifier.testTag("equalizer_master_switch")
+                modifier = Modifier
+                    .scale(0.82f)
+                    .testTag("equalizer_master_switch")
             )
         }
 
