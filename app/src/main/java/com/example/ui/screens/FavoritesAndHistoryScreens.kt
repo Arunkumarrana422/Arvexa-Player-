@@ -74,12 +74,12 @@ fun FavoritesScreen(
                 Button(
                     onClick = { onPlayVideo(favorites.first(), favorites) },
                     colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Play All", fontSize = 12.sp)
+                    Text("Play All", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

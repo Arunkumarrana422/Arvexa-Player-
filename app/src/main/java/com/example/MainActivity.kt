@@ -1227,7 +1227,8 @@ composable(Screen.Onboarding.route) {
             fallbackInfo = availableUpdate,
             onUpdateClick = { info -> updateManager.startDownload(info) },
             onInstallClick = { file -> updateManager.installApk(file) },
-            onDismiss = { updateManager.closeUpdateScreen() }
+            onDismiss = { updateManager.closeUpdateScreen() },
+            onBrowserDownloadClick = { url -> updateManager.openInBrowser(url) }
         )
     }
 }

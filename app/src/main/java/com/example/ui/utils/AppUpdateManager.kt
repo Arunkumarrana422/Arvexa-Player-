@@ -46,8 +46,9 @@ class AppUpdateManager(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.IO + Job())
     private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .followRedirects(true)
         .followSslRedirects(true)
         .build()
@@ -243,14 +244,20 @@ class AppUpdateManager(private val context: Context) {
 
                 val request = Request.Builder()
                     .url(info.downloadUrl)
-                    .header("User-Agent", "ArvexaPlayer-Android")
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+                    .header("Accept", "*/*")
                     .header("Cache-Control", "no-cache, no-store, must-revalidate")
                     .header("Pragma", "no-cache")
                     .build()
 
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
-                        throw Exception("Download failed with HTTP ${response.code}")
+                        val errMsg = if (response.code == 504) {
+                            "Server timeout (HTTP 504). Please try Browser Download."
+                        } else {
+                            "Download failed with HTTP ${response.code}"
+                        }
+                        throw Exception(errMsg)
                     }
 
                     val body = response.body ?: throw Exception("Empty response from server")
@@ -284,9 +291,21 @@ class AppUpdateManager(private val context: Context) {
             } catch (e: Exception) {
                 _updateState.value = UpdateState.Error(e.localizedMessage ?: "Download failed")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Update download failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, e.localizedMessage ?: "Update download failed", Toast.LENGTH_LONG).show()
                 }
             }
+        }
+    }
+
+    fun openInBrowser(url: String? = null) {
+        try {
+            val targetUrl = if (!url.isNullOrBlank()) url else REPO_WEB_URL
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl)).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        } catch (_: Exception) {
+            Toast.makeText(context, "Could not open web browser", Toast.LENGTH_SHORT).show()
         }
     }
 

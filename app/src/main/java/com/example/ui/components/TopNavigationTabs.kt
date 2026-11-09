@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -132,21 +133,30 @@ private fun TopNavItem(
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(bounded = true, color = NovaAccent),
-                onClick = onClick
-            )
-            .testTag("top_nav_tab_${item.route}"),
+            .padding(vertical = 4.dp, horizontal = 6.dp),
         contentAlignment = Alignment.Center
     ) {
-        item.icon?.let { iconVector ->
-            Icon(
-                imageVector = iconVector,
-                contentDescription = item.title,
-                tint = animatedIconColor,
-                modifier = Modifier.size(24.dp)
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = ripple(bounded = true, color = NovaAccent),
+                    onClick = onClick
+                )
+                .testTag("top_nav_tab_${item.route}"),
+            contentAlignment = Alignment.Center
+        ) {
+            item.icon?.let { iconVector ->
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = item.title,
+                    tint = animatedIconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }

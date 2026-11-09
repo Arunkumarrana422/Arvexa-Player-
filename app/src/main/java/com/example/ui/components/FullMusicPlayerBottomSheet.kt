@@ -93,6 +93,7 @@ import com.example.domain.model.AudioRepeatMode
 import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
+import com.example.ui.screens.getSongFallbackGradient
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.isNightMode
@@ -289,39 +290,38 @@ fun FullMusicPlayerBottomSheet(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            val albumArtUri = remember(pagerSong.albumId) {
-                                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), pagerSong.albumId)
+                            val albumArtUri = remember(pagerSong.id, pagerSong.albumId) {
+                                if (pagerSong.albumId > 0) {
+                                    ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), pagerSong.albumId)
+                                } else {
+                                    null
+                                }
+                            }
+                            val songGradient = remember(pagerSong.id, pagerSong.title) {
+                                getSongFallbackGradient(pagerSong.id, pagerSong.title)
                             }
                             var hasError by remember(pagerSong.id) { mutableStateOf(false) }
 
-                            if (!hasError) {
+                            if (!hasError && (albumArtUri != null || pagerSong.uri.isNotBlank() || pagerSong.dataPath.isNotBlank())) {
                                 AsyncImage(
-                                    model = albumArtUri,
+                                    model = albumArtUri ?: pagerSong.uri.ifBlank { pagerSong.dataPath },
                                     contentDescription = null,
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                                     onError = { hasError = true }
                                 )
                             }
-                            if (hasError) {
+                            if (hasError || (albumArtUri == null && pagerSong.uri.isBlank() && pagerSong.dataPath.isBlank())) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(
-                                            Brush.linearGradient(
-                                                listOf(
-                                                    NovaPrimary.copy(alpha = 0.85f),
-                                                    NovaSecondary.copy(alpha = 0.95f),
-                                                    Color(0xFF0F172A)
-                                                )
-                                            )
-                                        ),
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.MusicNote,
                                         contentDescription = null,
-                                        tint = Color.White,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                         modifier = Modifier.size(64.dp)
                                     )
                                 }

@@ -50,10 +50,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
+import com.example.ui.screens.getSongFallbackGradient
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
@@ -126,8 +131,17 @@ fun MiniAudioPlayerContent(
                             .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val albumArtUri = remember(song.albumId) {
-                            ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
+                        val context = LocalContext.current
+                        var miniArtFailed by remember(song.id) { mutableStateOf(false) }
+                        val albumArtUri = remember(song.id, song.albumId) {
+                            if (song.albumId > 0) {
+                                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
+                            } else {
+                                null
+                            }
+                        }
+                        val miniGradient = remember(song.id, song.title) {
+                            getSongFallbackGradient(song.id, song.title)
                         }
 
                         // Album Art Thumbnail (Matching video 68x46 landscape box)
@@ -136,18 +150,28 @@ fun MiniAudioPlayerContent(
                                 .size(width = 68.dp, height = 46.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    Brush.linearGradient(
-                                        listOf(NovaPrimary, NovaSecondary)
+                                    if (isPlaying) Brush.linearGradient(listOf(NovaPrimary, NovaSecondary))
+                                    else Brush.linearGradient(
+                                        listOf(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        )
                                     )
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            AsyncImage(
-                                model = albumArtUri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            if (!miniArtFailed && (albumArtUri != null || song.uri.isNotBlank() || song.dataPath.isNotBlank())) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(albumArtUri ?: song.uri.ifBlank { song.dataPath })
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop,
+                                    onError = { miniArtFailed = true }
+                                )
+                            }
                             if (isPlaying) {
                                 Box(
                                     modifier = Modifier
@@ -160,11 +184,11 @@ fun MiniAudioPlayerContent(
                                         barColor = Color.White
                                     )
                                 }
-                            } else {
+                            } else if (miniArtFailed || (albumArtUri == null && song.uri.isBlank() && song.dataPath.isBlank())) {
                                 Icon(
                                     imageVector = Icons.Default.MusicNote,
                                     contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.7f),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                     modifier = Modifier.size(20.dp)
                                 )
                             }

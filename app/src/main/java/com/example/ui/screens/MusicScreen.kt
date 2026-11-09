@@ -86,6 +86,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.domain.model.AudioAlbum
 import com.example.domain.model.AudioArtist
 import com.example.domain.model.AudioFolder
@@ -113,6 +114,23 @@ import com.example.ui.theme.nightGlassBorder
 import com.example.ui.theme.NovaPrimary
 import com.example.ui.theme.NovaSecondary
 import kotlinx.coroutines.launch
+
+fun getSongFallbackGradient(songId: String, songTitle: String): List<Color> {
+    val hash = Math.abs((songId + songTitle).hashCode())
+    val palettes = listOf(
+        listOf(Color(0xFF3B82F6), Color(0xFF1E40AF)), // Royal Blue
+        listOf(Color(0xFF8B5CF6), Color(0xFF5B21B6)), // Purple Deep
+        listOf(Color(0xFFEC4899), Color(0xFF9D174D)), // Magenta Pink
+        listOf(Color(0xFF10B981), Color(0xFF065F46)), // Emerald Green
+        listOf(Color(0xFFF59E0B), Color(0xFF92400E)), // Amber Orange
+        listOf(Color(0xFF06B6D4), Color(0xFF155E75)), // Cyan Blue
+        listOf(Color(0xFF6366F1), Color(0xFF3730A3)), // Indigo Violet
+        listOf(Color(0xFFF43F5E), Color(0xFF9F1239)), // Rose Red
+        listOf(Color(0xFF14B8A6), Color(0xFF115E59)), // Teal Jade
+        listOf(Color(0xFFA855F7), Color(0xFF6B21A8))  // Deep Fuchsia
+    )
+    return palettes[hash % palettes.size]
+}
 
 enum class MusicSort(val label: String) {
     TITLE_ASC("Title (A-Z)"),
@@ -464,13 +482,13 @@ fun MusicScreen(
                                         onPlaySong(filteredSongs.first(), filteredSongs.shuffled())
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                                shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
                             ) {
                                 Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Shuffle", fontSize = 12.sp)
+                                Text("Shuffle", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -554,6 +572,16 @@ fun MusicScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(artists, key = { it.name }) { artist ->
+                                val firstSong = artist.songs.firstOrNull()
+                                val firstSongArtUri = remember(firstSong?.id) {
+                                    if (firstSong != null && firstSong.albumId > 0) {
+                                        ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), firstSong.albumId)
+                                    } else {
+                                        null
+                                    }
+                                }
+                                var artistImageFailed by remember(artist.name) { mutableStateOf(false) }
+
                                 Card(
                                     onClick = { selectedArtist = artist },
                                     border = nightGlassBorder(),
@@ -571,11 +599,34 @@ fun MusicScreen(
                                                 .size(48.dp)
                                                 .clip(CircleShape)
                                                 .background(
-                                                    Brush.linearGradient(listOf(NovaPrimary, NovaAccent))
+                                                    Brush.linearGradient(
+                                                        listOf(
+                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                                            NovaAccent
+                                                        )
+                                                    )
                                                 ),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Person, contentDescription = null, tint = Color.White)
+                                            if (!artistImageFailed && firstSongArtUri != null) {
+                                                AsyncImage(
+                                                    model = ImageRequest.Builder(LocalContext.current)
+                                                        .data(firstSongArtUri)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                                    onError = { artistImageFailed = true }
+                                                )
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Default.Person,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
                                         }
                                         Spacer(modifier = Modifier.width(14.dp))
                                         Column(modifier = Modifier.weight(1f)) {
@@ -886,12 +937,13 @@ fun FolderDetailScreen(
                         onPlaySong(folder.songs.first(), folder.songs)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                shape = RoundedCornerShape(8.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Play All")
+                Text("Play All", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -960,12 +1012,13 @@ fun AlbumDetailScreen(
                         onPlaySong(album.songs.first(), album.songs)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                shape = RoundedCornerShape(8.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Play All")
+                Text("Play All", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -1034,12 +1087,13 @@ fun ArtistDetailScreen(
                         onPlaySong(artist.songs.first(), artist.songs)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                shape = RoundedCornerShape(8.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Play All")
+                Text("Play All", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -1238,8 +1292,17 @@ fun SongItemCard(
 ) {
     val context = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
-    val albumArtUri = remember(song.albumId) {
-        ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
+    var imageFailed by remember(song.id) { mutableStateOf(false) }
+
+    val albumArtUri = remember(song.id, song.albumId) {
+        if (song.albumId > 0) {
+            ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
+        } else {
+            null
+        }
+    }
+    val fallbackGradient = remember(song.id, song.title) {
+        getSongFallbackGradient(song.id, song.title)
     }
 
     Card(
@@ -1266,18 +1329,28 @@ fun SongItemCard(
                     .size(46.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        Brush.linearGradient(
-                            if (isCurrentlyPlaying) listOf(NovaPrimary, NovaAccent) else listOf(Color(0xFF2A3347), Color(0xFF1E2433))
+                        if (isCurrentlyPlaying) Brush.linearGradient(listOf(NovaPrimary, NovaAccent))
+                        else Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                                MaterialTheme.colorScheme.surfaceVariant
+                            )
                         )
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = albumArtUri,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                )
+                if (!imageFailed && (albumArtUri != null || song.uri.isNotBlank() || song.dataPath.isNotBlank())) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(albumArtUri ?: song.uri.ifBlank { song.dataPath })
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        onError = { imageFailed = true }
+                    )
+                }
                 if (isCurrentlyPlaying) {
                     Box(
                         modifier = Modifier
@@ -1287,11 +1360,11 @@ fun SongItemCard(
                     ) {
                         NowPlayingEqualizer(modifier = Modifier.size(20.dp), barColor = Color.White)
                     }
-                } else {
+                } else if (imageFailed || (albumArtUri == null && song.uri.isBlank() && song.dataPath.isBlank())) {
                     Icon(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.5f),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(20.dp)
                     )
                 }

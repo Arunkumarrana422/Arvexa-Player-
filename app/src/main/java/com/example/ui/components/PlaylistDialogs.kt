@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.ui.graphics.Brush
 import coil.compose.AsyncImage
+import com.example.ui.screens.getSongFallbackGradient
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -886,29 +887,43 @@ fun AddSongsScreen(
                                 }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            val albumArtUri = android.content.ContentUris.withAppendedId(
-                                android.net.Uri.parse("content://media/external/audio/albumart"),
-                                song.albumId
-                            )
+                            var dlgArtFailed by remember(song.id) { mutableStateOf(false) }
+                            val albumArtUri = remember(song.id, song.albumId) {
+                                if (song.albumId > 0) {
+                                    android.content.ContentUris.withAppendedId(
+                                        android.net.Uri.parse("content://media/external/audio/albumart"),
+                                        song.albumId
+                                    )
+                                } else {
+                                    null
+                                }
+                            }
+                            val dlgGradient = remember(song.id, song.title) {
+                                getSongFallbackGradient(song.id, song.title)
+                            }
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Brush.linearGradient(listOf(Color(0xFF2A3347), Color(0xFF1E2433)))),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
-                                AsyncImage(
-                                    model = albumArtUri,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.MusicNote,
-                                    contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                if (!dlgArtFailed && (albumArtUri != null || song.uri.isNotBlank() || song.dataPath.isNotBlank())) {
+                                    AsyncImage(
+                                        model = albumArtUri ?: song.uri.ifBlank { song.dataPath },
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                        onError = { dlgArtFailed = true }
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.MusicNote,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {

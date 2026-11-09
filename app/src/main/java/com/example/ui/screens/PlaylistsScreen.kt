@@ -262,23 +262,25 @@ fun PlaylistsScreen(
                 ) {
                     Button(
                         onClick = { onPlayVideo(playlistVideos.first(), playlistVideos) },
-                        colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
-                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(17.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Play All")
+                        Text("Play All", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
 
                     OutlinedButton(
                         onClick = { onPlayVideo(playlistVideos.shuffled().first(), playlistVideos.shuffled()) },
-                        shape = RoundedCornerShape(10.dp),
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(17.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Shuffle")
+                        Text("Shuffle", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

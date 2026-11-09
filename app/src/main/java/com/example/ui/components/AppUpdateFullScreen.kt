@@ -49,7 +49,8 @@ fun AppUpdateFullScreen(
     fallbackInfo: UpdateInfo?,
     onUpdateClick: (UpdateInfo) -> Unit,
     onInstallClick: (File) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onBrowserDownloadClick: ((String) -> Unit)? = null
 ) {
     val info = when (updateState) {
         is UpdateState.Available -> updateState.info
@@ -394,27 +395,31 @@ fun AppUpdateFullScreen(
                     }
                 }
 
-                // SUCCESS INDICATOR (When Ready to Install)
-                if (isReadyToInstall && readyFile != null) {
-                    Row(
+                // ERROR BANNER (When Download fails e.g. 504 / network timeout)
+                if (updateState is UpdateState.Error) {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                            .padding(bottom = 14.dp)
+                            .background(Color(0x22EF4444), RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0x66EF4444), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = Color(0xFF10B981),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Download complete! Ready to install.",
-                            color = Color(0xFF10B981),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                            text = updateState.message,
+                            color = Color(0xFFFCA5A5),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            fontSize = 13.sp
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = { onBrowserDownloadClick?.invoke(info.downloadUrl) },
+                            shape = CircleShape,
+                            border = BorderStroke(1.dp, NovaAccent)
+                        ) {
+                            Text("Download in Browser", color = NovaAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 

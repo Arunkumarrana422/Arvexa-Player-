@@ -93,7 +93,10 @@ fun VideosScreen(
                         isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
                         isLatestPlayed = (video.id == latestPlayedVideoId),
                         currentPosMs = currentPosMs,
-                        onToggleFavorite = { onToggleFavorite(video) }
+                        onToggleFavorite = { onToggleFavorite(video) },
+                        onAddToPlaylist = { onAddToPlaylist(video) },
+                        onShowInfo = { onShowVideoInfo(video) },
+                        onDelete = { onDeleteVideo(video.id) }
                     )
                 }
             }
