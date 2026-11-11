@@ -417,6 +417,26 @@ fun FullMusicPlayerBottomSheet(
                         activeTrackColor = NovaAccent,
                         inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                     ),
+                    thumb = {
+                        Box(
+                            modifier = Modifier
+                                .size(14.dp)
+                                .background(
+                                    color = NovaAccent,
+                                    shape = CircleShape
+                                )
+                        )
+                    },
+                    track = { sliderState ->
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            modifier = Modifier.height(3.5.dp),
+                            colors = SliderDefaults.colors(
+                                activeTrackColor = NovaAccent,
+                                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            )
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 

@@ -482,7 +482,7 @@ fun MusicScreen(
                                         onPlaySong(filteredSongs.first(), filteredSongs.shuffled())
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color.White),
                                 shape = androidx.compose.foundation.shape.CircleShape,
                                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
                             ) {
@@ -937,7 +937,7 @@ fun FolderDetailScreen(
                         onPlaySong(folder.songs.first(), folder.songs)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color.White),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
@@ -951,7 +951,7 @@ fun FolderDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+            contentPadding = PaddingValues(top = 10.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(folder.songs, key = { it.id }) { song ->
@@ -1012,7 +1012,7 @@ fun AlbumDetailScreen(
                         onPlaySong(album.songs.first(), album.songs)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color.White),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
@@ -1026,7 +1026,7 @@ fun AlbumDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+            contentPadding = PaddingValues(top = 10.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(album.songs, key = { it.id }) { song ->
@@ -1087,7 +1087,7 @@ fun ArtistDetailScreen(
                         onPlaySong(artist.songs.first(), artist.songs)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color.White),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
@@ -1101,7 +1101,7 @@ fun ArtistDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+            contentPadding = PaddingValues(top = 10.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(artist.songs, key = { it.id }) { song ->
@@ -1224,7 +1224,7 @@ fun PlaylistDetailScreen(
             ) {
                 Button(
                     onClick = { onPlaySong(playlist.songs.first(), playlist.songs) },
-                    colors = ButtonDefaults.buttonColors(containerColor = NovaAccent),
+                    colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color.White),
                     shape = CircleShape,
                     modifier = Modifier.weight(1f)
                 ) {
@@ -1261,7 +1261,7 @@ fun PlaylistDetailScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
+                contentPadding = PaddingValues(top = 10.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(playlist.songs, key = { it.id }) { song ->

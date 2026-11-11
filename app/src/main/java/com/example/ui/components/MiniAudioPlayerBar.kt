@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -115,20 +116,20 @@ fun MiniAudioPlayerContent(
                 onClick = onExpandFullPlayer,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
                     .testTag("mini_audio_player_bar"),
-                shape = RoundedCornerShape(11.dp),
+                shape = CircleShape,
                 border = nightGlassBorder(intensity = 1.2f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .padding(start = 6.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val context = LocalContext.current
@@ -144,11 +145,11 @@ fun MiniAudioPlayerContent(
                             getSongFallbackGradient(song.id, song.title)
                         }
 
-                        // Album Art Thumbnail (Matching video 68x46 landscape box)
+                        // Circular Album Art Thumbnail
                         Box(
                             modifier = Modifier
-                                .size(width = 68.dp, height = 46.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .size(44.dp)
+                                .clip(CircleShape)
                                 .background(
                                     if (isPlaying) Brush.linearGradient(listOf(NovaPrimary, NovaSecondary))
                                     else Brush.linearGradient(
@@ -156,7 +157,8 @@ fun MiniAudioPlayerContent(
                                             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
                                             MaterialTheme.colorScheme.surfaceVariant
                                         )
-                                    )
+                                    ),
+                                    shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -167,7 +169,9 @@ fun MiniAudioPlayerContent(
                                         .crossfade(true)
                                         .build(),
                                     contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
                                     contentScale = ContentScale.Crop,
                                     onError = { miniArtFailed = true }
                                 )
@@ -176,6 +180,7 @@ fun MiniAudioPlayerContent(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .clip(CircleShape)
                                         .background(Color(0x55000000)),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -196,7 +201,7 @@ fun MiniAudioPlayerContent(
 
                         Spacer(modifier = Modifier.width(10.dp))
 
-                        // Title & Artist / Time Status (Matching video style)
+                        // Title & Artist / Time Status
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = song.title,
@@ -229,13 +234,13 @@ fun MiniAudioPlayerContent(
                         // Previous Track
                         IconButton(
                             onClick = onPrevious,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipPrevious,
                                 contentDescription = "Previous",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(19.dp)
                             )
                         }
 
@@ -243,27 +248,27 @@ fun MiniAudioPlayerContent(
                         IconButton(
                             onClick = onTogglePlayPause,
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(34.dp)
                                 .testTag("mini_audio_play_pause")
                         ) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = if (isPlaying) "Pause" else "Play",
                                 tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(26.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
 
                         // Next Track
                         IconButton(
                             onClick = onNext,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = "Next",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(19.dp)
                             )
                         }
 
@@ -271,14 +276,14 @@ fun MiniAudioPlayerContent(
                         IconButton(
                             onClick = onClose,
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(30.dp)
                                 .testTag("mini_audio_close")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Close",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(19.dp)
                             )
                         }
                     }

@@ -485,19 +485,20 @@ fun AppUpdateFullScreen(
                                 .testTag("update_download_button"),
                             shape = CircleShape,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = NovaAccent
+                                containerColor = NovaAccent,
+                                contentColor = Color.White
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Download,
                                 contentDescription = null,
-                                tint = Color(0xFF0A0F1D),
+                                tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = if (isDownloading) "Downloading..." else "Download",
-                                color = Color(0xFF0A0F1D),
+                                color = Color.White,
                                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                                 maxLines = 1,
                                 softWrap = false

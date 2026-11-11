@@ -30,6 +30,7 @@ import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
 import com.example.ui.theme.nightGlassBorder
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IosMusicWidgetView(
     audioPlayerManager: AudioPlayerManager,
@@ -151,6 +152,23 @@ fun IosMusicWidgetView(
                         activeTrackColor = Color.White,
                         inactiveTrackColor = Color(0xFF323B4C)
                     ),
+                    thumb = {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .background(Color.White, shape = CircleShape)
+                        )
+                    },
+                    track = { sliderState ->
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            modifier = Modifier.height(3.dp),
+                            colors = SliderDefaults.colors(
+                                activeTrackColor = Color.White,
+                                inactiveTrackColor = Color(0xFF323B4C)
+                            )
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(20.dp)

@@ -480,7 +480,7 @@ fun NovaPlayerApp(
             "privacy_policy"
         )
     }
-    val rawMiniPlayerActive = isAudioPlaying || (currentSongPlaying != null && !isPlaying) || currentVideoPlaying != null
+    val rawMiniPlayerActive = isAudioPlaying || (currentSongPlaying != null && !isPlaying)
     val isMiniPlayerActive = rawMiniPlayerActive && !isPlayerScreen && !isSettingsOrInfoScreen && (currentRoute == null || currentRoute !in hideMiniPlayerOnRoutes)
 
     // Dialog & BottomSheet state
@@ -1031,19 +1031,12 @@ composable(Screen.Onboarding.route) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Floating MiniPlayer bar: Prioritize audio when audio is active or playing
+                    // Floating Pill MiniPlayer bar: Audio only
                     if (isAudioPlaying || (currentSongPlaying != null && !isPlaying)) {
                         MiniAudioPlayerBar(
                             audioPlayerManager = viewModel.audioPlayerManager,
                             onExpand = {
                                 viewModel.audioPlayerManager.openFullPlayer()
-                            }
-                        )
-                    } else if (currentVideoPlaying != null) {
-                        MiniPlayerView(
-                            playerManager = viewModel.playerManager,
-                            onExpand = {
-                                navController.navigate(Screen.Player.route)
                             }
                         )
                     }

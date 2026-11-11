@@ -269,21 +269,32 @@ fun PlayerScreen(
         }
     }
 
+    val isBackgroundAudioEnabled by playerManager.backgroundAudioEnabled.collectAsState()
+
+    val handleExitPlayer = {
+        if (!isBackgroundAudioEnabled) {
+            playerManager.pause()
+        }
+        onBack()
+    }
+
     BackHandler {
         if (isLocked) {
             playerManager.setLocked(false)
         } else {
-            onBack()
+            handleExitPlayer()
         }
     }
 
     if (video == null) {
-        Box(
-            modifier = Modifier.fillMaxSize().background(Color.Black),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("No video playing", color = Color.White)
+        LaunchedEffect(Unit) {
+            onBack()
         }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        )
         return
     }
 
@@ -726,7 +737,7 @@ fun PlayerScreen(
             decoderMode = decoderMode,
             hasSubtitles = subtitleTracks.any { it.isSelected },
             isEqualizerEnabled = isEqualizerEnabled,
-            onBack = onBack,
+            onBack = handleExitPlayer,
             onPlayPause = { playerManager.togglePlayPause() },
             onSeekTo = { playerManager.seekTo(it) },
             onSeekDelta = { playerManager.seekBy(it) },

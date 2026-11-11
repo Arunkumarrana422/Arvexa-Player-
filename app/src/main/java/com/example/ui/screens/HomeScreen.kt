@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,14 +41,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlin.math.absoluteValue
 import com.example.ui.components.VideoThumbnailView
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -142,7 +149,7 @@ fun HomeScreen(
             }
         }
 
-        // CONTINUE WATCHING SECTION
+        // CONTINUE WATCHING SECTION (Card Carousel matching Video 2)
         if (continueWatching.isNotEmpty()) {
             item {
                 SectionHeader(
@@ -152,18 +159,86 @@ fun HomeScreen(
                     onActionClick = onNavigateToHistory
                 )
 
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    items(continueWatching) { video ->
+                val coroutineScope = rememberCoroutineScope()
+                val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+                val cardWidth = 245.dp
+                val horizontalPadding = ((screenWidthDp - cardWidth) / 2).coerceAtLeast(16.dp)
+
+                val realCount = continueWatching.size
+                val initialPageIndex = androidx.compose.runtime.remember(continueWatching, latestPlayedVideoId) {
+                    val idx = continueWatching.indexOfFirst { it.id == latestPlayedVideoId }
+                    if (idx >= 0) idx else 0
+                }
+                val initialPage = androidx.compose.runtime.remember(realCount, initialPageIndex) {
+                    if (realCount > 0) {
+                        (5_000 / realCount) * realCount + initialPageIndex
+                    } else 0
+                }
+                val pagerState = rememberPagerState(
+                    initialPage = initialPage,
+                    pageCount = { if (realCount > 0) 10_000 else 0 }
+                )
+
+                androidx.compose.runtime.LaunchedEffect(latestPlayedVideoId, realCount) {
+                    if (realCount > 0 && latestPlayedVideoId != null) {
+                        val targetIndex = continueWatching.indexOfFirst { it.id == latestPlayedVideoId }
+                        if (targetIndex >= 0) {
+                            val currentPage = pagerState.currentPage
+                            val currentModulo = currentPage % realCount
+                            var diff = targetIndex - currentModulo
+                            if (diff > realCount / 2) diff -= realCount
+                            if (diff < -realCount / 2) diff += realCount
+                            val targetPage = currentPage + diff
+                            if (currentPage != targetPage) {
+                                pagerState.animateScrollToPage(targetPage)
+                            }
+                        }
+                    }
+                }
+
+                HorizontalPager(
+                    state = pagerState,
+                    pageSize = androidx.compose.foundation.pager.PageSize.Fixed(cardWidth),
+                    contentPadding = PaddingValues(horizontal = horizontalPadding),
+                    pageSpacing = 12.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .testTag("continue_watching_carousel")
+                ) { page ->
+                    val actualIndex = if (realCount > 0) page % realCount else 0
+                    val video = continueWatching.getOrNull(actualIndex) ?: return@HorizontalPager
+                    val pageOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).absoluteValue
+                    val progressFraction = (1f - pageOffset.coerceIn(0f, 1f))
+                    val scale = 0.88f + (0.12f * progressFraction)
+                    val alpha = 0.70f + (0.30f * progressFraction)
+                    val isCentered = (pagerState.currentPage == page)
+
+                    Box(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                                this.alpha = alpha
+                            }
+                            .clip(RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
                         ContinueWatchingCard(
                             video = video,
                             isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
                             isLatestPlayed = (video.id == latestPlayedVideoId),
+                            isCentered = isCentered,
                             currentPosMs = currentPosMs,
-                            onClick = { onPlayVideo(video, continueWatching) }
+                            onClick = {
+                                if (isCentered) {
+                                    onPlayVideo(video, continueWatching)
+                                } else {
+                                    coroutineScope.launch {
+                                        pagerState.animateScrollToPage(page)
+                                    }
+                                }
+                            }
                         )
                     }
                 }
@@ -332,9 +407,12 @@ private fun ContinueWatchingCard(
     video: Video,
     isCurrentlyPlaying: Boolean = false,
     isLatestPlayed: Boolean = false,
+    isCentered: Boolean = false,
     currentPosMs: Long = 0L,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
+    val cardShape = RoundedCornerShape(14.dp)
     val isPartiallyWatched = video.isPartiallyWatched || (video.lastPositionMs > 5000L && video.progressFraction in 0.02f..0.95f)
     val halfWatchedColor = NovaAccent
     val titleColor = when {
@@ -343,25 +421,38 @@ private fun ContinueWatchingCard(
         else -> MaterialTheme.colorScheme.onSurface
     }
 
+    val isDark = com.example.ui.theme.isNightMode()
+    val cardBorder = when {
+        isCurrentlyPlaying -> androidx.compose.foundation.BorderStroke(1.5.dp, NovaAccent)
+        isDark -> nightGlassBorder()
+        else -> androidx.compose.foundation.BorderStroke(0.8.dp, Color(0xFFE2E8F0))
+    }
+
     Card(
         onClick = onClick,
-        modifier = Modifier
-            .width(210.dp)
+        modifier = modifier
+            .width(245.dp)
+            .clip(cardShape)
             .testTag("continue_card_${video.id}"),
-        shape = RoundedCornerShape(12.dp),
-        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
+        shape = cardShape,
+        border = cardBorder,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 1.5.dp else 1.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isCentered) 1.dp else 0.dp
+        )
     ) {
-        Column {
+        Column(modifier = Modifier.fillMaxWidth().clip(cardShape)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(115.dp)
+                    .height(125.dp)
+                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
             ) {
                 VideoThumbnailView(
                     video = video,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                 )
 
                 if (isCurrentlyPlaying) {

@@ -145,7 +145,7 @@ fun FoldersScreen(
                             onPlayVideo(sortedVideos.first(), sortedVideos)
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color(0xFF0F172A)),
+                    colors = ButtonDefaults.buttonColors(containerColor = NovaAccent, contentColor = Color.White),
                     shape = androidx.compose.foundation.shape.CircleShape,
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
                 ) {
