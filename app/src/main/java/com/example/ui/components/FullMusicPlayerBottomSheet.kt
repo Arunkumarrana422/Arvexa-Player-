@@ -21,9 +21,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -81,6 +83,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
 import androidx.compose.ui.platform.testTag
@@ -179,62 +182,80 @@ fun FullMusicPlayerBottomSheet(
         label = "spin"
     )
 
+    val isDark = isNightMode()
+    // Light mode -> deep blurred backdrop + crisp white text; Dark mode -> luminous pastel backdrop + crisp black text
+    val useDeepBackdropWithWhiteText = !isDark
+    val ambientStyle = rememberSongAmbientStyle(song)
+    val adaptiveColors = remember(useDeepBackdropWithWhiteText) {
+        resolvePlayerAdaptiveColors(useLightText = useDeepBackdropWithWhiteText)
+    }
+
     ModalBottomSheet(
         onDismissRequest = onClose,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RectangleShape,
+        containerColor = Color.Transparent,
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         dragHandle = null,
         modifier = Modifier.fillMaxSize().testTag("full_music_player_sheet")
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Top Bar
-            Row(
+        Box(modifier = Modifier.fillMaxSize()) {
+            MusicPlayerAmbientBackground(
+                style = ambientStyle,
+                useDeepBackdrop = useDeepBackdropWithWhiteText,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = onClose) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Minimize",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
+                // Top Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Minimize",
+                            tint = adaptiveColors.primaryText,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "PLAYING FROM LIBRARY",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            letterSpacing = 1.2.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = NovaAccent
-                    )
-                    Text(
-                        text = song.folderName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "PLAYING FROM LIBRARY",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                letterSpacing = 1.2.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = adaptiveColors.primaryText
+                        )
+                        Text(
+                            text = song.folderName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = adaptiveColors.secondaryText
+                        )
+                    }
 
-                IconButton(onClick = { showQueueSheet = true }, modifier = Modifier.clip(CircleShape)) {
-                    Icon(
-                        imageVector = Icons.Default.QueueMusic,
-                        contentDescription = "Queue",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+                    IconButton(onClick = { showQueueSheet = true }, modifier = Modifier.clip(CircleShape)) {
+                        Icon(
+                            imageVector = Icons.Default.QueueMusic,
+                            contentDescription = "Queue",
+                            tint = adaptiveColors.primaryText
+                        )
+                    }
                 }
-            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -283,35 +304,14 @@ fun FullMusicPlayerBottomSheet(
                             },
                         shape = RoundedCornerShape(24.dp),
                         border = nightGlassBorder(intensity = 1.3f),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 8.dp else 12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        Box(
+                        SongArtworkView(
+                            song = pagerSong,
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val albumArtUri = remember(pagerSong.id, pagerSong.albumId) {
-                                if (pagerSong.albumId > 0) {
-                                    ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), pagerSong.albumId)
-                                } else {
-                                    null
-                                }
-                            }
-                            val songGradient = remember(pagerSong.id, pagerSong.title) {
-                                getSongFallbackGradient(pagerSong.id, pagerSong.title)
-                            }
-                            var hasError by remember(pagerSong.id) { mutableStateOf(false) }
-
-                            if (!hasError && (albumArtUri != null || pagerSong.uri.isNotBlank() || pagerSong.dataPath.isNotBlank())) {
-                                AsyncImage(
-                                    model = albumArtUri ?: pagerSong.uri.ifBlank { pagerSong.dataPath },
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                    onError = { hasError = true }
-                                )
-                            }
-                            if (hasError || (albumArtUri == null && pagerSong.uri.isBlank() && pagerSong.dataPath.isBlank())) {
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            placeholder = {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -326,7 +326,7 @@ fun FullMusicPlayerBottomSheet(
                                     )
                                 }
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -348,7 +348,7 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.Shuffle,
                         contentDescription = "Shuffle",
-                        tint = if (isShuffle) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isShuffle) NovaAccent else adaptiveColors.inactiveIcon,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -363,7 +363,7 @@ fun FullMusicPlayerBottomSheet(
                             else -> Icons.Default.Repeat
                         },
                         contentDescription = repeatMode.label,
-                        tint = if (repeatMode != AudioRepeatMode.OFF) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (repeatMode != AudioRepeatMode.OFF) NovaAccent else adaptiveColors.inactiveIcon,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -384,7 +384,7 @@ fun FullMusicPlayerBottomSheet(
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = adaptiveColors.primaryText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -392,7 +392,7 @@ fun FullMusicPlayerBottomSheet(
                     Text(
                         text = "${song.artist} • ${song.album}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = adaptiveColors.secondaryText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -415,7 +415,7 @@ fun FullMusicPlayerBottomSheet(
                     colors = SliderDefaults.colors(
                         thumbColor = NovaAccent,
                         activeTrackColor = NovaAccent,
-                        inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                        inactiveTrackColor = adaptiveColors.sliderInactiveTrack
                     ),
                     thumb = {
                         Box(
@@ -433,7 +433,7 @@ fun FullMusicPlayerBottomSheet(
                             modifier = Modifier.height(3.5.dp),
                             colors = SliderDefaults.colors(
                                 activeTrackColor = NovaAccent,
-                                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                                inactiveTrackColor = adaptiveColors.sliderInactiveTrack
                             )
                         )
                     },
@@ -448,13 +448,13 @@ fun FullMusicPlayerBottomSheet(
                 ) {
                     Text(
                         text = Video.formatDuration(effectivePos),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                        color = adaptiveColors.secondaryText
                     )
                     Text(
                         text = Video.formatDuration(effectiveDur),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                        color = adaptiveColors.secondaryText
                     )
                 }
             }
@@ -473,7 +473,7 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Previous",
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = adaptiveColors.primaryText,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -486,7 +486,7 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.Replay10,
                         contentDescription = "Rewind 10s",
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = adaptiveColors.primaryText,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -519,7 +519,7 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.Forward10,
                         contentDescription = "Forward 10s",
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = adaptiveColors.primaryText,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -532,13 +532,13 @@ fun FullMusicPlayerBottomSheet(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Next",
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = adaptiveColors.primaryText,
                         modifier = Modifier.size(32.dp)
                     )
                 }
             }
 
-            // Bottom Tools Toolbar (Speed, Equalizer, Sleep Timer) with Rounded Capsule Ripple
+            // Bottom Tools Toolbar (Speed, Equalizer, Sleep Timer) with Frosted Glass Pills
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -549,8 +549,8 @@ fun FullMusicPlayerBottomSheet(
                 // Speed Capsule
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    border = nightGlassBorder(),
+                    color = adaptiveColors.pillBackground,
+                    border = BorderStroke(1.dp, adaptiveColors.pillBorder),
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .clickable { showSpeedSheet = true }
@@ -568,7 +568,7 @@ fun FullMusicPlayerBottomSheet(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "${playbackSpeed}x",
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = adaptiveColors.primaryText,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -576,10 +576,10 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Equalizer Capsule
-                val eqCapsuleBg = if (isEqualizerEnabled) NovaAccent.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                val eqCapsuleBorder = if (isEqualizerEnabled) BorderStroke(1.dp, NovaAccent.copy(alpha = 0.7f)) else nightGlassBorder()
-                val eqTextColor = if (isEqualizerEnabled) NovaAccent else MaterialTheme.colorScheme.onSurface
-                val eqIconTint = if (isEqualizerEnabled) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant
+                val eqCapsuleBg = if (isEqualizerEnabled) adaptiveColors.activePillBackground else adaptiveColors.pillBackground
+                val eqCapsuleBorder = if (isEqualizerEnabled) BorderStroke(1.dp, NovaAccent.copy(alpha = 0.8f)) else BorderStroke(1.dp, adaptiveColors.pillBorder)
+                val eqTextColor = if (isEqualizerEnabled) NovaAccent else adaptiveColors.primaryText
+                val eqIconTint = if (isEqualizerEnabled) NovaAccent else adaptiveColors.primaryText
 
                 Surface(
                     shape = RoundedCornerShape(20.dp),
@@ -611,10 +611,11 @@ fun FullMusicPlayerBottomSheet(
                 }
 
                 // Sleep Timer Capsule
+                val isTimerActive = sleepTimerMinutes != null
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    border = nightGlassBorder(),
+                    color = if (isTimerActive) adaptiveColors.activePillBackground else adaptiveColors.pillBackground,
+                    border = if (isTimerActive) BorderStroke(1.dp, NovaAccent.copy(alpha = 0.8f)) else BorderStroke(1.dp, adaptiveColors.pillBorder),
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .clickable { showSleepTimerSheet = true }
@@ -626,19 +627,20 @@ fun FullMusicPlayerBottomSheet(
                         Icon(
                             imageVector = Icons.Default.Timer,
                             contentDescription = null,
-                            tint = if (sleepTimerMinutes != null) NovaAccent else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (isTimerActive) NovaAccent else adaptiveColors.primaryText,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (sleepTimerMinutes != null) "${sleepTimerMinutes}m" else "Timer",
-                            color = if (sleepTimerMinutes != null) NovaAccent else MaterialTheme.colorScheme.onSurface,
+                            text = if (isTimerActive) "${sleepTimerMinutes}m" else "Timer",
+                            color = if (isTimerActive) NovaAccent else adaptiveColors.primaryText,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = if (isTimerActive) FontWeight.Bold else FontWeight.SemiBold
                         )
                     }
                 }
             }
+        }
         }
     }
 
@@ -662,69 +664,62 @@ fun FullMusicPlayerBottomSheet(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(360.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                        .height(360.dp)
                 ) {
                     itemsIndexed(queue) { index, qSong ->
                         val isItemPlaying = index == queueIndex
-                        Card(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .background(
+                                    if (isItemPlaying) NovaAccent.copy(alpha = 0.08f) else Color.Transparent
+                                )
                                 .clickable {
                                     audioPlayerManager.playSong(qSong, queue, index)
                                     showQueueSheet = false
-                                },
-                            border = nightGlassBorder(isCurrentlyPlaying = isItemPlaying),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isItemPlaying) NovaAccent.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                            shape = RoundedCornerShape(8.dp)
+                                }
+                                .padding(horizontal = 4.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                if (isItemPlaying) {
-                                    NowPlayingEqualizer(modifier = Modifier.size(18.dp), barColor = NovaAccent)
-                                } else {
-                                    Text(
-                                        text = "${index + 1}",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 12.sp,
-                                        modifier = Modifier.width(20.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = qSong.title,
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                                        color = if (isItemPlaying) NovaAccent else MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1
-                                    )
-                                    Text(
-                                        text = qSong.artist,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1
-                                    )
-                                }
+                            if (isItemPlaying) {
+                                NowPlayingEqualizer(modifier = Modifier.size(18.dp), barColor = NovaAccent)
+                            } else {
                                 Text(
-                                    text = qSong.durationFormatted,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = "${index + 1}",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.width(20.dp)
                                 )
                             }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = qSong.title,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = if (isItemPlaying) NovaAccent else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = qSong.artist,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                            Text(
+                                text = qSong.durationFormatted,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (index < queue.lastIndex) {
+                            ListItemDivider(modifier = Modifier.padding(start = 34.dp, end = 4.dp))
                         }
                     }
                 }
             }
         }
     }
-
-    val isDark = isNightMode()
 
     // Equalizer Sheet
     if (showEqualizerSheet) {
@@ -770,7 +765,7 @@ fun FullMusicPlayerBottomSheet(
                         else BorderStroke(1.dp, Color(0xFFE2E8F0))
                     }
                     val cardBg = if (isSelected) {
-                        if (isDark) NovaAccent.copy(alpha = 0.25f) else Color(0xFFE0F7FA)
+                        if (isDark) NovaAccent.copy(alpha = 0.25f) else androidx.compose.ui.graphics.lerp(Color.White, NovaAccent, 0.14f)
                     } else {
                         if (isDark) Color(0xFF162032).copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     }
@@ -831,7 +826,7 @@ fun FullMusicPlayerBottomSheet(
                         else BorderStroke(1.dp, Color(0xFFE2E8F0))
                     }
                     val cardBg = if (isSelected) {
-                        if (isDark) NovaAccent.copy(alpha = 0.25f) else Color(0xFFE0F7FA)
+                        if (isDark) NovaAccent.copy(alpha = 0.25f) else androidx.compose.ui.graphics.lerp(Color.White, NovaAccent, 0.14f)
                     } else {
                         if (isDark) Color(0xFF162032).copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     }

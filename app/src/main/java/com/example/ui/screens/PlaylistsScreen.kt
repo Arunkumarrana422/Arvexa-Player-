@@ -24,7 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,6 +65,7 @@ import com.example.domain.model.Video
 import com.example.ui.components.EmptyStateView
 import com.example.ui.components.DeletePlaylistConfirmDialog
 import com.example.ui.components.AddVideosScreen
+import com.example.ui.components.ListItemDivider
 import com.example.ui.components.PlaylistCard
 import com.example.ui.components.VideoCard
 import com.example.ui.theme.NovaAccent
@@ -80,20 +82,20 @@ fun CreatePlaylistPillButton(
 ) {
     val isDark = isNightMode()
 
-    // Vibrant, high-contrast cyan styling matching navigation bar in Light Mode
-    val lightBg = Color(0xFFE0F7FA) // Matching navigation active pill cyan
-    val lightBorder = Color(0xFF22D3EE).copy(alpha = 0.80f)
-    val lightContent = Color(0xFF007A99) // Deep, crisp, razor-sharp cyan (no blurriness)
+    // Theme-reactive high-contrast styling in Light Mode
+    val lightBg = lerp(Color.White, NovaAccent, 0.13f)
+    val lightBorder = NovaAccent.copy(alpha = 0.80f)
+    val lightContent = lerp(NovaAccent, Color.Black, 0.34f)
 
     // Glowing metallic glass effect in Dark / Night Mode
     val darkBgGradient = Brush.verticalGradient(
         colors = listOf(
             Color.White.copy(alpha = 0.09f),
-            Color(0x2222D3EE),
+            NovaAccent.copy(alpha = 0.14f),
             Color(0x350B1020)
         )
     )
-    val darkContent = NovaAccent // Vibrant neon cyan #22D3EE
+    val darkContent = NovaAccent
 
     val glassBorder = nightGlassBorder(intensity = 1.35f) ?: BorderStroke(1.2.dp, lightBorder)
 
@@ -301,10 +303,9 @@ fun PlaylistsScreen(
                 }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
                 ) {
-                    items(playlistVideos, key = { it.id }) { video ->
+                    itemsIndexed(playlistVideos, key = { _, video -> video.id }) { index, video ->
                         VideoCard(
                             video = video,
                             onClick = { onPlayVideo(video, playlistVideos) },
@@ -316,6 +317,9 @@ fun PlaylistsScreen(
                             onShowInfo = { onShowVideoInfo(video) },
                             onRemoveFromPlaylist = { onRemoveFromPlaylist(currentSelectedPlaylist.id, video.id) }
                         )
+                        if (index < playlistVideos.lastIndex) {
+                            ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
+                        }
                     }
                 }
             }
@@ -346,15 +350,17 @@ fun PlaylistsScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
                 ) {
-                    items(playlists, key = { it.id }) { playlist ->
+                    itemsIndexed(playlists, key = { _, playlist -> playlist.id }) { index, playlist ->
                         PlaylistCard(
                             playlist = playlist,
                             onClick = { onSelectPlaylist(playlist) },
                             onDelete = { onDeletePlaylist(playlist.id) }
                         )
+                        if (index < playlists.lastIndex) {
+                            ListItemDivider(modifier = Modifier.padding(start = 76.dp, end = 16.dp))
+                        }
                     }
                 }
             }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -85,13 +87,17 @@ fun CreatePlaylistDialog(
     val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
     val glassBorder = if (isDark) nightGlassBorder(strokeWidth = 1.2.dp, intensity = 1.4f) else null
 
+    val themeLightContent = lerp(NovaAccent, Color.Black, 0.34f)
+    val themeLightTintStart = lerp(Color.White, NovaAccent, 0.14f)
+    val themeLightTintEnd = lerp(Color.White, NovaSecondary, 0.16f)
+
     // Text field color configuration matching navigation & pill colors
     val tfContainerColor = if (isDark) Color(0xFF192238) else Color(0xFFF8FAFC)
-    val tfFocusedBorder = if (isDark) NovaAccent else Color(0xFF007A99)
+    val tfFocusedBorder = if (isDark) NovaAccent else themeLightContent
     val tfUnfocusedBorder = if (isDark) Color(0xFF2A375A) else Color(0xFFCBD5E1)
     val tfTextColor = if (isDark) Color(0xFFF8FAFC) else Color(0xFF0F172A)
     val tfPlaceholderColor = if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
-    val tfIconColor = if (isDark) NovaAccent else Color(0xFF007A99)
+    val tfIconColor = if (isDark) NovaAccent else themeLightContent
 
     val createBtnEnabled = name.isNotBlank()
 
@@ -114,7 +120,7 @@ fun CreatePlaylistDialog(
                         Brush.verticalGradient(
                             listOf(
                                 Color.White.copy(alpha = 0.08f),
-                                Color(0x1522D3EE),
+                                NovaAccent.copy(alpha = 0.09f),
                                 Color.Black.copy(alpha = 0.22f)
                             )
                         )
@@ -135,7 +141,7 @@ fun CreatePlaylistDialog(
                             .background(
                                 Brush.linearGradient(
                                     if (isDark) listOf(NovaPrimary, NovaSecondary)
-                                    else listOf(Color(0xFFE0F7FA), Color(0xFFCCFBF1))
+                                    else listOf(themeLightTintStart, themeLightTintEnd)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -143,7 +149,7 @@ fun CreatePlaylistDialog(
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
-                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                            tint = if (isDark) NovaAccent else themeLightContent,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -278,7 +284,7 @@ fun CreatePlaylistDialog(
                             enabled = createBtnEnabled,
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isDark) NovaAccent else Color(0xFF007A99),
+                                containerColor = if (isDark) NovaAccent else themeLightContent,
                                 contentColor = if (isDark) Color(0xFF0B1020) else Color.White,
                                 disabledContainerColor = if (isDark) Color(0xFF1E2638) else Color(0xFFE2E8F0),
                                 disabledContentColor = if (isDark) Color(0xFF64748B) else Color(0xFF94A3B8)
@@ -319,6 +325,9 @@ fun AddToPlaylistDialog(
     val isDark = isNightMode()
     val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
     val glassBorder = if (isDark) nightGlassBorder(intensity = 1.35f) else null
+    val themeLightContent = lerp(NovaAccent, Color.Black, 0.34f)
+    val themeLightTintStart = lerp(Color.White, NovaAccent, 0.14f)
+    val themeLightTintEnd = lerp(Color.White, NovaSecondary, 0.16f)
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -359,7 +368,7 @@ fun AddToPlaylistDialog(
                             .background(
                                 Brush.linearGradient(
                                     if (isDark) listOf(NovaPrimary, NovaSecondary)
-                                    else listOf(Color(0xFFE0F7FA), Color(0xFFCCFBF1))
+                                    else listOf(themeLightTintStart, themeLightTintEnd)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -367,7 +376,7 @@ fun AddToPlaylistDialog(
                         Icon(
                             imageVector = Icons.Default.VideoLibrary,
                             contentDescription = null,
-                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                            tint = if (isDark) NovaAccent else themeLightContent,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -388,7 +397,7 @@ fun AddToPlaylistDialog(
                     Text(
                         text = video.title,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (isDark) NovaAccent else Color(0xFF007A99),
+                        color = if (isDark) NovaAccent else themeLightContent,
                         maxLines = 1
                     )
 
@@ -435,7 +444,7 @@ fun AddToPlaylistDialog(
                                         Icon(
                                             imageVector = Icons.Default.PlaylistPlay,
                                             contentDescription = null,
-                                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                                            tint = if (isDark) NovaAccent else themeLightContent,
                                             modifier = Modifier.size(24.dp)
                                         )
                                         Spacer(modifier = Modifier.width(10.dp))
@@ -492,6 +501,9 @@ fun AddSongToPlaylistDialog(
     val isDark = isNightMode()
     val dialogBg = if (isDark) Color(0xFF131B2E) else Color(0xFFFFFFFF)
     val glassBorder = if (isDark) nightGlassBorder(intensity = 1.35f) else null
+    val themeLightContent = lerp(NovaAccent, Color.Black, 0.34f)
+    val themeLightTintStart = lerp(Color.White, NovaAccent, 0.14f)
+    val themeLightTintEnd = lerp(Color.White, NovaSecondary, 0.16f)
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -532,7 +544,7 @@ fun AddSongToPlaylistDialog(
                             .background(
                                 Brush.linearGradient(
                                     if (isDark) listOf(NovaPrimary, NovaSecondary)
-                                    else listOf(Color(0xFFE0F7FA), Color(0xFFCCFBF1))
+                                    else listOf(themeLightTintStart, themeLightTintEnd)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -540,7 +552,7 @@ fun AddSongToPlaylistDialog(
                         Icon(
                             imageVector = Icons.Default.MusicNote,
                             contentDescription = null,
-                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                            tint = if (isDark) NovaAccent else themeLightContent,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -561,7 +573,7 @@ fun AddSongToPlaylistDialog(
                     Text(
                         text = "${song.title} • ${song.artist}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (isDark) NovaAccent else Color(0xFF007A99),
+                        color = if (isDark) NovaAccent else themeLightContent,
                         maxLines = 1
                     )
 
@@ -608,7 +620,7 @@ fun AddSongToPlaylistDialog(
                                         Icon(
                                             imageVector = Icons.Default.PlaylistPlay,
                                             contentDescription = null,
-                                            tint = if (isDark) NovaAccent else Color(0xFF007A99),
+                                            tint = if (isDark) NovaAccent else themeLightContent,
                                             modifier = Modifier.size(24.dp)
                                         )
                                         Spacer(modifier = Modifier.width(10.dp))
@@ -782,11 +794,11 @@ fun AddSongsScreen(
     var selectedSongIds by remember { mutableStateOf(setOf<String>()) }
     val isDark = isNightMode()
 
-    // Matching pill colors for the round outline button
-    val lightBg = Color(0xFFE0F7FA)
-    val lightBorder = Color(0xFF22D3EE).copy(alpha = 0.85f)
-    val lightContent = Color(0xFF007A99) // Deep sharp cyan
-    val darkContent = NovaAccent // Vibrant neon cyan #22D3EE
+    // Matching theme-reactive pill colors for the round outline button
+    val lightBg = lerp(Color.White, NovaAccent, 0.13f)
+    val lightBorder = NovaAccent.copy(alpha = 0.85f)
+    val lightContent = lerp(NovaAccent, Color.Black, 0.34f)
+    val darkContent = NovaAccent
     val darkBtnBg = Color(0xFF131B2E).copy(alpha = 0.75f)
 
     val isEnabled = selectedSongIds.isNotEmpty()
@@ -825,7 +837,7 @@ fun AddSongsScreen(
             ) {
                 Text(
                     text = if (selectedSongIds.size == availableSongs.size) "Deselect All" else "Select All",
-                    color = if (isDark) NovaAccent else Color(0xFF007A99),
+                    color = if (isDark) NovaAccent else lightContent,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -849,74 +861,47 @@ fun AddSongsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
             ) {
-                items(availableSongs, key = { it.id }) { song ->
+                itemsIndexed(availableSongs, key = { _, song -> song.id }) { index, song ->
                     val isSelected = selectedSongIds.contains(song.id)
-                    Card(
-                        onClick = {
-                            selectedSongIds = if (isSelected) {
-                                selectedSongIds - song.id
-                            } else {
-                                selectedSongIds + song.id
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(if (isSelected) NovaAccent.copy(alpha = 0.08f) else Color.Transparent)
+                            .clickable {
+                                selectedSongIds = if (isSelected) {
+                                    selectedSongIds - song.id
+                                } else {
+                                    selectedSongIds + song.id
+                                }
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isDark) Color(0xFF162032) else MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        border = if (isSelected) BorderStroke(2.dp, NovaAccent) else nightGlassBorder()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = { checked ->
+                                selectedSongIds = if (checked) {
+                                    selectedSongIds + song.id
+                                } else {
+                                    selectedSongIds - song.id
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFFF1F5F9)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = { checked ->
-                                    selectedSongIds = if (checked) {
-                                        selectedSongIds + song.id
-                                    } else {
-                                        selectedSongIds - song.id
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            var dlgArtFailed by remember(song.id) { mutableStateOf(false) }
-                            val albumArtUri = remember(song.id, song.albumId) {
-                                if (song.albumId > 0) {
-                                    android.content.ContentUris.withAppendedId(
-                                        android.net.Uri.parse("content://media/external/audio/albumart"),
-                                        song.albumId
-                                    )
-                                } else {
-                                    null
-                                }
-                            }
-                            val dlgGradient = remember(song.id, song.title) {
-                                getSongFallbackGradient(song.id, song.title)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (!dlgArtFailed && (albumArtUri != null || song.uri.isNotBlank() || song.dataPath.isNotBlank())) {
-                                    AsyncImage(
-                                        model = albumArtUri ?: song.uri.ifBlank { song.dataPath },
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                        onError = { dlgArtFailed = true }
-                                    )
-                                } else {
+                            SongArtworkView(
+                                song = song,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                placeholder = {
                                     Icon(
                                         imageVector = Icons.Default.MusicNote,
                                         contentDescription = null,
@@ -924,24 +909,27 @@ fun AddSongsScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = song.title,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                    maxLines = 1,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = song.artist,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1
-                                )
-                            }
+                            )
                         }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = song.title,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                maxLines = 1,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = song.artist,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    if (index < availableSongs.lastIndex) {
+                        ListItemDivider(modifier = Modifier.padding(start = 128.dp, end = 16.dp))
                     }
                 }
             }
@@ -985,7 +973,7 @@ fun AddSongsScreen(
                             Brush.verticalGradient(
                                 listOf(
                                     Color.White.copy(alpha = 0.09f),
-                                    Color(0x2222D3EE),
+                                    NovaAccent.copy(alpha = 0.14f),
                                     Color(0x350B1020)
                                 )
                             )
@@ -1042,11 +1030,11 @@ fun AddVideosScreen(
     var selectedVideoIds by remember { mutableStateOf(setOf<String>()) }
     val isDark = isNightMode()
 
-    // Matching pill colors for the round outline button
-    val lightBg = Color(0xFFE0F7FA)
-    val lightBorder = Color(0xFF22D3EE).copy(alpha = 0.85f)
-    val lightContent = Color(0xFF007A99) // Deep sharp cyan
-    val darkContent = NovaAccent // Vibrant neon cyan #22D3EE
+    // Matching theme-reactive pill colors for the round outline button
+    val lightBg = lerp(Color.White, NovaAccent, 0.13f)
+    val lightBorder = NovaAccent.copy(alpha = 0.85f)
+    val lightContent = lerp(NovaAccent, Color.Black, 0.34f)
+    val darkContent = NovaAccent
     val darkBtnBg = Color(0xFF131B2E).copy(alpha = 0.75f)
 
     val isEnabled = selectedVideoIds.isNotEmpty()
@@ -1085,7 +1073,7 @@ fun AddVideosScreen(
             ) {
                 Text(
                     text = if (selectedVideoIds.size == availableVideos.size) "Deselect All" else "Select All",
-                    color = if (isDark) NovaAccent else Color(0xFF007A99),
+                    color = if (isDark) NovaAccent else lightContent,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1109,67 +1097,60 @@ fun AddVideosScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
             ) {
-                items(availableVideos, key = { it.id }) { video ->
+                itemsIndexed(availableVideos, key = { _, video -> video.id }) { index, video ->
                     val isSelected = selectedVideoIds.contains(video.id)
-                    Card(
-                        onClick = {
-                            selectedVideoIds = if (isSelected) {
-                                selectedVideoIds - video.id
-                            } else {
-                                selectedVideoIds + video.id
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isDark) Color(0xFF162032) else MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        border = if (isSelected) BorderStroke(2.dp, NovaAccent) else nightGlassBorder()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = { checked ->
-                                    selectedVideoIds = if (checked) {
-                                        selectedVideoIds + video.id
-                                    } else {
-                                        selectedVideoIds - video.id
-                                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(if (isSelected) NovaAccent.copy(alpha = 0.08f) else Color.Transparent)
+                            .clickable {
+                                selectedVideoIds = if (isSelected) {
+                                    selectedVideoIds - video.id
+                                } else {
+                                    selectedVideoIds + video.id
                                 }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            VideoThumbnailView(
-                                video = video,
-                                modifier = Modifier
-                                    .size(64.dp, 40.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = video.title,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                    maxLines = 1,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = video.folderName,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1
-                                )
                             }
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = { checked ->
+                                selectedVideoIds = if (checked) {
+                                    selectedVideoIds + video.id
+                                } else {
+                                    selectedVideoIds - video.id
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        VideoThumbnailView(
+                            video = video,
+                            modifier = Modifier
+                                .size(64.dp, 40.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = video.title,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                maxLines = 1,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = video.folderName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
                         }
+                    }
+                    if (index < availableVideos.lastIndex) {
+                        ListItemDivider(modifier = Modifier.padding(start = 148.dp, end = 16.dp))
                     }
                 }
             }
@@ -1213,7 +1194,7 @@ fun AddVideosScreen(
                             Brush.verticalGradient(
                                 listOf(
                                     Color.White.copy(alpha = 0.09f),
-                                    Color(0x2222D3EE),
+                                    NovaAccent.copy(alpha = 0.14f),
                                     Color(0x350B1020)
                                 )
                             )

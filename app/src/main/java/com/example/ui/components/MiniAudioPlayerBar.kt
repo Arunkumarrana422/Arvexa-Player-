@@ -132,19 +132,6 @@ fun MiniAudioPlayerContent(
                             .padding(start = 6.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val context = LocalContext.current
-                        var miniArtFailed by remember(song.id) { mutableStateOf(false) }
-                        val albumArtUri = remember(song.id, song.albumId) {
-                            if (song.albumId > 0) {
-                                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
-                            } else {
-                                null
-                            }
-                        }
-                        val miniGradient = remember(song.id, song.title) {
-                            getSongFallbackGradient(song.id, song.title)
-                        }
-
                         // Circular Album Art Thumbnail
                         Box(
                             modifier = Modifier
@@ -162,20 +149,23 @@ fun MiniAudioPlayerContent(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (!miniArtFailed && (albumArtUri != null || song.uri.isNotBlank() || song.dataPath.isNotBlank())) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(albumArtUri ?: song.uri.ifBlank { song.dataPath })
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
-                                    contentScale = ContentScale.Crop,
-                                    onError = { miniArtFailed = true }
-                                )
-                            }
+                            SongArtworkView(
+                                song = song,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop,
+                                placeholder = {
+                                    if (!isPlaying) {
+                                        Icon(
+                                            imageVector = Icons.Default.MusicNote,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            )
                             if (isPlaying) {
                                 Box(
                                     modifier = Modifier
@@ -189,13 +179,6 @@ fun MiniAudioPlayerContent(
                                         barColor = Color.White
                                     )
                                 }
-                            } else if (miniArtFailed || (albumArtUri == null && song.uri.isBlank() && song.dataPath.isBlank())) {
-                                Icon(
-                                    imageVector = Icons.Default.MusicNote,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(20.dp)
-                                )
                             }
                         }
 

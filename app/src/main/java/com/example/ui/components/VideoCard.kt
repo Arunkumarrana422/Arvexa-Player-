@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -75,12 +76,25 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.domain.model.Video
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
+import com.example.ui.theme.isNightMode
 import com.example.ui.theme.nightGlassBorder
 import com.example.ui.utils.shareFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 val HalfWatchedColor: Color get() = NovaAccent // Dynamically uses selected theme color
+
+@Composable
+fun ListItemDivider(
+    modifier: Modifier = Modifier
+) {
+    val isDark = isNightMode()
+    HorizontalDivider(
+        modifier = modifier,
+        thickness = 0.75.dp,
+        color = if (isDark) Color.White.copy(alpha = 0.09f) else Color(0xFFE5E7EB)
+    )
+}
 
 @Composable
 fun NowPlayingEqualizer(
@@ -431,25 +445,22 @@ fun VideoCard(
         else -> MaterialTheme.colorScheme.onSurface
     }
 
-    Card(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .testTag("video_card_${video.id}"),
-        shape = RoundedCornerShape(12.dp),
-        border = nightGlassBorder(isCurrentlyPlaying = isCurrentlyPlaying),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyPlaying) 1.5.dp else 1.dp)
+            .background(
+                if (isCurrentlyPlaying) NovaAccent.copy(alpha = 0.06f) else Color.Transparent
+            )
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = { showOptionsMenu = true }
+            )
+            .testTag("video_card_${video.id}")
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = { showOptionsMenu = true }
-                )
-                .padding(10.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Thumbnail Box with Duration Badge & Playing Indicator

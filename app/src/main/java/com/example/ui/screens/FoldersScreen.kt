@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -43,6 +43,7 @@ import com.example.domain.model.ViewMode
 import com.example.ui.components.EmptyStateView
 import com.example.ui.components.FolderCard
 import com.example.ui.components.FolderGridCard
+import com.example.ui.components.ListItemDivider
 import com.example.ui.components.VideoCard
 import com.example.ui.components.VideoGridCard
 import com.example.ui.theme.NovaAccent
@@ -165,10 +166,9 @@ fun FoldersScreen(
             } else if (viewMode == ViewMode.LIST) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
                 ) {
-                    items(sortedVideos, key = { it.id }) { video ->
+                    itemsIndexed(sortedVideos, key = { _, video -> video.id }) { index, video ->
                         VideoCard(
                             video = video,
                             onClick = { onPlayVideo(video, sortedVideos) },
@@ -180,6 +180,9 @@ fun FoldersScreen(
                             onShowInfo = { onShowVideoInfo(video) },
                             onDelete = { onDeleteVideo(video.id) }
                         )
+                        if (index < sortedVideos.lastIndex) {
+                            ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
+                        }
                     }
                 }
             } else {
@@ -219,10 +222,9 @@ fun FoldersScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag("folders_screen"),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
             ) {
-                items(folders, key = { it.name }) { folder ->
+                itemsIndexed(folders, key = { _, folder -> folder.name }) { index, folder ->
                     val isFolderPlaying = isPlaying && folder.videos.any { it.id == currentPlayingVideoId }
                     FolderCard(
                         folder = folder,
@@ -232,6 +234,9 @@ fun FoldersScreen(
                         playingPosMs = if (isFolderPlaying) currentPosMs else 0L,
                         playingDurMs = if (isFolderPlaying) durationMs else 0L
                     )
+                    if (index < folders.lastIndex) {
+                        ListItemDivider(modifier = Modifier.padding(start = 78.dp, end = 16.dp))
+                    }
                 }
             }
         } else {

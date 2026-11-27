@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.Video
 import com.example.ui.components.EmptyStateView
+import com.example.ui.components.ListItemDivider
 import com.example.ui.components.VideoCard
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
@@ -236,10 +237,9 @@ fun SearchScreen(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
                 ) {
-                    items(searchResults, key = { it.id }) { video ->
+                    itemsIndexed(searchResults, key = { _, video -> video.id }) { index, video ->
                         VideoCard(
                             video = video,
                             onClick = {
@@ -254,6 +254,9 @@ fun SearchScreen(
                             onShowInfo = { onShowVideoInfo(video) },
                             onDelete = { onDeleteVideo(video.id) }
                         )
+                        if (index < searchResults.lastIndex) {
+                            ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
+                        }
                     }
                 }
             }

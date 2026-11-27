@@ -173,21 +173,10 @@ class MediaPlaybackService : Service() {
         val nextPendingIntent = createActionPendingIntent(if (isVideoActive) "VIDEO_NEXT" else "ACTION_NEXT")
         val stopPendingIntent = createActionPendingIntent(if (isVideoActive) "VIDEO_STOP" else "ACTION_STOP")
 
-        val albumArtUri = if (song != null) {
-            ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
-        } else null
-
         val rawBitmap: Bitmap? = try {
-            if (albumArtUri != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    val source = android.graphics.ImageDecoder.createSource(contentResolver, albumArtUri)
-                    android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                        decoder.isMutableRequired = true
-                    }
-                } else {
-                    @Suppress("DEPRECATION")
-                    android.provider.MediaStore.Images.Media.getBitmap(contentResolver, albumArtUri)
-                }
+            if (song != null) {
+                com.example.ui.components.SongArtworkLoader.getCached(song.id)
+                    ?: com.example.ui.components.SongArtworkLoader.loadSync(this, song, maxDimension = 256)
             } else if (isVideoActive && video != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try {

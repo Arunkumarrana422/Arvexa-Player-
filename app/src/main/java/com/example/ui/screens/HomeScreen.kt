@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,14 +42,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlin.math.absoluteValue
 import com.example.ui.components.VideoThumbnailView
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -58,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -110,42 +117,67 @@ fun HomeScreen(
             .testTag("home_screen_content"),
         contentPadding = PaddingValues(bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
     ) {
-        // QUICK ACTION BUTTONS
+        // QUICK ACTION PILL BUTTONS (Horizontally scrollable, isolated from parent tab HorizontalPager)
         item {
-            Row(
+            val blockParentHorizontalScroll = remember {
+                object : NestedScrollConnection {
+                    override fun onPostScroll(
+                        consumed: Offset,
+                        available: Offset,
+                        source: NestedScrollSource
+                    ): Offset = Offset(x = available.x, y = 0f)
+
+                    override suspend fun onPostFling(
+                        consumed: Velocity,
+                        available: Velocity
+                    ): Velocity = Velocity(x = available.x, y = 0f)
+                }
+            }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .nestedScroll(blockParentHorizontalScroll)
             ) {
-                QuickActionButton(
-                    icon = Icons.Default.LibraryMusic,
-                    label = "Music Player",
-                    gradient = listOf(NovaPrimary, NovaSecondary),
-                    onClick = onNavigateToMusic,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionButton(
-                    icon = Icons.Default.History,
-                    label = "Recent",
-                    gradient = listOf(Color(0xFF06B6D4), Color(0xFF3B82F6)),
-                    onClick = onNavigateToHistory,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionButton(
-                    icon = Icons.Default.Folder,
-                    label = "Folders",
-                    gradient = listOf(NovaSecondary, NovaAccent),
-                    onClick = onNavigateToFolders,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionButton(
-                    icon = Icons.Default.Favorite,
-                    label = "Favorites",
-                    gradient = listOf(Color(0xFFE11D48), Color(0xFFF43F5E)),
-                    onClick = onNavigateToFavorites,
-                    modifier = Modifier.weight(1f)
-                )
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    item {
+                        QuickActionButton(
+                            icon = Icons.Default.LibraryMusic,
+                            label = "Music Player",
+                            gradient = listOf(NovaPrimary, NovaSecondary),
+                            onClick = onNavigateToMusic
+                        )
+                    }
+                    item {
+                        QuickActionButton(
+                            icon = Icons.Default.History,
+                            label = "Recent",
+                            gradient = listOf(Color(0xFF06B6D4), Color(0xFF3B82F6)),
+                            onClick = onNavigateToHistory
+                        )
+                    }
+                    item {
+                        QuickActionButton(
+                            icon = Icons.Default.Folder,
+                            label = "Folders",
+                            gradient = listOf(NovaSecondary, NovaAccent),
+                            onClick = onNavigateToFolders
+                        )
+                    }
+                    item {
+                        QuickActionButton(
+                            icon = Icons.Default.Favorite,
+                            label = "Favorites",
+                            gradient = listOf(Color(0xFFE11D48), Color(0xFFF43F5E)),
+                            onClick = onNavigateToFavorites
+                        )
+                    }
+                }
             }
         }
 
@@ -256,19 +288,21 @@ fun HomeScreen(
                 )
             }
 
-            items(recentVideos.take(6)) { video ->
-                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    VideoCard(
-                        video = video,
-                        onClick = { onPlayVideo(video, recentVideos) },
-                        isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
-                        isLatestPlayed = (video.id == latestPlayedVideoId),
-                        currentPosMs = currentPosMs,
-                        onToggleFavorite = { onToggleFavorite(video) },
-                        onAddToPlaylist = { onAddToPlaylist(video) },
-                        onShowInfo = { onShowVideoInfo(video) },
-                        onDelete = { onDeleteVideo(video.id) }
-                    )
+            val previewVideos = recentVideos.take(6)
+            itemsIndexed(previewVideos, key = { _, video -> video.id }) { index, video ->
+                VideoCard(
+                    video = video,
+                    onClick = { onPlayVideo(video, recentVideos) },
+                    isCurrentlyPlaying = (currentPlayingVideoId == video.id && isPlaying),
+                    isLatestPlayed = (video.id == latestPlayedVideoId),
+                    currentPosMs = currentPosMs,
+                    onToggleFavorite = { onToggleFavorite(video) },
+                    onAddToPlaylist = { onAddToPlaylist(video) },
+                    onShowInfo = { onShowVideoInfo(video) },
+                    onDelete = { onDeleteVideo(video.id) }
+                )
+                if (index < previewVideos.lastIndex) {
+                    com.example.ui.components.ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
                 }
             }
         }
@@ -312,40 +346,39 @@ private fun QuickActionButton(
     Card(
         onClick = onClick,
         modifier = modifier
+            .height(40.dp)
             .testTag("quick_action_$label"),
-        shape = RoundedCornerShape(12.dp),
+        shape = CircleShape,
         border = nightGlassBorder(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(start = 5.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(30.dp)
+                    .clip(CircleShape)
                     .background(Brush.linearGradient(gradient), shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null,
+                    contentDescription = label,
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.width(7.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                fontSize = 12.5.sp,
+                maxLines = 1
             )
         }
     }

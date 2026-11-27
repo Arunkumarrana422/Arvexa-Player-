@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.Video
 import com.example.ui.components.EmptyStateView
+import com.example.ui.components.ListItemDivider
 import com.example.ui.components.VideoCard
 import com.example.ui.theme.NovaAccent
 import com.example.ui.theme.NovaPrimary
@@ -100,10 +101,9 @@ fun FavoritesScreen(
             }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
             ) {
-                items(favorites, key = { it.id }) { video ->
+                itemsIndexed(favorites, key = { _, video -> video.id }) { index, video ->
                     VideoCard(
                         video = video,
                         onClick = { onPlayVideo(video, favorites) },
@@ -115,6 +115,9 @@ fun FavoritesScreen(
                         onShowInfo = { onShowVideoInfo(video) },
                         onDelete = { onToggleFavorite(video) }
                     )
+                    if (index < favorites.lastIndex) {
+                        ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
+                    }
                 }
             }
         }
@@ -171,10 +174,9 @@ fun HistoryScreen(
             }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(top = 6.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
             ) {
-                items(history, key = { it.id }) { video ->
+                itemsIndexed(history, key = { _, video -> video.id }) { index, video ->
                     VideoCard(
                         video = video,
                         onClick = { onPlayVideo(video, history) },
@@ -186,6 +188,9 @@ fun HistoryScreen(
                         onShowInfo = { onShowVideoInfo(video) },
                         onDelete = { onRemoveFromHistory(video.id) }
                     )
+                    if (index < history.lastIndex) {
+                        ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
+                    }
                 }
             }
         }

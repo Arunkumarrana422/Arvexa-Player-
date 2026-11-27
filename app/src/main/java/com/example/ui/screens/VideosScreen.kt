@@ -7,7 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -16,6 +17,7 @@ import com.example.domain.model.SortOption
 import com.example.domain.model.Video
 import com.example.domain.model.ViewMode
 import com.example.ui.components.EmptyStateView
+import com.example.ui.components.ListItemDivider
 import com.example.ui.components.VideoCard
 import com.example.ui.components.VideoGridCard
 
@@ -61,10 +63,9 @@ fun VideosScreen(
         } else if (viewMode == ViewMode.LIST) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(top = 4.dp, bottom = if (isMiniPlayerActive) 86.dp else 24.dp)
             ) {
-                items(videos, key = { it.id }) { video ->
+                itemsIndexed(videos, key = { _, video -> video.id }) { index, video ->
                     VideoCard(
                         video = video,
                         onClick = { onPlayVideo(video, videos) },
@@ -76,6 +77,9 @@ fun VideosScreen(
                         onShowInfo = { onShowVideoInfo(video) },
                         onDelete = { onDeleteVideo(video.id) }
                     )
+                    if (index < videos.lastIndex) {
+                        ListItemDivider(modifier = Modifier.padding(start = 158.dp, end = 16.dp))
+                    }
                 }
             }
         } else {

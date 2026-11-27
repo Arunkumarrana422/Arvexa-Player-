@@ -1,7 +1,5 @@
 package com.example.ui.components
 
-import android.content.ContentUris
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -24,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.domain.model.Song
 import com.example.domain.model.Video
 import com.example.player.AudioPlayerManager
@@ -52,10 +50,6 @@ fun IosMusicWidgetView(
     var dragPosition by remember { mutableFloatStateOf(0f) }
 
     val sliderPosition = if (isDragging) dragPosition else currentPositionMs.toFloat()
-
-    val albumArtUri = remember(currentSong.albumId) {
-        ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), currentSong.albumId)
-    }
 
     Card(
         onClick = onExpand,
@@ -87,11 +81,19 @@ fun IosMusicWidgetView(
                         .background(Color(0xFF232A38)),
                     contentAlignment = Alignment.Center
                 ) {
-                    AsyncImage(
-                        model = albumArtUri,
-                        contentDescription = "Album Art",
+                    SongArtworkView(
+                        song = currentSong,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        contentDescription = "Album Art",
+                        placeholder = {
+                            Icon(
+                                imageVector = Icons.Default.MusicNote,
+                                contentDescription = null,
+                                tint = Color.White.copy(alpha = 0.5f),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     )
                 }
 

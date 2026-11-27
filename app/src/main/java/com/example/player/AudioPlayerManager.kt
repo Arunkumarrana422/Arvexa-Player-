@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AudioPlayerManager(private val context: Context) {
     var isAppInForeground = true
@@ -218,28 +219,14 @@ class AudioPlayerManager(private val context: Context) {
                 .build()
         )
 
-        val albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), song.albumId)
-        val rawBitmap = try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = android.graphics.ImageDecoder.createSource(context.contentResolver, albumArtUri)
-                android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                    decoder.isMutableRequired = true
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                android.provider.MediaStore.Images.Media.getBitmap(context.contentResolver, albumArtUri)
-            }
-        } catch (_: Exception) {
-            null
-        }
-
-        val bitmap: Bitmap? = if (rawBitmap != null) {
+        val cachedBitmap = com.example.ui.components.SongArtworkLoader.getCached(song.id)
+        val bitmap: Bitmap? = cachedBitmap?.let {
             try {
-                Bitmap.createScaledBitmap(rawBitmap, 128, 128, true)
+                Bitmap.createScaledBitmap(it, 128, 128, true)
             } catch (_: Exception) {
                 null
             }
-        } else null
+        }
 
         val metadataBuilder = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
@@ -256,6 +243,38 @@ class AudioPlayerManager(private val context: Context) {
         mediaSession.setMetadata(metadataBuilder.build())
 
         MediaPlaybackService.updateNotification(context)
+
+        if (cachedBitmap == null && !com.example.ui.components.SongArtworkLoader.hasNoArtwork(song.id)) {
+            scope.launch(Dispatchers.IO) {
+                val loaded = com.example.ui.components.SongArtworkLoader.loadSync(context, song)
+                if (loaded != null && _currentSong.value?.id == song.id) {
+                    val scaled = try {
+                        Bitmap.createScaledBitmap(loaded, 128, 128, true)
+                    } catch (_: Exception) {
+                        null
+                    }
+                    if (scaled != null) {
+                        withContext(Dispatchers.Main) {
+                            if (_currentSong.value?.id == song.id) {
+                                mediaSession.setMetadata(
+                                    MediaMetadataCompat.Builder()
+                                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
+                                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
+                                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.album)
+                                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, song.title)
+                                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, song.artist)
+                                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, song.album)
+                                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.durationMs)
+                                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, scaled)
+                                        .build()
+                                )
+                                MediaPlaybackService.updateNotification(context)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun createActionPendingIntent(action: String): PendingIntent {
